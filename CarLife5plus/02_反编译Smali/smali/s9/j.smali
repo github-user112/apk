@@ -1,0 +1,104 @@
+.class public final Ls9/j;
+.super Ljava/lang/Object;
+
+# interfaces
+.implements Lf9/a;
+
+
+# instance fields
+.field public final synthetic a:I
+
+.field public final b:Ls9/k;
+
+
+# direct methods
+.method public synthetic constructor <init>(Ls9/k;I)V
+    .locals 0
+
+    .line 1
+    iput p2, p0, Ls9/j;->a:I
+
+    .line 2
+    .line 3
+    iput-object p1, p0, Ls9/j;->b:Ls9/k;
+
+    .line 4
+    .line 5
+    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
+
+    .line 6
+    .line 7
+    .line 8
+    return-void
+.end method
+
+
+# virtual methods
+.method public final invoke()Ljava/lang/Object;
+    .locals 2
+
+    .line 1
+    iget v0, p0, Ls9/j;->a:I
+
+    .line 2
+    .line 3
+    packed-switch v0, :pswitch_data_0
+
+    .line 4
+    .line 5
+    .line 6
+    sget-object v0, Ls9/p;->k:Lua/c;
+
+    .line 7
+    .line 8
+    iget-object v1, p0, Ls9/j;->b:Ls9/k;
+
+    .line 9
+    .line 10
+    iget-object v1, v1, Ls9/k;->b:Lua/e;
+
+    .line 11
+    .line 12
+    invoke-virtual {v0, v1}, Lua/c;->a(Lua/e;)Lua/c;
+
+    .line 13
+    .line 14
+    .line 15
+    move-result-object v0
+
+    .line 16
+    return-object v0
+
+    .line 17
+    :pswitch_0
+    sget-object v0, Ls9/p;->k:Lua/c;
+
+    .line 18
+    .line 19
+    iget-object v1, p0, Ls9/j;->b:Ls9/k;
+
+    .line 20
+    .line 21
+    iget-object v1, v1, Ls9/k;->a:Lua/e;
+
+    .line 22
+    .line 23
+    invoke-virtual {v0, v1}, Lua/c;->a(Lua/e;)Lua/c;
+
+    .line 24
+    .line 25
+    .line 26
+    move-result-object v0
+
+    .line 27
+    return-object v0
+
+    .line 28
+    nop
+
+    .line 29
+    :pswitch_data_0
+    .packed-switch 0x0
+        :pswitch_0
+    .end packed-switch
+.end method

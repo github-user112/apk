@@ -1,0 +1,34 @@
+.class public final synthetic Lf/a/k/l0/u0;
+.super Ljava/lang/Object;
+.source "lambda"
+
+# interfaces
+.implements Lnet/easyconn/ui/widget/EcEditText$a;
+
+
+# instance fields
+.field public final synthetic a:Lf/a/k/l0/p3;
+
+
+# direct methods
+.method public synthetic constructor <init>(Lf/a/k/l0/p3;)V
+    .locals 0
+
+    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
+
+    iput-object p1, p0, Lf/a/k/l0/u0;->a:Lf/a/k/l0/p3;
+
+    return-void
+.end method
+
+
+# virtual methods
+.method public final a(II)V
+    .locals 1
+
+    iget-object v0, p0, Lf/a/k/l0/u0;->a:Lf/a/k/l0/p3;
+
+    invoke-virtual {v0, p1, p2}, Lf/a/k/l0/p3;->U(II)V
+
+    return-void
+.end method

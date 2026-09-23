@@ -1,0 +1,6 @@
+package com.baidu.carlife.protobuf;
+message CarlifeMediaProgressBar
+{
+    required int32 progressBar = 1;
+    optional string mediaLyric = 2;
+}

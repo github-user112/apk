@@ -1,0 +1,563 @@
+--------- beginning of /dev/log/main
+09-21 13:22:39.733 D/AndroidRuntime( 5033): 
+09-21 13:22:39.733 D/AndroidRuntime( 5033): >>>>>> AndroidRuntime START com.android.internal.os.RuntimeInit <<<<<<
+09-21 13:22:39.733 D/AndroidRuntime( 5033): CheckJNI is OFF
+09-21 13:22:39.737 D/dalvikvm( 5033): Trying to load lib libjavacore.so 0x0
+09-21 13:22:39.737 D/dalvikvm( 5033): Added shared lib libjavacore.so 0x0
+09-21 13:22:39.737 D/dalvikvm( 5033): Trying to load lib libnativehelper.so 0x0
+09-21 13:22:39.737 D/dalvikvm( 5033): Added shared lib libnativehelper.so 0x0
+09-21 13:22:39.737 D/dalvikvm( 5033): No JNI_OnLoad found in libnativehelper.so 0x0, skipping init
+09-21 13:22:39.749 D/dalvikvm( 5033): Note: class Landroid/app/ActivityManagerNative; has 180 unimplemented (abstract) methods
+09-21 13:22:39.801 E/memtrack( 5033): Couldn't load memtrack module (No such file or directory)
+09-21 13:22:39.801 E/android.os.Debug( 5033): failed to load memtrack module: -2
+09-21 13:22:39.817 D/AndroidRuntime( 5033): Calling main entry com.android.commands.am.Am
+--------- beginning of /dev/log/system
+09-21 13:22:39.821 I/ActivityManager( 2134): START u0 {flg=0x10000000 cmp=com.baidu.carlifevehicle/.CarlifeActivity} from pid 5033
+09-21 13:22:39.845 D/dalvikvm( 2134): GC_FOR_ALLOC freed 247K, 33% free 6028K/8996K, paused 9ms, total 9ms
+09-21 13:22:39.853 D/dalvikvm( 2134): GC_CONCURRENT freed 32K, 26% free 6713K/8996K, paused 1ms+1ms, total 8ms
+09-21 13:22:40.017 D/        ( 2134): HostConnection::get() New Host Connection established 0x80bf1020, tid 2293
+09-21 13:22:40.037 D/dalvikvm( 2295): GC_CONCURRENT freed 392K, 15% free 3060K/3588K, paused 0ms+0ms, total 2ms
+09-21 13:22:40.053 D/dalvikvm( 2134): GC_FOR_ALLOC freed 1K, 26% free 6713K/8996K, paused 6ms, total 6ms
+09-21 13:22:40.053 I/dalvikvm-heap( 2134): Grow heap (frag case) to 6.868MB for 271472-byte allocation
+09-21 13:22:40.061 D/dalvikvm( 2134): GC_FOR_ALLOC freed <1K, 25% free 6978K/9264K, paused 8ms, total 8ms
+09-21 13:22:40.069 D/dalvikvm( 2134): GC_FOR_ALLOC freed 266K, 28% free 6716K/9264K, paused 5ms, total 5ms
+09-21 13:22:40.077 D/AndroidRuntime( 5033): Shutting down VM
+09-21 13:22:40.081 D/dalvikvm( 5033): GC_CONCURRENT freed 94K, 15% free 577K/672K, paused 0ms+0ms, total 1ms
+09-21 13:22:40.081 I/Zygote  ( 5044): fake Product info com.baidu.carlifevehicle not matched any pattern
+09-21 13:22:40.093 I/ActivityManager( 2134): Start proc com.baidu.carlifevehicle for activity com.baidu.carlifevehicle/.CarlifeActivity: pid=5044 uid=10046 gids={50046, 3003, 3002, 3001, 1028, 1015, 1023}
+09-21 13:22:40.101 I/MultiDex( 5044): VM with version 1.6.0 does not have multidex support
+09-21 13:22:40.101 I/MultiDex( 5044): Installing application
+09-21 13:22:40.101 I/MultiDex( 5044): MultiDexExtractor(/data/app/com.baidu.carlifevehicle-2.apk, /data/data/com.baidu.carlifevehicle/code_cache/secondary-dexes)
+09-21 13:22:40.101 I/MultiDex( 5044): Blocking on lock /data/data/com.baidu.carlifevehicle/code_cache/secondary-dexes/MultiDex.lock
+09-21 13:22:40.101 I/MultiDex( 5044): /data/data/com.baidu.carlifevehicle/code_cache/secondary-dexes/MultiDex.lock locked
+09-21 13:22:40.101 I/MultiDex( 5044): MultiDexExtractor.load(/data/app/com.baidu.carlifevehicle-2.apk, false, )
+09-21 13:22:40.101 I/MultiDex( 5044): Detected that extraction must be performed.
+09-21 13:22:40.121 D/dalvikvm( 5044): GC_CONCURRENT freed 177K, 8% free 3062K/3296K, paused 1ms+1ms, total 4ms
+09-21 13:22:40.125 I/MultiDex( 5044): load found 0 secondary dex files
+09-21 13:22:40.125 I/MultiDex( 5044): install done
+09-21 13:22:40.125 I/MultiDex( 5044): Installing application
+09-21 13:22:40.125 I/MultiDex( 5044): install done
+09-21 13:22:40.133 D/CarLife_SDK( 5044): VehicleApplication initReceiver 1440, 810 DisplaySpec(context=com.baidu.carlifevehicle.VehicleApplication@217110fc, width=1440, height=810, frameRate=60)
+09-21 13:22:40.133 I/dalvikvm( 5044): Could not find method android.app.Application.getProcessName, referenced from method a.a.a.a.m.b.a
+09-21 13:22:40.133 W/dalvikvm( 5044): VFY: unable to resolve static method 2124: Landroid/app/Application;.getProcessName ()Ljava/lang/String;
+09-21 13:22:40.133 D/dalvikvm( 5044): VFY: replacing opcode 0x71 at 0x002e
+09-21 13:22:40.133 I/dalvikvm( 5044): Could not find method android.content.Context.startForegroundService, referenced from method a.a.a.a.m.b.a
+09-21 13:22:40.133 W/dalvikvm( 5044): VFY: unable to resolve virtual method 2269: Landroid/content/Context;.startForegroundService (Landroid/content/Intent;)Landroid/content/ComponentName;
+09-21 13:22:40.133 D/dalvikvm( 5044): VFY: replacing opcode 0x6e at 0x00cc
+09-21 13:22:40.137 I/dalvikvm( 5044): Could not find method android.media.MediaCodec.setOutputSurface, referenced from method a.a.a.a.m.d.e0
+09-21 13:22:40.137 W/dalvikvm( 5044): VFY: unable to resolve virtual method 2789: Landroid/media/MediaCodec;.setOutputSurface (Landroid/view/Surface;)V
+09-21 13:22:40.137 D/dalvikvm( 5044): VFY: replacing opcode 0x6e at 0x00a8
+09-21 13:22:40.137 I/dalvikvm( 5044): Could not find method android.media.AudioManager.abandonAudioFocusRequest, referenced from method a.a.a.a.a.h.a.b
+09-21 13:22:40.137 W/dalvikvm( 5044): VFY: unable to resolve virtual method 2754: Landroid/media/AudioManager;.abandonAudioFocusRequest (Landroid/media/AudioFocusRequest;)I
+09-21 13:22:40.137 D/dalvikvm( 5044): VFY: replacing opcode 0x6e at 0x000e
+09-21 13:22:40.137 E/dalvikvm( 5044): Could not find class 'android.media.AudioFocusRequest$Builder', referenced from method a.a.a.a.a.h.a.c
+09-21 13:22:40.137 W/dalvikvm( 5044): VFY: unable to resolve new-instance 622 (Landroid/media/AudioFocusRequest$Builder;) in La/a/a/a/a/h/a;
+09-21 13:22:40.137 D/dalvikvm( 5044): VFY: replacing opcode 0x22 at 0x0006
+09-21 13:22:40.137 D/dalvikvm( 5044): DexOpt: unable to opt direct call 0x0ab7 at 0x0a in La/a/a/a/a/h/a;.c
+09-21 13:22:40.137 D/dalvikvm( 5044): DexOpt: unable to opt direct call 0x0ab3 at 0x0f in La/a/a/a/a/h/a;.c
+09-21 13:22:40.145 D/CarLife_SDK( 5044): CarLifeContextImpl monitor listener count 1
+09-21 13:22:40.145 D/CarLife_SDK( 5044): CarLifeContextImpl monitor listener count 2
+09-21 13:22:40.145 D/CarLife_SDK( 5044): CarLifeContextImpl monitor listener count 3
+09-21 13:22:40.145 D/CarLife_SDK( 5044): CarLifeContextImpl monitor listener count 4
+09-21 13:22:40.145 D/CarLife_SDK( 5044): CarLifeContextImpl monitor listener count 5
+09-21 13:22:40.145 D/CarLife_SDK( 5044): CarLifeContextImpl monitor listener count 6
+09-21 13:22:40.145 D/CarLife_SDK( 5044): CarLifeContextImpl monitor listener count 7
+09-21 13:22:40.145 D/CarLife_SDK( 5044): CarLifeContextImpl monitor listener count 8
+09-21 13:22:40.149 D/CarLife_SDK( 5044): CarLifeContextImpl monitor listener count 9
+09-21 13:22:40.149 D/CarLife_SDK( 5044): CarLifeContextImpl monitor listener count 10
+09-21 13:22:40.149 D/CarLife_SDK( 5044): CarLifeContextImpl monitor listener count 11
+09-21 13:22:40.149 D/CarLife_SDK( 5044): CarLifeContextImpl monitor listener count 12
+09-21 13:22:40.149 D/CarLife_SDK( 5044): CarLifeContextImpl monitor listener count 13
+09-21 13:22:40.153 D/dalvikvm( 5044): GC_CONCURRENT freed 456K, 15% free 2991K/3500K, paused 2ms+0ms, total 4ms
+09-21 13:22:40.153 D/CarLife_SDK( 5044): CarLifeContextImpl monitor listener count 14
+09-21 13:22:40.157 W/CarLife_SDK( 5044): carlife sdk version: 2.2.2
+09-21 13:22:40.157 D/CarLife_SDK( 5044): CarLifeContextImpl monitor listener count 15
+09-21 13:22:40.157 D/CarLife_SDK( 5044): CarLifeContextImpl monitor listener count 16
+09-21 13:22:40.157 D/CarLife_SDK( 5044): CarLifeContextImpl monitor listener count 17
+09-21 13:22:40.157 D/CarLife_SDK( 5044): CarLifeContextImpl monitor listener count 18
+09-21 13:22:40.157 I/dalvikvm( 5044): Could not find method android.view.Window.getInsetsController, referenced from method com.baidu.carlifevehicle.CarlifeActivity.a1
+09-21 13:22:40.157 W/dalvikvm( 5044): VFY: unable to resolve virtual method 3671: Landroid/view/Window;.getInsetsController ()Landroid/view/WindowInsetsController;
+09-21 13:22:40.157 D/dalvikvm( 5044): VFY: replacing opcode 0x6e at 0x00f3
+09-21 13:22:40.165 I/dalvikvm( 5044): Could not find method android.app.Activity.onRequestPermissionsResult, referenced from method androidx.activity.ComponentActivity.onRequestPermissionsResult
+09-21 13:22:40.165 W/dalvikvm( 5044): VFY: unable to resolve virtual method 2083: Landroid/app/Activity;.onRequestPermissionsResult (I[Ljava/lang/String;[I)V
+09-21 13:22:40.165 D/dalvikvm( 5044): VFY: replacing opcode 0x6f at 0x0020
+09-21 13:22:40.165 I/dalvikvm( 5044): Could not find method android.app.Activity.shouldShowRequestPermissionRationale, referenced from method b.h.b.p$a.h
+09-21 13:22:40.165 W/dalvikvm( 5044): VFY: unable to resolve virtual method 2104: Landroid/app/Activity;.shouldShowRequestPermissionRationale (Ljava/lang/String;)Z
+09-21 13:22:40.165 D/dalvikvm( 5044): VFY: replacing opcode 0x6e at 0x000a
+09-21 13:22:40.165 I/dalvikvm( 5044): Could not find method android.widget.TextView.getTextMetricsParams, referenced from method b.e.b.g.E
+09-21 13:22:40.165 W/dalvikvm( 5044): VFY: unable to resolve virtual method 4443: Landroid/widget/TextView;.getTextMetricsParams ()Landroid/text/PrecomputedText$Params;
+09-21 13:22:40.165 D/dalvikvm( 5044): VFY: replacing opcode 0x6e at 0x0008
+09-21 13:22:40.165 I/dalvikvm( 5044): Could not find method android.widget.TextView.getBreakStrategy, referenced from method b.e.b.g.E
+09-21 13:22:40.165 W/dalvikvm( 5044): VFY: unable to resolve virtual method 4411: Landroid/widget/TextView;.getBreakStrategy ()I
+09-21 13:22:40.165 D/dalvikvm( 5044): VFY: replacing opcode 0x6e at 0x0030
+09-21 13:22:40.165 I/dalvikvm( 5044): Could not find method android.icu.text.DecimalFormatSymbols.getInstance, referenced from method b.e.b.g.E
+09-21 13:22:40.165 W/dalvikvm( 5044): VFY: unable to resolve static method 2733: Landroid/icu/text/DecimalFormatSymbols;.getInstance (Ljava/util/Locale;)Landroid/icu/text/DecimalFormatSymbols;
+09-21 13:22:40.165 D/dalvikvm( 5044): VFY: replacing opcode 0x71 at 0x0055
+09-21 13:22:40.165 I/dalvikvm( 5044): Could not find method android.os.Trace.isEnabled, referenced from method b.e.b.g.H
+09-21 13:22:40.165 W/dalvikvm( 5044): VFY: unable to resolve static method 2981: Landroid/os/Trace;.isEnabled ()Z
+09-21 13:22:40.165 D/dalvikvm( 5044): VFY: replacing opcode 0x71 at 0x0004
+09-21 13:22:40.169 I/dalvikvm( 5044): Could not find method android.view.ViewParent.onNestedFling, referenced from method b.e.b.g.M
+09-21 13:22:40.169 W/dalvikvm( 5044): VFY: unable to resolve interface method 3618: Landroid/view/ViewParent;.onNestedFling (Landroid/view/View;FFZ)Z
+09-21 13:22:40.169 D/dalvikvm( 5044): VFY: replacing opcode 0x72 at 0x0006
+09-21 13:22:40.169 I/dalvikvm( 5044): Could not find method android.view.ViewParent.onNestedPreFling, referenced from method b.e.b.g.N
+09-21 13:22:40.169 W/dalvikvm( 5044): VFY: unable to resolve interface method 3619: Landroid/view/ViewParent;.onNestedPreFling (Landroid/view/View;FF)Z
+09-21 13:22:40.169 D/dalvikvm( 5044): VFY: replacing opcode 0x72 at 0x0006
+09-21 13:22:40.169 I/dalvikvm( 5044): Could not find method android.view.ViewParent.onNestedPreScroll, referenced from method b.e.b.g.O
+09-21 13:22:40.169 W/dalvikvm( 5044): VFY: unable to resolve interface method 3620: Landroid/view/ViewParent;.onNestedPreScroll (Landroid/view/View;II[I)V
+09-21 13:22:40.169 D/dalvikvm( 5044): VFY: replacing opcode 0x72 at 0x0018
+09-21 13:22:40.169 I/dalvikvm( 5044): Could not find method android.view.ViewParent.onNestedScroll, referenced from method b.e.b.g.P
+09-21 13:22:40.169 W/dalvikvm( 5044): VFY: unable to resolve interface method 3621: Landroid/view/ViewParent;.onNestedScroll (Landroid/view/View;IIII)V
+09-21 13:22:40.169 D/dalvikvm( 5044): VFY: replacing opcode 0x78 at 0x003a
+09-21 13:22:40.169 I/dalvikvm( 5044): Could not find method android.content.res.TypedArray.getType, referenced from method b.e.b.g.S
+09-21 13:22:40.169 W/dalvikvm( 5044): VFY: unable to resolve virtual method 2450: Landroid/content/res/TypedArray;.getType (I)I
+09-21 13:22:40.169 D/dalvikvm( 5044): VFY: replacing opcode 0x6e at 0x0025
+09-21 13:22:40.169 I/dalvikvm( 5044): Could not find method android.widget.TextView.setFirstBaselineToTopHeight, referenced from method b.e.b.g.W
+09-21 13:22:40.169 W/dalvikvm( 5044): VFY: unable to resolve virtual method 4482: Landroid/widget/TextView;.setFirstBaselineToTopHeight (I)V
+09-21 13:22:40.169 D/dalvikvm( 5044): VFY: replacing opcode 0x6e at 0x0009
+09-21 13:22:40.169 I/dalvikvm( 5044): Could not find method android.graphics.drawable.Drawable.setHotspot, referenced from method b.e.b.g.X
+09-21 13:22:40.169 W/dalvikvm( 5044): VFY: unable to resolve virtual method 2671: Landroid/graphics/drawable/Drawable;.setHotspot (FF)V
+09-21 13:22:40.169 D/dalvikvm( 5044): VFY: replacing opcode 0x6e at 0x0006
+09-21 13:22:40.169 I/dalvikvm( 5044): Could not find method android.graphics.drawable.Drawable.setHotspotBounds, referenced from method b.e.b.g.Y
+09-21 13:22:40.169 W/dalvikvm( 5044): VFY: unable to resolve virtual method 2672: Landroid/graphics/drawable/Drawable;.setHotspotBounds (IIII)V
+09-21 13:22:40.169 D/dalvikvm( 5044): VFY: replacing opcode 0x6e at 0x0006
+09-21 13:22:40.169 I/dalvikvm( 5044): Could not find method android.graphics.drawable.Drawable.applyTheme, referenced from method b.e.b.g.a
+09-21 13:22:40.169 W/dalvikvm( 5044): VFY: unable to resolve virtual method 2622: Landroid/graphics/drawable/Drawable;.applyTheme (Landroid/content/res/Resources$Theme;)V
+09-21 13:22:40.169 D/dalvikvm( 5044): VFY: replacing opcode 0x6e at 0x0006
+09-21 13:22:40.169 I/dalvikvm( 5044): Could not find method android.graphics.drawable.Drawable.setLayoutDirection, referenced from method b.e.b.g.a0
+09-21 13:22:40.169 W/dalvikvm( 5044): VFY: unable to resolve virtual method 2673: Landroid/graphics/drawable/Drawable;.setLayoutDirection (I)Z
+09-21 13:22:40.169 D/dalvikvm( 5044): VFY: replacing opcode 0x6e at 0x0006
+09-21 13:22:40.169 I/dalvikvm( 5044): Could not find method android.widget.PopupWindow.setOverlapAnchor, referenced from method b.e.b.g.c0
+09-21 13:22:40.169 W/dalvikvm( 5044): VFY: unable to resolve virtual method 4290: Landroid/widget/PopupWindow;.setOverlapAnchor (Z)V
+09-21 13:22:40.169 D/dalvikvm( 5044): VFY: replacing opcode 0x6e at 0x0006
+09-21 13:22:40.169 I/dalvikvm( 5044): Could not find method android.graphics.drawable.Drawable.canApplyTheme, referenced from method b.e.b.g.e
+09-21 13:22:40.169 W/dalvikvm( 5044): VFY: unable to resolve virtual method 2623: Landroid/graphics/drawable/Drawable;.canApplyTheme ()Z
+09-21 13:22:40.169 D/dalvikvm( 5044): VFY: replacing opcode 0x6e at 0x0006
+09-21 13:22:40.169 I/dalvikvm( 5044): Could not find method android.graphics.drawable.Drawable.setTint, referenced from method b.e.b.g.e0
+09-21 13:22:40.169 W/dalvikvm( 5044): VFY: unable to resolve virtual method 2676: Landroid/graphics/drawable/Drawable;.setTint (I)V
+09-21 13:22:40.169 D/dalvikvm( 5044): VFY: replacing opcode 0x6e at 0x0006
+09-21 13:22:40.169 I/dalvikvm( 5044): Could not find method android.graphics.drawable.Drawable.setTintList, referenced from method b.e.b.g.f0
+09-21 13:22:40.169 W/dalvikvm( 5044): VFY: unable to resolve virtual method 2677: Landroid/graphics/drawable/Drawable;.setTintList (Landroid/content/res/ColorStateList;)V
+09-21 13:22:40.169 D/dalvikvm( 5044): VFY: replacing opcode 0x6e at 0x0006
+09-21 13:22:40.169 I/dalvikvm( 5044): Could not find method android.graphics.drawable.Drawable.setTintMode, referenced from method b.e.b.g.g0
+09-21 13:22:40.169 W/dalvikvm( 5044): VFY: unable to resolve virtual method 2678: Landroid/graphics/drawable/Drawable;.setTintMode (Landroid/graphics/PorterDuff$Mode;)V
+09-21 13:22:40.169 D/dalvikvm( 5044): VFY: replacing opcode 0x6e at 0x0006
+09-21 13:22:40.169 I/dalvikvm( 5044): Could not find method android.app.AppOpsManager.permissionToOp, referenced from method b.e.b.g.i
+09-21 13:22:40.169 W/dalvikvm( 5044): VFY: unable to resolve static method 2119: Landroid/app/AppOpsManager;.permissionToOp (Ljava/lang/String;)Ljava/lang/String;
+09-21 13:22:40.169 D/dalvikvm( 5044): VFY: replacing opcode 0x71 at 0x001b
+09-21 13:22:40.169 I/dalvikvm( 5044): Could not find method android.content.Context.getSystemService, referenced from method b.e.b.g.i
+09-21 13:22:40.169 W/dalvikvm( 5044): VFY: unable to resolve virtual method 2254: Landroid/content/Context;.getSystemService (Ljava/lang/Class;)Ljava/lang/Object;
+09-21 13:22:40.169 D/dalvikvm( 5044): VFY: replacing opcode 0x6e at 0x003d
+09-21 13:22:40.169 I/dalvikvm( 5044): Could not find method android.widget.CompoundButton.getButtonDrawable, referenced from method b.e.b.g.y
+09-21 13:22:40.169 W/dalvikvm( 5044): VFY: unable to resolve virtual method 3910: Landroid/widget/CompoundButton;.getButtonDrawable ()Landroid/graphics/drawable/Drawable;
+09-21 13:22:40.169 D/dalvikvm( 5044): VFY: replacing opcode 0x6e at 0x0006
+09-21 13:22:40.181 I/dalvikvm( 5044): Could not find method android.content.res.Resources$Theme.rebase, referenced from method b.b.c.m.d
+09-21 13:22:40.181 W/dalvikvm( 5044): VFY: unable to resolve virtual method 2381: Landroid/content/res/Resources$Theme;.rebase ()V
+09-21 13:22:40.181 D/dalvikvm( 5044): VFY: replacing opcode 0x6e at 0x01af
+09-21 13:22:40.181 I/dalvikvm( 5044): Could not find method android.content.res.Configuration.getLocales, referenced from method b.b.c.m.d
+09-21 13:22:40.181 W/dalvikvm( 5044): VFY: unable to resolve virtual method 2371: Landroid/content/res/Configuration;.getLocales ()Landroid/os/LocaleList;
+09-21 13:22:40.181 D/dalvikvm( 5044): VFY: replacing opcode 0x6e at 0x0096
+09-21 13:22:40.181 D/dalvikvm( 5044): DexOpt: couldn't find field Landroid/content/res/Configuration;.colorMode
+09-21 13:22:40.181 W/dalvikvm( 5044): VFY: unable to resolve instance field 1044
+09-21 13:22:40.181 D/dalvikvm( 5044): VFY: replacing opcode 0x52 at 0x012a
+09-21 13:22:40.185 D/dalvikvm( 5044): DexOpt: couldn't find field Landroid/content/res/Configuration;.colorMode
+09-21 13:22:40.185 I/dalvikvm( 5044): DexOpt: unable to optimize instance field ref 0x0414 at 0x12e in Lb/b/c/m;.d
+09-21 13:22:40.185 D/dalvikvm( 5044): DexOpt: couldn't find field Landroid/content/res/Configuration;.colorMode
+09-21 13:22:40.185 I/dalvikvm( 5044): DexOpt: unable to optimize instance field ref 0x0414 at 0x134 in Lb/b/c/m;.d
+09-21 13:22:40.185 D/dalvikvm( 5044): DexOpt: couldn't find field Landroid/content/res/Configuration;.colorMode
+09-21 13:22:40.185 I/dalvikvm( 5044): DexOpt: unable to optimize instance field ref 0x0414 at 0x137 in Lb/b/c/m;.d
+09-21 13:22:40.185 D/dalvikvm( 5044): DexOpt: couldn't find field Landroid/content/res/Configuration;.colorMode
+09-21 13:22:40.185 I/dalvikvm( 5044): DexOpt: unable to optimize instance field ref 0x0414 at 0x139 in Lb/b/c/m;.d
+09-21 13:22:40.185 D/dalvikvm( 5044): DexOpt: couldn't find field Landroid/content/res/Configuration;.colorMode
+09-21 13:22:40.185 I/dalvikvm( 5044): DexOpt: unable to optimize instance field ref 0x0414 at 0x13d in Lb/b/c/m;.d
+09-21 13:22:40.185 D/dalvikvm( 5044): DexOpt: couldn't find field Landroid/content/res/Configuration;.colorMode
+09-21 13:22:40.185 I/dalvikvm( 5044): DexOpt: unable to optimize instance field ref 0x0414 at 0x143 in Lb/b/c/m;.d
+09-21 13:22:40.185 D/dalvikvm( 5044): DexOpt: couldn't find field Landroid/content/res/Configuration;.colorMode
+09-21 13:22:40.185 I/dalvikvm( 5044): DexOpt: unable to optimize instance field ref 0x0414 at 0x146 in Lb/b/c/m;.d
+09-21 13:22:40.189 I/dalvikvm( 5044): Could not find method android.graphics.drawable.Drawable.inflate, referenced from method b.b.h.p0$d.a
+09-21 13:22:40.189 W/dalvikvm( 5044): VFY: unable to resolve virtual method 2651: Landroid/graphics/drawable/Drawable;.inflate (Landroid/content/res/Resources;Lorg/xmlpull/v1/XmlPullParser;Landroid/util/AttributeSet;Landroid/content/res/Resources$Theme;)V
+09-21 13:22:40.189 D/dalvikvm( 5044): VFY: replacing opcode 0x6e at 0x002f
+09-21 13:22:40.189 I/dalvikvm( 5044): Could not find method android.app.Activity.requestPermissions, referenced from method b.a.g.c.a
+09-21 13:22:40.189 W/dalvikvm( 5044): VFY: unable to resolve virtual method 2097: Landroid/app/Activity;.requestPermissions ([Ljava/lang/String;I)V
+09-21 13:22:40.189 D/dalvikvm( 5044): VFY: replacing opcode 0x6e at 0x00b0
+09-21 13:22:40.193 I/dalvikvm( 5044): Could not find method android.view.Window$Callback.onProvideKeyboardShortcuts, referenced from method b.b.c.m$e.onProvideKeyboardShortcuts
+09-21 13:22:40.193 W/dalvikvm( 5044): VFY: unable to resolve interface method 3661: Landroid/view/Window$Callback;.onProvideKeyboardShortcuts (Ljava/util/List;Landroid/view/Menu;I)V
+09-21 13:22:40.193 D/dalvikvm( 5044): VFY: replacing opcode 0x72 at 0x000d
+09-21 13:22:40.193 I/dalvikvm( 5044): Could not find method android.view.Window$Callback.onProvideKeyboardShortcuts, referenced from method b.b.c.m$e.onProvideKeyboardShortcuts
+09-21 13:22:40.193 W/dalvikvm( 5044): VFY: unable to resolve interface method 3661: Landroid/view/Window$Callback;.onProvideKeyboardShortcuts (Ljava/util/List;Landroid/view/Menu;I)V
+09-21 13:22:40.193 D/dalvikvm( 5044): VFY: replacing opcode 0x72 at 0x0013
+09-21 13:22:40.193 I/dalvikvm( 5044): Could not find method android.view.Window$Callback.onWindowStartingActionMode, referenced from method b.b.c.m$e.onWindowStartingActionMode
+09-21 13:22:40.193 W/dalvikvm( 5044): VFY: unable to resolve interface method 3666: Landroid/view/Window$Callback;.onWindowStartingActionMode (Landroid/view/ActionMode$Callback;I)Landroid/view/ActionMode;
+09-21 13:22:40.193 D/dalvikvm( 5044): VFY: replacing opcode 0x72 at 0x0009
+09-21 13:22:40.193 I/dalvikvm( 5044): Could not find method android.view.Window$Callback.onPointerCaptureChanged, referenced from method b.b.g.h.onPointerCaptureChanged
+09-21 13:22:40.193 W/dalvikvm( 5044): VFY: unable to resolve interface method 3659: Landroid/view/Window$Callback;.onPointerCaptureChanged (Z)V
+09-21 13:22:40.193 D/dalvikvm( 5044): VFY: replacing opcode 0x72 at 0x0002
+09-21 13:22:40.193 W/dalvikvm( 5044): VFY: unable to find class referenced in signature (Landroid/view/SearchEvent;)
+09-21 13:22:40.193 I/dalvikvm( 5044): Could not find method android.view.Window$Callback.onSearchRequested, referenced from method b.b.g.h.onSearchRequested
+09-21 13:22:40.193 W/dalvikvm( 5044): VFY: unable to resolve interface method 3663: Landroid/view/Window$Callback;.onSearchRequested (Landroid/view/SearchEvent;)Z
+09-21 13:22:40.193 D/dalvikvm( 5044): VFY: replacing opcode 0x72 at 0x0002
+09-21 13:22:40.193 I/dalvikvm( 5044): Could not find method android.graphics.drawable.Drawable.getColorFilter, referenced from method b.n.a.a.g.getColorFilter
+09-21 13:22:40.193 W/dalvikvm( 5044): VFY: unable to resolve virtual method 2634: Landroid/graphics/drawable/Drawable;.getColorFilter ()Landroid/graphics/ColorFilter;
+09-21 13:22:40.193 D/dalvikvm( 5044): VFY: replacing opcode 0x6e at 0x000a
+09-21 13:22:40.193 I/dalvikvm( 5044): Could not find method android.graphics.drawable.Drawable.inflate, referenced from method b.n.a.a.g.inflate
+09-21 13:22:40.193 W/dalvikvm( 5044): VFY: unable to resolve virtual method 2651: Landroid/graphics/drawable/Drawable;.inflate (Landroid/content/res/Resources;Lorg/xmlpull/v1/XmlPullParser;Landroid/util/AttributeSet;Landroid/content/res/Resources$Theme;)V
+09-21 13:22:40.193 D/dalvikvm( 5044): VFY: replacing opcode 0x6e at 0x0014
+09-21 13:22:40.193 I/dalvikvm( 5044): Could not find method android.content.Context.getColor, referenced from method b.e.c.a.b
+09-21 13:22:40.193 W/dalvikvm( 5044): VFY: unable to resolve virtual method 2241: Landroid/content/Context;.getColor (I)I
+09-21 13:22:40.193 D/dalvikvm( 5044): VFY: replacing opcode 0x6e at 0x0006
+09-21 13:22:40.193 I/dalvikvm( 5044): Could not find method android.content.Context.getDrawable, referenced from method b.e.c.a.c
+09-21 13:22:40.193 W/dalvikvm( 5044): VFY: unable to resolve virtual method 2244: Landroid/content/Context;.getDrawable (I)Landroid/graphics/drawable/Drawable;
+09-21 13:22:40.193 D/dalvikvm( 5044): VFY: replacing opcode 0x6e at 0x0006
+09-21 13:22:40.209 D/dalvikvm( 5044): GC_FOR_ALLOC freed 239K, 11% free 3116K/3500K, paused 3ms, total 3ms
+09-21 13:22:40.209 I/dalvikvm-heap( 5044): Grow heap (frag case) to 3.787MB for 730092-byte allocation
+09-21 13:22:40.213 D/dalvikvm( 5044): GC_CONCURRENT freed 10K, 10% free 3818K/4216K, paused 3ms+1ms, total 6ms
+09-21 13:22:40.213 D/dalvikvm( 5044): WAIT_FOR_CONCURRENT_GC blocked 3ms
+09-21 13:22:40.213 D/dalvikvm( 5044): WAIT_FOR_CONCURRENT_GC blocked 3ms
+09-21 13:22:40.217 W/dalvikvm( 5044): VFY: unable to find class referenced in signature (Landroid/view/WindowInsets;)
+09-21 13:22:40.217 I/dalvikvm( 5044): Could not find method android.view.View.dispatchApplyWindowInsets, referenced from method b.e.j.q.b
+09-21 13:22:40.217 W/dalvikvm( 5044): VFY: unable to resolve virtual method 3369: Landroid/view/View;.dispatchApplyWindowInsets (Landroid/view/WindowInsets;)Landroid/view/WindowInsets;
+09-21 13:22:40.217 D/dalvikvm( 5044): VFY: replacing opcode 0x6e at 0x000c
+09-21 13:22:40.217 I/dalvikvm( 5044): Could not find method android.view.View.getTransitionName, referenced from method b.e.j.q.g
+09-21 13:22:40.217 W/dalvikvm( 5044): VFY: unable to resolve virtual method 3420: Landroid/view/View;.getTransitionName ()Ljava/lang/String;
+09-21 13:22:40.217 D/dalvikvm( 5044): VFY: replacing opcode 0x6e at 0x0006
+09-21 13:22:40.217 W/dalvikvm( 5044): VFY: unable to find class referenced in signature (Landroid/view/WindowInsets;)
+09-21 13:22:40.217 I/dalvikvm( 5044): Could not find method android.view.View.onApplyWindowInsets, referenced from method b.e.j.q.j
+09-21 13:22:40.217 W/dalvikvm( 5044): VFY: unable to resolve virtual method 3443: Landroid/view/View;.onApplyWindowInsets (Landroid/view/WindowInsets;)Landroid/view/WindowInsets;
+09-21 13:22:40.217 D/dalvikvm( 5044): VFY: replacing opcode 0x6e at 0x000c
+09-21 13:22:40.221 I/dalvikvm( 5044): Could not find method android.view.View.requestApplyInsets, referenced from method b.e.j.q.l
+09-21 13:22:40.221 W/dalvikvm( 5044): VFY: unable to resolve virtual method 3453: Landroid/view/View;.requestApplyInsets ()V
+09-21 13:22:40.221 D/dalvikvm( 5044): VFY: replacing opcode 0x6e at 0x0006
+09-21 13:22:40.221 I/dalvikvm( 5044): Could not find method android.view.View.setTransitionName, referenced from method b.e.j.q.p
+09-21 13:22:40.221 W/dalvikvm( 5044): VFY: unable to resolve virtual method 3488: Landroid/view/View;.setTransitionName (Ljava/lang/String;)V
+09-21 13:22:40.221 D/dalvikvm( 5044): VFY: replacing opcode 0x6e at 0x0006
+09-21 13:22:40.221 E/CarLifeFragmentManager( 5044): task id = com.baidu.carlifevehicle.CarlifeActivity@217197e8
+09-21 13:22:40.233 D/CarLifeFragmentManager( 5044): mListFragment size is 0
+09-21 13:22:40.233 D/CarLifeFragmentManager( 5044): hides
+09-21 13:22:40.233 D/CarLifeFragmentManager( 5044): Addr
+09-21 13:22:40.233 D/CarLife_SDK( 5044): CarLifeContextImpl monitor listener count 19
+09-21 13:22:40.233 D/CarLife_SDK( 5044): CarLifeContextImpl monitor listener count 20
+09-21 13:22:40.233 D/CarLife_SDK( 5044): CarLifeContextImpl monitor listener count 21
+09-21 13:22:40.233 D/CarLife_SDK( 5044): CarLifeContextImpl monitor listener count 22
+09-21 13:22:40.233 D/CarLife_SDK( 5044): CarLifeContextImpl monitor listener count 23
+09-21 13:22:40.237 D/CarLife_SDK( 5044): CarLifeContextImpl monitor listener count 24
+09-21 13:22:40.237 D/CarLife_SDK( 5044): CarLifeContextImpl monitor listener count 25
+09-21 13:22:40.237 D/CarLife_SDK( 5044): CarLifeContextImpl monitor listener count 26
+09-21 13:22:40.237 D/CarLife_SDK( 5044): CarLifeContextImpl monitor listener count 27
+09-21 13:22:40.237 D/CarLife_SDK( 5044): CarLifeContextImpl monitor listener count 28
+09-21 13:22:40.237 D/CarLife_SDK( 5044): CarLifeContextImpl monitor listener count 29
+09-21 13:22:40.237 D/CarLife_SDK( 5044): CarLifeContextImpl monitor listener count 30
+09-21 13:22:40.237 D/CarLife_SDK( 5044): CarLifeContextImpl monitor listener count 31
+09-21 13:22:40.237 I/dalvikvm( 5044): Could not find method android.provider.Settings.canDrawOverlays, referenced from method a.d.a.f.a.b
+09-21 13:22:40.237 W/dalvikvm( 5044): VFY: unable to resolve static method 2983: Landroid/provider/Settings;.canDrawOverlays (Landroid/content/Context;)Z
+09-21 13:22:40.237 D/dalvikvm( 5044): VFY: replacing opcode 0x71 at 0x0066
+09-21 13:22:40.237 I/dalvikvm( 5044): Could not find method android.provider.Settings$System.canWrite, referenced from method a.d.a.f.a.b
+09-21 13:22:40.237 W/dalvikvm( 5044): VFY: unable to resolve static method 2982: Landroid/provider/Settings$System;.canWrite (Landroid/content/Context;)Z
+09-21 13:22:40.237 D/dalvikvm( 5044): VFY: replacing opcode 0x71 at 0x0095
+09-21 13:22:40.237 I/dalvikvm( 5044): Could not find method android.os.Environment.isExternalStorageManager, referenced from method a.d.a.f.a.b
+09-21 13:22:40.237 W/dalvikvm( 5044): VFY: unable to resolve static method 2902: Landroid/os/Environment;.isExternalStorageManager ()Z
+09-21 13:22:40.237 D/dalvikvm( 5044): VFY: replacing opcode 0x71 at 0x00b8
+09-21 13:22:40.237 I/dalvikvm( 5044): Could not find method android.provider.Settings.canDrawOverlays, referenced from method a.d.a.f.m.a
+09-21 13:22:40.237 W/dalvikvm( 5044): VFY: unable to resolve static method 2983: Landroid/provider/Settings;.canDrawOverlays (Landroid/content/Context;)Z
+09-21 13:22:40.237 D/dalvikvm( 5044): VFY: replacing opcode 0x71 at 0x000e
+09-21 13:22:40.237 I/dalvikvm( 5044): Could not find method android.provider.Settings.canDrawOverlays, referenced from method a.d.a.f.m.c
+09-21 13:22:40.237 W/dalvikvm( 5044): VFY: unable to resolve static method 2983: Landroid/provider/Settings;.canDrawOverlays (Landroid/content/Context;)Z
+09-21 13:22:40.237 D/dalvikvm( 5044): VFY: replacing opcode 0x71 at 0x001e
+09-21 13:22:40.237 I/dalvikvm( 5044): Could not find method android.provider.Settings$System.canWrite, referenced from method a.d.a.f.n.a
+09-21 13:22:40.237 W/dalvikvm( 5044): VFY: unable to resolve static method 2982: Landroid/provider/Settings$System;.canWrite (Landroid/content/Context;)Z
+09-21 13:22:40.237 D/dalvikvm( 5044): VFY: replacing opcode 0x71 at 0x000e
+09-21 13:22:40.237 I/dalvikvm( 5044): Could not find method android.provider.Settings$System.canWrite, referenced from method a.d.a.f.n.c
+09-21 13:22:40.237 W/dalvikvm( 5044): VFY: unable to resolve static method 2982: Landroid/provider/Settings$System;.canWrite (Landroid/content/Context;)Z
+09-21 13:22:40.237 D/dalvikvm( 5044): VFY: replacing opcode 0x71 at 0x001e
+09-21 13:22:40.237 I/dalvikvm( 5044): Could not find method android.os.Environment.isExternalStorageManager, referenced from method a.d.a.f.k.a
+09-21 13:22:40.237 W/dalvikvm( 5044): VFY: unable to resolve static method 2902: Landroid/os/Environment;.isExternalStorageManager ()Z
+09-21 13:22:40.237 D/dalvikvm( 5044): VFY: replacing opcode 0x71 at 0x0010
+09-21 13:22:40.237 I/dalvikvm( 5044): Could not find method android.os.Environment.isExternalStorageManager, referenced from method a.d.a.f.k.c
+09-21 13:22:40.237 W/dalvikvm( 5044): VFY: unable to resolve static method 2902: Landroid/os/Environment;.isExternalStorageManager ()Z
+09-21 13:22:40.237 D/dalvikvm( 5044): VFY: replacing opcode 0x71 at 0x0012
+09-21 13:22:40.241 D/BaseFragment( 5044): onAttach
+09-21 13:22:40.241 D/BaseFragment( 5044): onCreate
+09-21 13:22:40.241 D/BaseFragment( 5044): onCreateView
+09-21 13:22:40.241 D/MainFragment( 5044): onCreateView
+09-21 13:22:40.245 I/dalvikvm( 5044): Could not find method android.content.res.Resources.getDrawable, referenced from method b.b.h.q0.getDrawable
+09-21 13:22:40.245 W/dalvikvm( 5044): VFY: unable to resolve virtual method 2396: Landroid/content/res/Resources;.getDrawable (ILandroid/content/res/Resources$Theme;)Landroid/graphics/drawable/Drawable;
+09-21 13:22:40.245 D/dalvikvm( 5044): VFY: replacing opcode 0x6e at 0x0002
+09-21 13:22:40.245 I/dalvikvm( 5044): Could not find method android.content.res.Resources.getDrawableForDensity, referenced from method b.b.h.q0.getDrawableForDensity
+09-21 13:22:40.245 W/dalvikvm( 5044): VFY: unable to resolve virtual method 2398: Landroid/content/res/Resources;.getDrawableForDensity (IILandroid/content/res/Resources$Theme;)Landroid/graphics/drawable/Drawable;
+09-21 13:22:40.245 D/dalvikvm( 5044): VFY: replacing opcode 0x6e at 0x0002
+09-21 13:22:40.245 D/dalvikvm( 5044): GC_CONCURRENT freed 309K, 9% free 3907K/4268K, paused 0ms+1ms, total 5ms
+09-21 13:22:40.249 I/dalvikvm( 5044): Could not find method android.view.View.getBackgroundTintList, referenced from method b.b.h.e.a
+09-21 13:22:40.249 W/dalvikvm( 5044): VFY: unable to resolve virtual method 3382: Landroid/view/View;.getBackgroundTintList ()Landroid/content/res/ColorStateList;
+09-21 13:22:40.249 D/dalvikvm( 5044): VFY: replacing opcode 0x6e at 0x0039
+09-21 13:22:40.249 I/dalvikvm( 5044): Could not find method android.view.View.getBackgroundTintMode, referenced from method b.b.h.e.a
+09-21 13:22:40.249 W/dalvikvm( 5044): VFY: unable to resolve virtual method 3383: Landroid/view/View;.getBackgroundTintMode ()Landroid/graphics/PorterDuff$Mode;
+09-21 13:22:40.249 D/dalvikvm( 5044): VFY: replacing opcode 0x6e at 0x0054
+09-21 13:22:40.249 I/dalvikvm( 5044): Could not find method android.view.View.setBackgroundTintList, referenced from method b.b.h.e.d
+09-21 13:22:40.249 W/dalvikvm( 5044): VFY: unable to resolve virtual method 3467: Landroid/view/View;.setBackgroundTintList (Landroid/content/res/ColorStateList;)V
+09-21 13:22:40.249 D/dalvikvm( 5044): VFY: replacing opcode 0x6e at 0x004e
+09-21 13:22:40.249 I/dalvikvm( 5044): Could not find method android.view.View.setBackgroundTintMode, referenced from method b.b.h.e.d
+09-21 13:22:40.249 W/dalvikvm( 5044): VFY: unable to resolve virtual method 3468: Landroid/view/View;.setBackgroundTintMode (Landroid/graphics/PorterDuff$Mode;)V
+09-21 13:22:40.249 D/dalvikvm( 5044): VFY: replacing opcode 0x6e at 0x009e
+09-21 13:22:40.249 I/dalvikvm( 5044): Could not find method android.widget.ImageView.getImageTintList, referenced from method b.b.h.m.a
+09-21 13:22:40.249 W/dalvikvm( 5044): VFY: unable to resolve virtual method 4087: Landroid/widget/ImageView;.getImageTintList ()Landroid/content/res/ColorStateList;
+09-21 13:22:40.249 D/dalvikvm( 5044): VFY: replacing opcode 0x6e at 0x0036
+09-21 13:22:40.249 I/dalvikvm( 5044): Could not find method android.widget.ImageView.getImageTintMode, referenced from method b.b.h.m.a
+09-21 13:22:40.249 W/dalvikvm( 5044): VFY: unable to resolve virtual method 4088: Landroid/widget/ImageView;.getImageTintMode ()Landroid/graphics/PorterDuff$Mode;
+09-21 13:22:40.249 D/dalvikvm( 5044): VFY: replacing opcode 0x6e at 0x0051
+09-21 13:22:40.249 E/dalvikvm( 5044): Could not find class 'android.graphics.drawable.RippleDrawable', referenced from method b.b.h.m.b
+09-21 13:22:40.249 W/dalvikvm( 5044): VFY: unable to resolve instanceof 599 (Landroid/graphics/drawable/RippleDrawable;) in Lb/b/h/m;
+09-21 13:22:40.249 D/dalvikvm( 5044): VFY: replacing opcode 0x20 at 0x000c
+09-21 13:22:40.249 I/dalvikvm( 5044): Could not find method android.widget.ImageView.setImageTintList, referenced from method b.b.h.m.c
+09-21 13:22:40.249 W/dalvikvm( 5044): VFY: unable to resolve virtual method 4116: Landroid/widget/ImageView;.setImageTintList (Landroid/content/res/ColorStateList;)V
+09-21 13:22:40.249 D/dalvikvm( 5044): VFY: replacing opcode 0x6e at 0x0054
+09-21 13:22:40.249 I/dalvikvm( 5044): Could not find method android.widget.ImageView.setImageTintMode, referenced from method b.b.h.m.c
+09-21 13:22:40.249 W/dalvikvm( 5044): VFY: unable to resolve virtual method 4117: Landroid/widget/ImageView;.setImageTintMode (Landroid/graphics/PorterDuff$Mode;)V
+09-21 13:22:40.249 D/dalvikvm( 5044): VFY: replacing opcode 0x6e at 0x0098
+09-21 13:22:40.249 I/dalvikvm( 5044): Could not find method android.widget.TextView.getAutoSizeMaxTextSize, referenced from method b.b.h.b0.getAutoSizeMaxTextSize
+09-21 13:22:40.249 W/dalvikvm( 5044): VFY: unable to resolve virtual method 4406: Landroid/widget/TextView;.getAutoSizeMaxTextSize ()I
+09-21 13:22:40.249 D/dalvikvm( 5044): VFY: replacing opcode 0x6f at 0x0004
+09-21 13:22:40.249 I/dalvikvm( 5044): Could not find method android.widget.TextView.getAutoSizeMinTextSize, referenced from method b.b.h.b0.getAutoSizeMinTextSize
+09-21 13:22:40.249 W/dalvikvm( 5044): VFY: unable to resolve virtual method 4407: Landroid/widget/TextView;.getAutoSizeMinTextSize ()I
+09-21 13:22:40.249 D/dalvikvm( 5044): VFY: replacing opcode 0x6f at 0x0004
+09-21 13:22:40.249 I/dalvikvm( 5044): Could not find method android.widget.TextView.getAutoSizeStepGranularity, referenced from method b.b.h.b0.getAutoSizeStepGranularity
+09-21 13:22:40.249 W/dalvikvm( 5044): VFY: unable to resolve virtual method 4408: Landroid/widget/TextView;.getAutoSizeStepGranularity ()I
+09-21 13:22:40.249 D/dalvikvm( 5044): VFY: replacing opcode 0x6f at 0x0004
+09-21 13:22:40.249 I/dalvikvm( 5044): Could not find method android.widget.TextView.getAutoSizeTextAvailableSizes, referenced from method b.b.h.b0.getAutoSizeTextAvailableSizes
+09-21 13:22:40.249 W/dalvikvm( 5044): VFY: unable to resolve virtual method 4409: Landroid/widget/TextView;.getAutoSizeTextAvailableSizes ()[I
+09-21 13:22:40.249 D/dalvikvm( 5044): VFY: replacing opcode 0x6f at 0x0004
+09-21 13:22:40.249 I/dalvikvm( 5044): Could not find method android.widget.TextView.getAutoSizeTextType, referenced from method b.b.h.b0.getAutoSizeTextType
+09-21 13:22:40.249 W/dalvikvm( 5044): VFY: unable to resolve virtual method 4410: Landroid/widget/TextView;.getAutoSizeTextType ()I
+09-21 13:22:40.249 D/dalvikvm( 5044): VFY: replacing opcode 0x6f at 0x0005
+09-21 13:22:40.249 I/dalvikvm( 5044): Could not find method android.widget.TextView.getTextClassifier, referenced from method b.b.h.b0.getTextClassifier
+09-21 13:22:40.249 W/dalvikvm( 5044): VFY: unable to resolve virtual method 4439: Landroid/widget/TextView;.getTextClassifier ()Landroid/view/textclassifier/TextClassifier;
+09-21 13:22:40.249 D/dalvikvm( 5044): VFY: replacing opcode 0x6f at 0x0010
+09-21 13:22:40.249 W/dalvikvm( 5044): VFY: unable to find class referenced in signature (Landroid/view/textclassifier/TextClassifier;)
+09-21 13:22:40.249 W/dalvikvm( 5044): VFY: unable to find class referenced in signature (Landroid/view/textclassifier/TextClassifier;)
+09-21 13:22:40.249 I/dalvikvm( 5044): Could not find method android.widget.TextView.setAutoSizeTextTypeUniformWithConfiguration, referenced from method b.b.h.b0.setAutoSizeTextTypeUniformWithConfiguration
+09-21 13:22:40.249 W/dalvikvm( 5044): VFY: unable to resolve virtual method 4466: Landroid/widget/TextView;.setAutoSizeTextTypeUniformWithConfiguration (IIII)V
+09-21 13:22:40.249 D/dalvikvm( 5044): VFY: replacing opcode 0x6f at 0x0004
+09-21 13:22:40.249 I/dalvikvm( 5044): Could not find method android.widget.TextView.setAutoSizeTextTypeUniformWithPresetSizes, referenced from method b.b.h.b0.setAutoSizeTextTypeUniformWithPresetSizes
+09-21 13:22:40.249 W/dalvikvm( 5044): VFY: unable to resolve virtual method 4467: Landroid/widget/TextView;.setAutoSizeTextTypeUniformWithPresetSizes ([II)V
+09-21 13:22:40.249 D/dalvikvm( 5044): VFY: replacing opcode 0x6f at 0x0004
+09-21 13:22:40.249 I/dalvikvm( 5044): Could not find method android.widget.TextView.setAutoSizeTextTypeWithDefaults, referenced from method b.b.h.b0.setAutoSizeTextTypeWithDefaults
+09-21 13:22:40.249 W/dalvikvm( 5044): VFY: unable to resolve virtual method 4468: Landroid/widget/TextView;.setAutoSizeTextTypeWithDefaults (I)V
+09-21 13:22:40.249 D/dalvikvm( 5044): VFY: replacing opcode 0x6f at 0x0004
+09-21 13:22:40.249 I/dalvikvm( 5044): Could not find method android.widget.TextView.setFirstBaselineToTopHeight, referenced from method b.b.h.b0.setFirstBaselineToTopHeight
+09-21 13:22:40.249 W/dalvikvm( 5044): VFY: unable to resolve virtual method 4482: Landroid/widget/TextView;.setFirstBaselineToTopHeight (I)V
+09-21 13:22:40.249 D/dalvikvm( 5044): VFY: replacing opcode 0x6f at 0x0006
+09-21 13:22:40.249 I/dalvikvm( 5044): Could not find method android.widget.TextView.setLastBaselineToBottomHeight, referenced from method b.b.h.b0.setLastBaselineToBottomHeight
+09-21 13:22:40.249 W/dalvikvm( 5044): VFY: unable to resolve virtual method 4487: Landroid/widget/TextView;.setLastBaselineToBottomHeight (I)V
+09-21 13:22:40.249 D/dalvikvm( 5044): VFY: replacing opcode 0x6f at 0x0006
+09-21 13:22:40.249 W/dalvikvm( 5044): VFY: unable to find class referenced in signature (Landroid/view/textclassifier/TextClassifier;)
+09-21 13:22:40.249 I/dalvikvm( 5044): Could not find method android.widget.TextView.setTextClassifier, referenced from method b.b.h.b0.setTextClassifier
+09-21 13:22:40.249 W/dalvikvm( 5044): VFY: unable to resolve virtual method 4500: Landroid/widget/TextView;.setTextClassifier (Landroid/view/textclassifier/TextClassifier;)V
+09-21 13:22:40.249 D/dalvikvm( 5044): VFY: replacing opcode 0x6f at 0x000e
+09-21 13:22:40.249 I/dalvikvm( 5044): Could not find method android.widget.TextView.setBreakStrategy, referenced from method b.b.h.b0.setTextMetricsParamsCompat
+09-21 13:22:40.249 W/dalvikvm( 5044): VFY: unable to resolve virtual method 4471: Landroid/widget/TextView;.setBreakStrategy (I)V
+09-21 13:22:40.249 D/dalvikvm( 5044): VFY: replacing opcode 0x6e at 0x006d
+09-21 13:22:40.253 I/dalvikvm( 5044): Could not find method android.widget.TextView.setFontVariationSettings, referenced from method b.b.h.z.e
+09-21 13:22:40.253 W/dalvikvm( 5044): VFY: unable to resolve virtual method 4483: Landroid/widget/TextView;.setFontVariationSettings (Ljava/lang/String;)Z
+09-21 13:22:40.253 D/dalvikvm( 5044): VFY: replacing opcode 0x6e at 0x01e9
+09-21 13:22:40.253 I/dalvikvm( 5044): Could not find method android.os.LocaleList.forLanguageTags, referenced from method b.b.h.z.e
+09-21 13:22:40.253 W/dalvikvm( 5044): VFY: unable to resolve static method 2927: Landroid/os/LocaleList;.forLanguageTags (Ljava/lang/String;)Landroid/os/LocaleList;
+09-21 13:22:40.253 D/dalvikvm( 5044): VFY: replacing opcode 0x71 at 0x01f4
+09-21 13:22:40.253 I/dalvikvm( 5044): Could not find method java.util.Locale.forLanguageTag, referenced from method b.b.h.z.e
+09-21 13:22:40.253 W/dalvikvm( 5044): VFY: unable to resolve static method 15901: Ljava/util/Locale;.forLanguageTag (Ljava/lang/String;)Ljava/util/Locale;
+09-21 13:22:40.253 D/dalvikvm( 5044): VFY: replacing opcode 0x71 at 0x020d
+09-21 13:22:40.253 I/dalvikvm( 5044): Could not find method android.widget.TextView.getAutoSizeStepGranularity, referenced from method b.b.h.z.e
+09-21 13:22:40.253 W/dalvikvm( 5044): VFY: unable to resolve virtual method 4408: Landroid/widget/TextView;.getAutoSizeStepGranularity ()I
+09-21 13:22:40.253 D/dalvikvm( 5044): VFY: replacing opcode 0x6e at 0x02f5
+09-21 13:22:40.253 I/dalvikvm( 5044): Could not find method android.widget.TextView.setCompoundDrawableTintList, referenced from method b.b.h.z.e
+09-21 13:22:40.253 W/dalvikvm( 5044): VFY: unable to resolve virtual method 4472: Landroid/widget/TextView;.setCompoundDrawableTintList (Landroid/content/res/ColorStateList;)V
+09-21 13:22:40.253 D/dalvikvm( 5044): VFY: replacing opcode 0x6e at 0x0428
+09-21 13:22:40.253 I/dalvikvm( 5044): Could not find method android.widget.TextView.setCompoundDrawableTintMode, referenced from method b.b.h.z.e
+09-21 13:22:40.253 W/dalvikvm( 5044): VFY: unable to resolve virtual method 4473: Landroid/widget/TextView;.setCompoundDrawableTintMode (Landroid/graphics/PorterDuff$Mode;)V
+09-21 13:22:40.253 D/dalvikvm( 5044): VFY: replacing opcode 0x6e at 0x0450
+09-21 13:22:40.253 I/dalvikvm( 5044): Could not find method android.widget.TextView.setFontVariationSettings, referenced from method b.b.h.z.f
+09-21 13:22:40.253 W/dalvikvm( 5044): VFY: unable to resolve virtual method 4483: Landroid/widget/TextView;.setFontVariationSettings (Ljava/lang/String;)Z
+09-21 13:22:40.253 D/dalvikvm( 5044): VFY: replacing opcode 0x6e at 0x0083
+09-21 13:22:40.253 I/dalvikvm( 5044): Could not find method android.view.inputmethod.EditorInfo.setInitialSurroundingSubText, referenced from method b.b.h.z.g
+09-21 13:22:40.253 W/dalvikvm( 5044): VFY: unable to resolve virtual method 3789: Landroid/view/inputmethod/EditorInfo;.setInitialSurroundingSubText (Ljava/lang/CharSequence;I)V
+09-21 13:22:40.253 D/dalvikvm( 5044): VFY: replacing opcode 0x6e at 0x000f
+09-21 13:22:40.253 I/dalvikvm( 5044): Could not find method android.view.inputmethod.EditorInfo.setInitialSurroundingSubText, referenced from method b.b.h.z.g
+09-21 13:22:40.253 W/dalvikvm( 5044): VFY: unable to resolve virtual method 3789: Landroid/view/inputmethod/EditorInfo;.setInitialSurroundingSubText (Ljava/lang/CharSequence;I)V
+09-21 13:22:40.253 D/dalvikvm( 5044): VFY: replacing opcode 0x6e at 0x0019
+09-21 13:22:40.253 I/dalvikvm( 5044): Could not find method android.graphics.Typeface.create, referenced from method b.b.h.z.m
+09-21 13:22:40.253 W/dalvikvm( 5044): VFY: unable to resolve static method 2589: Landroid/graphics/Typeface;.create (Landroid/graphics/Typeface;IZ)Landroid/graphics/Typeface;
+09-21 13:22:40.253 D/dalvikvm( 5044): VFY: replacing opcode 0x71 at 0x008f
+09-21 13:22:40.253 I/dalvikvm( 5044): Could not find method android.graphics.Typeface.create, referenced from method b.b.h.z.m
+09-21 13:22:40.253 W/dalvikvm( 5044): VFY: unable to resolve static method 2589: Landroid/graphics/Typeface;.create (Landroid/graphics/Typeface;IZ)Landroid/graphics/Typeface;
+09-21 13:22:40.253 D/dalvikvm( 5044): VFY: replacing opcode 0x71 at 0x00be
+09-21 13:22:40.253 I/dalvikvm( 5044): Could not find method android.text.StaticLayout$Builder.obtain, referenced from method b.b.h.c0.c
+09-21 13:22:40.253 W/dalvikvm( 5044): VFY: unable to resolve static method 3020: Landroid/text/StaticLayout$Builder;.obtain (Ljava/lang/CharSequence;IILandroid/text/TextPaint;I)Landroid/text/StaticLayout$Builder;
+09-21 13:22:40.253 D/dalvikvm( 5044): VFY: replacing opcode 0x71 at 0x0075
+09-21 13:22:40.253 I/dalvikvm( 5044): Could not find method android.content.Context.getColorStateList, referenced from method b.b.d.a.a.a
+09-21 13:22:40.253 W/dalvikvm( 5044): VFY: unable to resolve virtual method 2242: Landroid/content/Context;.getColorStateList (I)Landroid/content/res/ColorStateList;
+09-21 13:22:40.253 D/dalvikvm( 5044): VFY: replacing opcode 0x6e at 0x0006
+09-21 13:22:40.253 I/dalvikvm( 5044): Could not find method android.content.Context.getColorStateList, referenced from method b.b.d.a.a.a
+09-21 13:22:40.253 W/dalvikvm( 5044): VFY: unable to resolve virtual method 2242: Landroid/content/Context;.getColorStateList (I)Landroid/content/res/ColorStateList;
+09-21 13:22:40.253 D/dalvikvm( 5044): VFY: replacing opcode 0x6e at 0x00b7
+09-21 13:22:40.253 E/dalvikvm( 5044): Could not find class 'android.view.textclassifier.TextClassificationManager', referenced from method b.b.h.y.a
+09-21 13:22:40.253 W/dalvikvm( 5044): VFY: unable to resolve const-class 829 (Landroid/view/textclassifier/TextClassificationManager;) in Lb/b/h/y;
+09-21 13:22:40.253 D/dalvikvm( 5044): VFY: replacing opcode 0x1c at 0x000a
+09-21 13:22:40.253 W/dalvikvm( 5044): VFY: unable to find class referenced in signature (Landroid/view/textclassifier/TextClassifier;)
+09-21 13:22:40.257 I/dalvikvm( 5044): DexOpt: unable to optimize static field ref 0x04b0 at 0x19 in Lb/b/h/y;.a
+09-21 13:22:40.261 D/dalvikvm( 5044): GC_FOR_ALLOC freed 97K, 9% free 3954K/4304K, paused 3ms, total 3ms
+09-21 13:22:40.261 I/dalvikvm-heap( 5044): Grow heap (frag case) to 4.584MB for 708600-byte allocation
+09-21 13:22:40.265 D/dalvikvm( 5044): GC_CONCURRENT freed 1K, 8% free 4644K/5000K, paused 1ms+1ms, total 4ms
+09-21 13:22:40.265 D/dalvikvm( 5044): WAIT_FOR_CONCURRENT_GC blocked 3ms
+09-21 13:22:40.265 D/dalvikvm( 5044): WAIT_FOR_CONCURRENT_GC blocked 2ms
+09-21 13:22:40.265 I/dalvikvm( 5044): Could not find method android.widget.Button.getAutoSizeMaxTextSize, referenced from method b.b.h.f.getAutoSizeMaxTextSize
+09-21 13:22:40.265 W/dalvikvm( 5044): VFY: unable to resolve virtual method 3870: Landroid/widget/Button;.getAutoSizeMaxTextSize ()I
+09-21 13:22:40.265 D/dalvikvm( 5044): VFY: replacing opcode 0x6f at 0x0004
+09-21 13:22:40.265 I/dalvikvm( 5044): Could not find method android.widget.Button.getAutoSizeMinTextSize, referenced from method b.b.h.f.getAutoSizeMinTextSize
+09-21 13:22:40.265 W/dalvikvm( 5044): VFY: unable to resolve virtual method 3871: Landroid/widget/Button;.getAutoSizeMinTextSize ()I
+09-21 13:22:40.265 D/dalvikvm( 5044): VFY: replacing opcode 0x6f at 0x0004
+09-21 13:22:40.265 I/dalvikvm( 5044): Could not find method android.widget.Button.getAutoSizeStepGranularity, referenced from method b.b.h.f.getAutoSizeStepGranularity
+09-21 13:22:40.265 W/dalvikvm( 5044): VFY: unable to resolve virtual method 3872: Landroid/widget/Button;.getAutoSizeStepGranularity ()I
+09-21 13:22:40.265 D/dalvikvm( 5044): VFY: replacing opcode 0x6f at 0x0004
+09-21 13:22:40.265 I/dalvikvm( 5044): Could not find method android.widget.Button.getAutoSizeTextAvailableSizes, referenced from method b.b.h.f.getAutoSizeTextAvailableSizes
+09-21 13:22:40.265 W/dalvikvm( 5044): VFY: unable to resolve virtual method 3873: Landroid/widget/Button;.getAutoSizeTextAvailableSizes ()[I
+09-21 13:22:40.265 D/dalvikvm( 5044): VFY: replacing opcode 0x6f at 0x0004
+09-21 13:22:40.265 I/dalvikvm( 5044): Could not find method android.widget.Button.getAutoSizeTextType, referenced from method b.b.h.f.getAutoSizeTextType
+09-21 13:22:40.265 W/dalvikvm( 5044): VFY: unable to resolve virtual method 3874: Landroid/widget/Button;.getAutoSizeTextType ()I
+09-21 13:22:40.265 D/dalvikvm( 5044): VFY: replacing opcode 0x6f at 0x0005
+09-21 13:22:40.265 I/dalvikvm( 5044): Could not find method android.widget.Button.setAutoSizeTextTypeUniformWithConfiguration, referenced from method b.b.h.f.setAutoSizeTextTypeUniformWithConfiguration
+09-21 13:22:40.265 W/dalvikvm( 5044): VFY: unable to resolve virtual method 3881: Landroid/widget/Button;.setAutoSizeTextTypeUniformWithConfiguration (IIII)V
+09-21 13:22:40.265 D/dalvikvm( 5044): VFY: replacing opcode 0x6f at 0x0004
+09-21 13:22:40.265 I/dalvikvm( 5044): Could not find method android.widget.Button.setAutoSizeTextTypeUniformWithPresetSizes, referenced from method b.b.h.f.setAutoSizeTextTypeUniformWithPresetSizes
+09-21 13:22:40.265 W/dalvikvm( 5044): VFY: unable to resolve virtual method 3882: Landroid/widget/Button;.setAutoSizeTextTypeUniformWithPresetSizes ([II)V
+09-21 13:22:40.265 D/dalvikvm( 5044): VFY: replacing opcode 0x6f at 0x0004
+09-21 13:22:40.265 I/dalvikvm( 5044): Could not find method android.widget.Button.setAutoSizeTextTypeWithDefaults, referenced from method b.b.h.f.setAutoSizeTextTypeWithDefaults
+09-21 13:22:40.265 W/dalvikvm( 5044): VFY: unable to resolve virtual method 3883: Landroid/widget/Button;.setAutoSizeTextTypeWithDefaults (I)V
+09-21 13:22:40.265 D/dalvikvm( 5044): VFY: replacing opcode 0x6f at 0x0004
+09-21 13:22:40.273 D/dalvikvm( 5044): GC_FOR_ALLOC freed 12K, 7% free 4805K/5152K, paused 2ms, total 2ms
+09-21 13:22:40.281 D/dalvikvm( 5044): GC_FOR_ALLOC freed 4K, 7% free 5073K/5412K, paused 3ms, total 3ms
+09-21 13:22:40.285 I/dalvikvm-heap( 5044): Grow heap (frag case) to 5.768MB for 803484-byte allocation
+09-21 13:22:40.285 D/dalvikvm( 5044): GC_FOR_ALLOC freed 1K, 6% free 5856K/6200K, paused 3ms, total 3ms
+09-21 13:22:40.293 D/dalvikvm( 5044): GC_CONCURRENT freed <1K, 6% free 5860K/6200K, paused 0ms+0ms, total 3ms
+09-21 13:22:40.293 D/BluetoothManagerService( 2134): Message: 20
+09-21 13:22:40.293 D/BluetoothManagerService( 2134): Added callback: android.bluetooth.IBluetoothManagerCallback$Stub$Proxy@2186c798:true
+09-21 13:22:40.293 D/BluetoothManagerService( 2134): checkIfCallerIsForegroundUser: valid=true callingUser=0 foregroundUser=0
+09-21 13:22:40.297 D/BluetoothManagerService( 2134): checkIfCallerIsForegroundUser: valid=true callingUser=0 foregroundUser=0
+09-21 13:22:40.297 D/BluetoothAdapter( 5044): 561174268: getState() :  mService = null. Returning STATE_OFF
+09-21 13:22:40.301 D/MainFragment( 5044): set timeout: 30000
+09-21 13:22:40.301 D/MainFragment( 5044): connectStatusHeight=371
+09-21 13:22:40.301 D/MainFragment( 5044): screenHeigh=12,screenWidth=13
+09-21 13:22:40.301 D/MainFragment( 5044): topMargin=-239,bottomMargin-119
+09-21 13:22:40.301 D/BaseFragment( 5044): onActivityCreated
+09-21 13:22:40.301 D/MainFragment( 5044): onHiddenChanged, hidden: true
+09-21 13:22:40.301 D/BaseFragment( 5044): onAttach
+09-21 13:22:40.301 D/BaseFragment( 5044): onCreate
+09-21 13:22:40.301 D/BaseFragment( 5044): onCreateView
+09-21 13:22:40.301 D/LaunchFragment( 5044): onCreateView
+09-21 13:22:40.305 D/BaseFragment( 5044): onActivityCreated
+09-21 13:22:40.305 D/BaseFragment( 5044): onStart
+09-21 13:22:40.305 D/BaseFragment( 5044): onStart
+09-21 13:22:40.305 D/BaseFragment( 5044): onResume
+09-21 13:22:40.305 D/BaseFragment( 5044): onResume
+09-21 13:22:40.313 D/com.netease.OD8.OD8.OD8( 2279): upload event: {"channel":"nochannel-mumu12","engine":"NEMU","package":"mumu","uuid":"9543b6c7-730d-415e-ba21-11925b0297c5","version":"1.26.1.3","x":{"app_name":"百度 CarLife","app_package":"com.baidu.carlifevehicle","error":{"code":0,"msg":"ok"},"token":"5e9f07d8-981e-428c-adfc-b58dd591a497"}}	type: LaunchAPP	sign: FpwzHKOAlR2baya6fKYAM9xwLcI=
+09-21 13:22:40.313 W/ContextImpl( 2134): Calling a method in the system process without a qualified user: android.app.ContextImpl.sendBroadcast:1161 com.android.server.tabs.TabManagerService.notifyOpening:339 com.android.server.tabs.TabManagerService.onUpdate:140 android.app.tabs.ITabManager$Stub.onTransact:53 android.os.Binder.execTransact:404 
+09-21 13:22:40.313 I/com.android.server.tabs.TabManagerService( 2134): notifyOpening:340: notify tab opened in android as it's new task com.baidu.carlifevehicle
+09-21 13:22:40.321 E/dalvikvm( 5044): Could not find class 'android.app.NotificationChannel', referenced from method com.baidu.carlife.sdk.receiver.CarLifeReceiverService.onCreate
+09-21 13:22:40.321 W/dalvikvm( 5044): VFY: unable to resolve new-instance 493 (Landroid/app/NotificationChannel;) in Lcom/baidu/carlife/sdk/receiver/CarLifeReceiverService;
+09-21 13:22:40.321 D/dalvikvm( 5044): VFY: replacing opcode 0x22 at 0x0009
+09-21 13:22:40.321 D/dalvikvm( 5044): DexOpt: unable to opt direct call 0x0879 at 0x0e in Lcom/baidu/carlife/sdk/receiver/CarLifeReceiverService;.onCreate
+09-21 13:22:40.321 D/dalvikvm( 5044): DexOpt: unable to opt direct call 0x0874 at 0x20 in Lcom/baidu/carlife/sdk/receiver/CarLifeReceiverService;.onCreate
+09-21 13:22:40.321 D/CarLife_SDK( 5044): CarLifeContextImpl monitor listener count 32
+09-21 13:22:40.321 D/CarLife_SDK( 5044): CarLifeContextImpl monitor listener count 33
+09-21 13:22:40.321 D/mtg_carlife( 5044): VehicleService onCreate
+09-21 13:22:40.321 D/mtg_carlife( 5044): VehicleService onBind
+09-21 13:22:40.365 D/libEGL  ( 5044): loaded /system/lib/egl/libEGL_emulation.so
+09-21 13:22:40.365 D/        ( 5044): HostConnection::get() New Host Connection established 0x80ad6de0, tid 5044
+09-21 13:22:40.373 D/libEGL  ( 5044): loaded /system/lib/egl/libGLESv1_CM_emulation.so
+09-21 13:22:40.377 D/libEGL  ( 5044): loaded /system/lib/egl/libGLESv2_emulation.so
+09-21 13:22:40.389 W/EGL_emulation( 5044): eglSurfaceAttrib not implemented
+09-21 13:22:40.389 D/OpenGLRenderer( 5044): Enabling debug mode 0
+09-21 13:22:40.429 I/ActivityManager( 2134): Displayed com.baidu.carlifevehicle/.CarlifeActivity: +349ms
+09-21 13:22:40.477 W/System.err( 2279): javax.net.ssl.SSLHandshakeException: java.security.cert.CertPathValidatorException: Trust anchor for certification path not found.
+09-21 13:22:40.477 W/System.err( 2279): 	at com.android.org.conscrypt.OpenSSLSocketImpl.startHandshake(OpenSSLSocketImpl.java:409)
+09-21 13:22:40.477 W/System.err( 2279): 	at OD8.OD8.C88.C0Q.C88(Unknown Source)
+09-21 13:22:40.477 W/System.err( 2279): 	at OD8.OD8.C88.C0Q.OD8(Unknown Source)
+09-21 13:22:40.477 W/System.err( 2279): 	at OD8.OD8.C88.C0Q.C88(Unknown Source)
+09-21 13:22:40.477 W/System.err( 2279): 	at OD8.OD8.C88.C0Q.OD8(Unknown Source)
+09-21 13:22:40.477 W/System.err( 2279): 	at OD8.OD8.C88.O80.OD8(Unknown Source)
+09-21 13:22:40.477 W/System.err( 2279): 	at OD8.OD8.C88.O80.OD8(Unknown Source)
+09-21 13:22:40.477 W/System.err( 2279): 	at OD8.OD8.C88.O80.OD8(Unknown Source)
+09-21 13:22:40.477 W/System.err( 2279): 	at OD8.OD8.C88.OD8.OD8(Unknown Source)
+09-21 13:22:40.477 W/System.err( 2279): 	at OD8.OD8.O00.DD8.OD8(Unknown Source)
+09-21 13:22:40.477 W/System.err( 2279): 	at OD8.OD8.O00.DD8.OD8(Unknown Source)
+09-21 13:22:40.477 W/System.err( 2279): 	at OD8.OD8.OD8.OD8.OD8(Unknown Source)
+09-21 13:22:40.477 W/System.err( 2279): 	at OD8.OD8.O00.DD8.OD8(Unknown Source)
+09-21 13:22:40.477 W/System.err( 2279): 	at OD8.OD8.O00.DD8.OD8(Unknown Source)
+09-21 13:22:40.477 W/System.err( 2279): 	at OD8.OD8.O00.OD8.OD8(Unknown Source)
+09-21 13:22:40.477 W/System.err( 2279): 	at OD8.OD8.O00.DD8.OD8(Unknown Source)
+09-21 13:22:40.477 W/System.err( 2279): 	at OD8.OD8.O00.QD0.OD8(Unknown Source)
+09-21 13:22:40.477 W/System.err( 2279): 	at OD8.OD8.O00.DD8.OD8(Unknown Source)
+09-21 13:22:40.477 W/System.err( 2279): 	at OD8.OD8.O00.DD8.OD8(Unknown Source)
+09-21 13:22:40.477 W/System.err( 2279): 	at OD8.C0C.O00(Unknown Source)
+09-21 13:22:40.477 W/System.err( 2279): 	at OD8.C0C.OD8(Unknown Source)
+09-21 13:22:40.477 W/System.err( 2279): 	at com.netease.OD8.OD8.OD8.OD8(Unknown Source)
+09-21 13:22:40.477 W/System.err( 2279): 	at com.netease.OD8.OD8.OD8.C88(Unknown Source)
+09-21 13:22:40.477 W/System.err( 2279): 	at com.netease.OD8.OD8.OD8.OD8(Unknown Source)
+09-21 13:22:40.477 W/System.err( 2279): 	at com.netease.OD8.OD8.C88.run(Unknown Source)
+09-21 13:22:40.477 W/System.err( 2279): 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1112)
+09-21 13:22:40.477 W/System.err( 2279): 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:587)
+09-21 13:22:40.477 W/System.err( 2279): 	at java.lang.Thread.run(Thread.java:841)
+09-21 13:22:40.477 W/System.err( 2279): Caused by: java.security.cert.CertificateException: java.security.cert.CertPathValidatorException: Trust anchor for certification path not found.
+09-21 13:22:40.477 W/System.err( 2279): 	at com.android.org.conscrypt.TrustManagerImpl.checkTrusted(TrustManagerImpl.java:282)
+09-21 13:22:40.477 W/System.err( 2279): 	at com.android.org.conscrypt.TrustManagerImpl.checkServerTrusted(TrustManagerImpl.java:202)
+09-21 13:22:40.477 W/System.err( 2279): 	at com.android.org.conscrypt.OpenSSLSocketImpl.verifyCertificateChain(OpenSSLSocketImpl.java:611)
+09-21 13:22:40.477 W/System.err( 2279): 	at com.android.org.conscrypt.NativeCrypto.SSL_do_handshake(Native Method)
+09-21 13:22:40.477 W/System.err( 2279): 	at com.android.org.conscrypt.OpenSSLSocketImpl.startHandshake(OpenSSLSocketImpl.java:405)
+09-21 13:22:40.477 W/System.err( 2279): 	... 27 more
+09-21 13:22:40.477 W/System.err( 2279): Caused by: java.security.cert.CertPathValidatorException: Trust anchor for certification path not found.
+09-21 13:22:40.477 W/System.err( 2279): 	... 32 more
+09-21 13:22:40.477 D/com.netease.OD8.OD8.OD8( 2279): upload result: false
+09-21 13:22:40.581 W/ContextImpl( 2279): Calling a method in the system process without a qualified user: android.app.ContextImpl.sendBroadcast:1161 android.content.ContextWrapper.sendBroadcast:365 com.netease.nemu_android_launcher.OC8.OD8.run:-1 <bottom of call stack> <bottom of call stack> 
+09-21 13:22:40.585 D/com.netease.nemu_android_launcher.C88.OOQ( 2279): com.baidu.carlifevehicle is tag of not_game and it's name is 百度 CarLife
+09-21 13:22:40.741 D/GetMsgName( 5044): len = 1
+09-21 13:22:40.741 D/CarLife_SDK( 5044): MsgMainActivityHandler handleMessage get msg: null
+09-21 13:22:40.741 E/CarLife_SDK( 5044): ++++++++++++++++++++Baidu Carlife Begin++++++++++++++++++++
+09-21 13:22:40.741 E/CarlifeConfUtil( 5044): can not find key: CONFIG_LOG_LEVEL
+09-21 13:22:42.309 D/GetMsgName( 5044): len = 1
+09-21 13:22:42.309 D/CarLife_SDK( 5044): MsgMainActivityHandler handleMessage get msg: null
+09-21 13:22:42.309 D/CarLifeFragmentManager( 5044): remover
+09-21 13:22:42.309 D/CarLifeFragmentManager( 5044): Shows
+09-21 13:22:42.309 D/BaseFragment( 5044): onPause
+09-21 13:22:42.309 D/BaseFragment( 5044): onStop
+09-21 13:22:42.309 D/MainFragment( 5044): onHiddenChanged, hidden: false
+09-21 13:22:42.309 D/CarLife_SDK( 5044): InstantProtocolTransport connect
+09-21 13:22:42.313 D/CarLifeP2PBoot( 5044): armed: if no P2P group in 8s, HU will createGroup() and become GO
+09-21 13:22:42.313 D/CarLifeP2PBoot( 5044): MulticastLock acquired
+09-21 13:22:42.313 D/BaseFragment( 5044): onDestroyView
+09-21 13:22:42.313 D/LaunchFragment( 5044): onDestroyView
+09-21 13:22:42.313 D/BaseFragment( 5044): onDestroy
+09-21 13:22:42.313 D/BaseFragment( 5044): onDetach
+09-21 13:22:42.313 D/LaunchFragment( 5044): onDetach
+09-21 13:22:42.313 D/CarLife_SDK( 5044): requestConnectionInfo groupFormed: false isGroupOwner: false groupOwnerAddress: null
+09-21 13:22:42.317 D/BluetoothManagerService( 2134): checkIfCallerIsForegroundUser: valid=true callingUser=0 foregroundUser=0
+09-21 13:22:42.317 D/BluetoothManagerService( 2134): enable():  mBluetooth =null mBinding = false
+09-21 13:22:42.317 E/CarLife_SDK( 5044): bluetoothAdapter?.isEnabled: false, so return
+09-21 13:22:42.317 D/BluetoothManagerService( 2134): Message: 1
+09-21 13:22:42.317 D/BluetoothManagerService( 2134): MESSAGE_ENABLE: mBluetooth = null
+09-21 13:22:42.317 E/BluetoothManagerService( 2134): Fail to bind to: Intent { act=android.bluetooth.IBluetooth }
+09-21 13:22:47.129 D/dalvikvm( 5044): GC_CONCURRENT freed 449K, 8% free 6300K/6804K, paused 1ms+0ms, total 4ms
+09-21 13:22:50.317 D/CarLifeP2PBoot( 5044): createGroup attempt 1/6
+09-21 13:22:50.317 E/CarLifeP2PBoot( 5044): createGroup failed, reason=1 -> retry in 8s
+09-21 13:22:58.317 D/CarLifeP2PBoot( 5044): createGroup attempt 2/6
+09-21 13:22:58.317 E/CarLifeP2PBoot( 5044): createGroup failed, reason=1 -> retry in 8s
+09-21 13:23:02.013 D/dalvikvm( 2295): GC_CONCURRENT freed 405K, 16% free 3049K/3588K, paused 2ms+0ms, total 4ms
+09-21 13:23:06.317 D/CarLifeP2PBoot( 5044): createGroup attempt 3/6
+09-21 13:23:06.317 E/CarLifeP2PBoot( 5044): createGroup failed, reason=1 -> retry in 8s
+09-21 13:23:12.317 E/MainFragment( 5044): Carlife Connect Timeout
+09-21 13:23:12.321 D/GetMsgName( 5044): len = 1
+09-21 13:23:12.321 D/MainFragment( 5044): MsgMainFragmentHandler handleMessage get msg: null
+09-21 13:23:12.325 D/dalvikvm( 5044): GC_FOR_ALLOC freed 790K, 13% free 6286K/7168K, paused 3ms, total 3ms
+09-21 13:23:12.325 I/dalvikvm-heap( 5044): Grow heap (frag case) to 6.862MB for 708600-byte allocation
+09-21 13:23:12.329 D/dalvikvm( 5044): GC_FOR_ALLOC freed <1K, 12% free 6978K/7864K, paused 3ms, total 3ms
+09-21 13:23:14.325 D/CarLifeP2PBoot( 5044): createGroup attempt 4/6
+09-21 13:23:14.325 E/CarLifeP2PBoot( 5044): createGroup failed, reason=1 -> retry in 8s
+09-21 13:23:22.333 D/CarLifeP2PBoot( 5044): createGroup attempt 5/6
+09-21 13:23:22.333 E/CarLifeP2PBoot( 5044): createGroup failed, reason=1 -> retry in 8s
+09-21 13:23:30.341 D/CarLifeP2PBoot( 5044): createGroup attempt 6/6
+09-21 13:23:30.341 E/CarLifeP2PBoot( 5044): createGroup failed, reason=1 -> retry in 8s
+09-21 13:23:31.469 D/        ( 5085): HostConnection::get() New Host Connection established 0x800bf130, tid 5085

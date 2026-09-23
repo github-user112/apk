@@ -1,0 +1,71 @@
+# ==============================================================================
+# Git LFS —— 二进制大文件交给 LFS 存储
+# ------------------------------------------------------------------------------
+# 规则：凡是「文件大 / 无法文本差分 / 可从别处重新得到」的二进制走 LFS。
+# 新克隆仓库前请先装 git-lfs：  git lfs install
+# ==============================================================================
+
+# --- 本项目的核心二进制：APK 成品、工具链 jar、原生库 ---
+*.apk      filter=lfs diff=lfs merge=lfs -text
+*.jar      filter=lfs diff=lfs merge=lfs -text
+*.aar      filter=lfs diff=lfs merge=lfs -text
+*.so       filter=lfs diff=lfs merge=lfs -text
+*.dex      filter=lfs diff=lfs merge=lfs -text
+*.idsig    filter=lfs diff=lfs merge=lfs -text
+*.jmod     filter=lfs diff=lfs merge=lfs -text
+*.dll      filter=lfs diff=lfs merge=lfs -text
+*.exe      filter=lfs diff=lfs merge=lfs -text
+*.dylib    filter=lfs diff=lfs merge=lfs -text
+
+# --- 归档与签名材料 ---
+*.zip      filter=lfs diff=lfs merge=lfs -text
+*.7z       filter=lfs diff=lfs merge=lfs -text
+*.rar      filter=lfs diff=lfs merge=lfs -text
+*.tar      filter=lfs diff=lfs merge=lfs -text
+*.gz       filter=lfs diff=lfs merge=lfs -text
+*.jks      filter=lfs diff=lfs merge=lfs -text
+*.keystore filter=lfs diff=lfs merge=lfs -text
+*.p12      filter=lfs diff=lfs merge=lfs -text
+
+# --- 字体与媒体 ---
+*.ttf      filter=lfs diff=lfs merge=lfs -text
+*.otf      filter=lfs diff=lfs merge=lfs -text
+*.mp4      filter=lfs diff=lfs merge=lfs -text
+*.pdf      filter=lfs diff=lfs merge=lfs -text
+
+# ------------------------------------------------------------------------------
+# 说明：PNG / JPG **刻意不进 LFS**。
+# 本仓库 res/ 下的 PNG 共 1.2 万个、合计仅约 1.6 MB（多为几十~几百字节的小图标），
+# 走 LFS 会为每个文件单独建一个 LFS 对象（推送要上万次请求），明显得不偿失，
+# 留在普通 git 里更省事。真正的大图（1 MB 以上）本项目没有。
+# ------------------------------------------------------------------------------
+
+# ==============================================================================
+# 文本文件：统一 LF 换行，保证 Windows / Linux 下 diff 干净
+# ==============================================================================
+*.smali    text eol=lf
+*.java     text eol=lf
+*.kt       text eol=lf
+*.py       text eol=lf
+*.sh       text eol=lf
+*.md       text eol=lf
+*.txt      text eol=lf
+*.log      text eol=lf
+*.xml      text eol=lf
+*.yml      text eol=lf
+*.yaml     text eol=lf
+*.json     text eol=lf
+*.js       text eol=lf
+*.css      text eol=lf
+*.html     text eol=lf
+*.properties text eol=lf
+
+# Android 资源 / 配置文件（无后缀）
+bdcf       text eol=lf
+AndroidManifest.xml text eol=lf
+apktool.yml text eol=lf
+
+# apktool 生成的二进制资源，别当文本处理
+*.arsc     binary
+*.9.png    binary
+*.flat     binary

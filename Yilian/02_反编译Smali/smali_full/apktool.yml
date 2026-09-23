@@ -1,0 +1,9 @@
+version: 3.0.3
+apkFileName: 亿连手机互联V7.0.1.apk
+sdkInfo:
+  minSdkVersion: 23
+doNotCompress:
+- arsc
+- jpg
+- png
+- webp

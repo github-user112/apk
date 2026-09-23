@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <usb-device vendor-id="0x18d1" />
+    <usb-device vendor-id="0x2717" />
+    <usb-device vendor-id="0x183d" />
+    <usb-device vendor-id="0x22d9" />
+    <usb-device vendor-id="0x2a70" />
+    <usb-device vendor-id="0x2a45" />
+    <usb-device vendor-id="0x4e8" />
+    <usb-device vendor-id="0x17ef" />
+    <usb-device vendor-id="0x22b8" />
+    <usb-device vendor-id="0x1314" />
+    <usb-device vendor-id="0x2d95" />
+    <usb-device vendor-id="0xa9d" />
+    <usb-device vendor-id="0x12d1" />
+    <usb-device vendor-id="0x1742" />
+</resources>

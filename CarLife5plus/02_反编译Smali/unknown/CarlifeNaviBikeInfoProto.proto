@@ -1,0 +1,14 @@
+package com.baidu.carlife.protobuf;
+message CarlifeNaviBikeInfo
+{
+  required bytes iconData = 1;
+  required int32 iconLength = 2;
+  optional int32 iconFormat = 3; // 0:png 1: jpg  图标格式，默认为0
+  optional string iconName = 4;
+  optional string turnInfo1 = 5;
+  optional string turnInfo2 = 6;
+  optional string remainDistanceDesc = 7;
+  optional string remainTimeDesc = 8;
+  optional int32 speed = 9;
+  optional int64 timeStamp = 10;
+}

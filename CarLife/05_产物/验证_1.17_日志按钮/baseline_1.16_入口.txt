@@ -1,0 +1,8 @@
+        21863878 com.baidu.carlifevehicle/.UsbAutoGrantActivity filter 2184aa94
+        2185d1c4 com.baidu.carlifevehicle/.CarlifeActivity filter 2185d4d8
+        2186504c com.baidu.carlifevehicle/.logxfer.LogDownloadActivity filter 21865060
+        2186fd0c com.baidu.carlifevehicle/.BroadcastActionReceiver filter 21885720
+        2186fd0c com.baidu.carlifevehicle/.BroadcastActionReceiver filter 21882fac
+        2186fd0c com.baidu.carlifevehicle/.BroadcastActionReceiver filter 218808a4
+        2188b6ec com.baidu.carlifevehicle/.MediaButtonReceiver filter 21899754
+        21899798 com.baidu.carlifevehicle/.UsbAccessibilityService filter 218edef8

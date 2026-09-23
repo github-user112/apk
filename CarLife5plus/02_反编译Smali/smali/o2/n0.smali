@@ -1,0 +1,20 @@
+.class public interface abstract Lo2/n0;
+.super Ljava/lang/Object;
+.source "r8-map-id-a26c202c91e35551b006c3f2644941f88ea22f473e21aa1876e8058911bd3fe3"
+
+
+# virtual methods
+.method public abstract b()Ljava/util/Map;
+.end method
+
+.method public abstract c()V
+.end method
+
+.method public abstract d()Lf9/k;
+.end method
+
+.method public abstract getHeight()I
+.end method
+
+.method public abstract getWidth()I
+.end method

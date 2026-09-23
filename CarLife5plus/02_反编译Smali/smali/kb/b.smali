@@ -1,0 +1,63 @@
+.class public final Lkb/b;
+.super Ljava/lang/Object;
+.source "r8-map-id-a26c202c91e35551b006c3f2644941f88ea22f473e21aa1876e8058911bd3fe3"
+
+# interfaces
+.implements Lkb/n;
+
+
+# static fields
+.field public static final a:Lkb/b;
+
+.field public static final b:Lkb/b;
+
+
+# direct methods
+.method static synthetic constructor <clinit>()V
+    .locals 1
+
+    .line 1
+    new-instance v0, Lkb/b;
+
+    .line 2
+    .line 3
+    invoke-direct {v0}, Ljava/lang/Object;-><init>()V
+
+    .line 4
+    .line 5
+    .line 6
+    sput-object v0, Lkb/b;->a:Lkb/b;
+
+    .line 7
+    .line 8
+    new-instance v0, Lkb/b;
+
+    .line 9
+    .line 10
+    invoke-direct {v0}, Ljava/lang/Object;-><init>()V
+
+    .line 11
+    .line 12
+    .line 13
+    sput-object v0, Lkb/b;->b:Lkb/b;
+
+    .line 14
+    .line 15
+    return-void
+.end method
+
+
+# virtual methods
+.method public lock()V
+    .locals 0
+
+    .line 1
+    return-void
+.end method
+
+.method public unlock()V
+    .locals 0
+
+    .line 1
+    return-void
+.end method

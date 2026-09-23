@@ -1,0 +1,12 @@
+k7.a
+m7.p
+n7.c
+r7.f
+t7.d
+u7.c
+v7.c
+w7.d
+x7.g
+a8.e
+d8.f
+e8.f

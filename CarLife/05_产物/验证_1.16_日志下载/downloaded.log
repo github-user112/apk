@@ -1,0 +1,262 @@
+2026-09-22T15:38:57.078Z 2045 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 1
+2026-09-22T15:38:57.079Z 2045 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 2
+2026-09-22T15:38:57.081Z 2045 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 3
+2026-09-22T15:38:57.081Z 2045 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 4
+2026-09-22T15:38:57.082Z 2045 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 5
+2026-09-22T15:38:57.082Z 2045 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 6
+2026-09-22T15:38:57.083Z 2045 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 7
+2026-09-22T15:38:57.083Z 2045 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 8
+2026-09-22T15:38:57.084Z 2045 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 9
+2026-09-22T15:38:57.085Z 2045 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 10
+2026-09-22T15:38:57.085Z 2045 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 11
+2026-09-22T15:38:57.087Z 2045 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 12
+2026-09-22T15:38:57.088Z 2045 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 13
+2026-09-22T15:38:57.089Z 2045 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 14
+2026-09-22T15:38:57.092Z 2045 1 W/CarLife_SDK: carlife sdk version: 2.2.2
+2026-09-22T15:38:57.093Z 2045 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 15
+2026-09-22T15:38:57.094Z 2045 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 16
+2026-09-22T15:38:57.094Z 2045 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 17
+2026-09-22T15:38:57.095Z 2045 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 18
+2026-09-22T15:38:57.228Z 2045 1 E/CarLifeFragmentManager: task id = com.baidu.carlifevehicle.CarlifeActivity@217178dc
+2026-09-22T15:38:57.250Z 2045 1 D/CarLifeFragmentManager: mListFragment size is 0
+2026-09-22T15:38:57.252Z 2045 1 D/CarLifeFragmentManager: hides
+2026-09-22T15:38:57.254Z 2045 1 D/CarLifeFragmentManager: Addr
+2026-09-22T15:38:57.255Z 2045 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 19
+2026-09-22T15:38:57.257Z 2045 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 20
+2026-09-22T15:38:57.257Z 2045 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 21
+2026-09-22T15:38:57.258Z 2045 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 22
+2026-09-22T15:38:57.258Z 2045 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 23
+2026-09-22T15:38:57.259Z 2045 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 24
+2026-09-22T15:38:57.260Z 2045 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 25
+2026-09-22T15:38:57.260Z 2045 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 26
+2026-09-22T15:38:57.260Z 2045 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 27
+2026-09-22T15:38:57.261Z 2045 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 28
+2026-09-22T15:38:57.261Z 2045 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 29
+2026-09-22T15:38:57.262Z 2045 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 30
+2026-09-22T15:38:57.262Z 2045 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 31
+2026-09-22T15:38:57.267Z 2045 1 D/BaseFragment: onAttach
+2026-09-22T15:38:57.268Z 2045 1 D/BaseFragment: onCreate
+2026-09-22T15:38:57.270Z 2045 1 D/BaseFragment: onCreateView
+2026-09-22T15:38:57.271Z 2045 1 D/MainFragment: onCreateView
+2026-09-22T15:38:57.378Z 2045 1 D/MainFragment: set timeout: 30000
+2026-09-22T15:38:57.379Z 2045 1 D/MainFragment: connectStatusHeight=371
+2026-09-22T15:38:57.379Z 2045 1 D/MainFragment: screenHeigh=12,screenWidth=13
+2026-09-22T15:38:57.379Z 2045 1 D/MainFragment: topMargin=-239,bottomMargin-119
+2026-09-22T15:38:57.380Z 2045 1 D/BaseFragment: onActivityCreated
+2026-09-22T15:38:57.382Z 2045 1 D/MainFragment: onHiddenChanged, hidden: true
+2026-09-22T15:38:57.382Z 2045 1 D/BaseFragment: onAttach
+2026-09-22T15:38:57.383Z 2045 1 D/BaseFragment: onCreate
+2026-09-22T15:38:57.383Z 2045 1 D/BaseFragment: onCreateView
+2026-09-22T15:38:57.384Z 2045 1 D/LaunchFragment: onCreateView
+2026-09-22T15:38:57.390Z 2045 1 D/BaseFragment: onActivityCreated
+2026-09-22T15:38:57.391Z 2045 1 D/BaseFragment: onStart
+2026-09-22T15:38:57.391Z 2045 1 D/BaseFragment: onStart
+2026-09-22T15:38:57.392Z 2045 1 D/BaseFragment: onResume
+2026-09-22T15:38:57.392Z 2045 1 D/BaseFragment: onResume
+2026-09-22T15:38:57.485Z 2045 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 32
+2026-09-22T15:38:57.485Z 2045 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 33
+2026-09-22T15:38:57.487Z 2045 1 D/mtg_carlife: VehicleService onCreate
+2026-09-22T15:38:57.487Z 2045 1 D/mtg_carlife: VehicleService onBind
+2026-09-22T15:38:57.580Z 2045 1 D/GetMsgName: len = 1
+2026-09-22T15:38:57.581Z 2045 1 D/CarLife_SDK: MsgMainActivityHandler handleMessage get msg: null
+2026-09-22T15:38:57.581Z 2045 1 D/CarLife_SDK: mIsInitConfig is false, so delay 500
+2026-09-22T15:38:57.766Z 2045 1 D/GetMsgName: len = 1
+2026-09-22T15:38:57.766Z 2045 1 D/CarLife_SDK: MsgMainActivityHandler handleMessage get msg: null
+2026-09-22T15:38:57.767Z 2045 1 E/CarLife_SDK: ++++++++++++++++++++Baidu Carlife Begin++++++++++++++++++++
+2026-09-22T15:38:57.767Z 2045 1 E/CarlifeConfUtil: can not find key: CONFIG_LOG_LEVEL
+2026-09-22T15:38:58.081Z 2045 1 D/GetMsgName: len = 1
+2026-09-22T15:38:58.082Z 2045 1 D/CarLife_SDK: MsgMainActivityHandler handleMessage get msg: null
+2026-09-22T15:38:58.082Z 2045 1 D/CarLifeFragmentManager: remover
+2026-09-22T15:38:58.082Z 2045 1 D/CarLifeFragmentManager: Shows
+2026-09-22T15:38:58.083Z 2045 1 D/BaseFragment: onPause
+2026-09-22T15:38:58.084Z 2045 1 D/BaseFragment: onStop
+2026-09-22T15:38:58.084Z 2045 1 D/MainFragment: onHiddenChanged, hidden: false
+2026-09-22T15:38:58.085Z 2045 1 D/CarLife_SDK: InstantProtocolTransport connect
+2026-09-22T15:38:58.095Z 2045 1 D/BaseFragment: onDestroyView
+2026-09-22T15:38:58.096Z 2045 1 D/LaunchFragment: onDestroyView
+2026-09-22T15:38:58.096Z 2045 1 D/BaseFragment: onDestroy
+2026-09-22T15:38:58.097Z 2045 1 D/BaseFragment: onDetach
+2026-09-22T15:38:58.097Z 2045 1 D/LaunchFragment: onDetach
+2026-09-22T15:38:58.098Z 2045 1 D/CarLife_SDK: requestConnectionInfo groupFormed: false isGroupOwner: false groupOwnerAddress: null
+2026-09-22T15:38:58.100Z 2045 122 E/CarLife_SDK: bluetoothAdapter?.isEnabled: false, so return
+2026-09-22T15:39:06.095Z 2045 1 D/CarLife_SDK: cancelConnect onFailure
+2026-09-22T15:39:28.096Z 2045 121 E/MainFragment: Carlife Connect Timeout
+2026-09-22T15:39:28.105Z 2045 1 D/GetMsgName: len = 1
+2026-09-22T15:39:28.105Z 2045 1 D/MainFragment: MsgMainFragmentHandler handleMessage get msg: null
+2026-09-22T15:43:57.147Z 2045 1 D/CarLife_SDK: setConnectType, 5
+2026-09-22T15:43:57.147Z 2045 1 D/CarLife_SDK: WifiP2pManager terminate
+2026-09-22T15:43:57.148Z 2045 1 D/CarLife_SDK: InstantProtocolTransport terminate
+2026-09-22T15:43:57.149Z 2045 1 D/CarLife_SDK: WirlessProtocolTransport connect listener
+2026-09-22T15:43:57.150Z 2045 123 D/CarLife_SDK: start read broadcast socket
+2026-09-22T15:43:57.175Z 2045 1 D/CarLife_SDK: cancelConnect onFailure
+2026-09-22T15:43:57.179Z 2045 1 D/CarLife_SDK: cancelConnect onFailure
+2026-09-22T15:43:57.179Z 2045 1 D/CarLife_SDK: cancelConnect onFailure
+2026-09-22T15:43:57.180Z 2045 1 D/CarLife_SDK: cancelConnect onFailure
+2026-09-22T16:21:58.317Z 2295 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 1
+2026-09-22T16:21:58.318Z 2295 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 2
+2026-09-22T16:21:58.319Z 2295 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 3
+2026-09-22T16:21:58.319Z 2295 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 4
+2026-09-22T16:21:58.320Z 2295 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 5
+2026-09-22T16:21:58.320Z 2295 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 6
+2026-09-22T16:21:58.320Z 2295 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 7
+2026-09-22T16:21:58.321Z 2295 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 8
+2026-09-22T16:21:58.321Z 2295 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 9
+2026-09-22T16:21:58.321Z 2295 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 10
+2026-09-22T16:21:58.321Z 2295 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 11
+2026-09-22T16:21:58.322Z 2295 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 12
+2026-09-22T16:21:58.322Z 2295 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 13
+2026-09-22T16:21:58.323Z 2295 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 14
+2026-09-22T16:21:58.325Z 2295 1 W/CarLife_SDK: carlife sdk version: 2.2.2
+2026-09-22T16:21:58.326Z 2295 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 15
+2026-09-22T16:21:58.326Z 2295 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 16
+2026-09-22T16:21:58.326Z 2295 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 17
+2026-09-22T16:21:58.327Z 2295 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 18
+2026-09-22T16:21:58.562Z 2295 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 19
+2026-09-22T16:21:58.562Z 2295 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 20
+2026-09-22T16:21:58.563Z 2295 1 D/mtg_carlife: VehicleService onCreate
+2026-09-22T16:21:58.563Z 2295 1 D/mtg_carlife: VehicleService onBind
+2026-09-22T16:22:35.776Z 2295 1 E/CarLifeFragmentManager: task id = com.baidu.carlifevehicle.CarlifeActivity@217530f4
+2026-09-22T16:22:35.786Z 2295 1 D/CarLifeFragmentManager: mListFragment size is 0
+2026-09-22T16:22:35.786Z 2295 1 D/CarLifeFragmentManager: hides
+2026-09-22T16:22:35.787Z 2295 1 D/CarLifeFragmentManager: Addr
+2026-09-22T16:22:35.787Z 2295 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 21
+2026-09-22T16:22:35.788Z 2295 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 22
+2026-09-22T16:22:35.788Z 2295 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 23
+2026-09-22T16:22:35.788Z 2295 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 24
+2026-09-22T16:22:35.788Z 2295 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 25
+2026-09-22T16:22:35.789Z 2295 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 26
+2026-09-22T16:22:35.789Z 2295 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 27
+2026-09-22T16:22:35.789Z 2295 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 28
+2026-09-22T16:22:35.789Z 2295 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 29
+2026-09-22T16:22:35.790Z 2295 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 30
+2026-09-22T16:22:35.790Z 2295 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 31
+2026-09-22T16:22:35.790Z 2295 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 32
+2026-09-22T16:22:35.790Z 2295 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 33
+2026-09-22T16:22:35.793Z 2295 1 D/BaseFragment: onAttach
+2026-09-22T16:22:35.794Z 2295 1 D/BaseFragment: onCreate
+2026-09-22T16:22:35.794Z 2295 1 D/BaseFragment: onCreateView
+2026-09-22T16:22:35.794Z 2295 1 D/MainFragment: onCreateView
+2026-09-22T16:22:35.851Z 2295 1 D/CarLife_SDK: setConnectType, 5
+2026-09-22T16:22:35.852Z 2295 1 D/CarLife_SDK: WirlessProtocolTransport terminate
+2026-09-22T16:22:35.852Z 2295 1 D/CarLife_SDK: WirlessProtocolTransport connect listener
+2026-09-22T16:22:35.853Z 2295 1 D/MainFragment: set timeout: 30000
+2026-09-22T16:22:35.853Z 2295 132 D/CarLife_SDK: start read broadcast socket
+2026-09-22T16:22:35.853Z 2295 1 D/MainFragment: connectStatusHeight=371
+2026-09-22T16:22:35.854Z 2295 1 D/MainFragment: screenHeigh=12,screenWidth=13
+2026-09-22T16:22:35.854Z 2295 1 D/MainFragment: topMargin=-239,bottomMargin-119
+2026-09-22T16:22:35.854Z 2295 1 D/BaseFragment: onActivityCreated
+2026-09-22T16:22:35.855Z 2295 1 D/MainFragment: onHiddenChanged, hidden: true
+2026-09-22T16:22:35.855Z 2295 1 D/BaseFragment: onAttach
+2026-09-22T16:22:35.855Z 2295 1 D/BaseFragment: onCreate
+2026-09-22T16:22:35.856Z 2295 1 D/BaseFragment: onCreateView
+2026-09-22T16:22:35.856Z 2295 1 D/LaunchFragment: onCreateView
+2026-09-22T16:22:35.858Z 2295 1 D/BaseFragment: onActivityCreated
+2026-09-22T16:22:35.859Z 2295 1 D/BaseFragment: onStart
+2026-09-22T16:22:35.859Z 2295 1 D/BaseFragment: onStart
+2026-09-22T16:22:35.859Z 2295 1 D/BaseFragment: onResume
+2026-09-22T16:22:35.860Z 2295 1 D/BaseFragment: onResume
+2026-09-22T16:22:35.866Z 2295 1 D/BaseFragment: onPause
+2026-09-22T16:22:35.866Z 2295 1 D/BaseFragment: onPause
+2026-09-22T16:22:35.866Z 2295 1 D/BaseFragment: onResume
+2026-09-22T16:22:35.867Z 2295 1 D/BaseFragment: onResume
+2026-09-22T16:22:35.959Z 2295 1 D/GetMsgName: len = 1
+2026-09-22T16:22:35.959Z 2295 1 D/CarLife_SDK: MsgMainActivityHandler handleMessage get msg: null
+2026-09-22T16:22:35.959Z 2295 1 D/CarLife_SDK: mIsInitConfig is false, so delay 500
+2026-09-22T16:22:36.293Z 2295 1 D/GetMsgName: len = 1
+2026-09-22T16:22:36.293Z 2295 1 D/CarLife_SDK: MsgMainActivityHandler handleMessage get msg: null
+2026-09-22T16:22:36.293Z 2295 1 E/CarLife_SDK: ++++++++++++++++++++Baidu Carlife Begin++++++++++++++++++++
+2026-09-22T16:22:36.294Z 2295 1 E/CarlifeConfUtil: can not find key: CONFIG_LOG_LEVEL
+2026-09-22T16:22:36.460Z 2295 1 D/GetMsgName: len = 1
+2026-09-22T16:22:36.461Z 2295 1 D/CarLife_SDK: MsgMainActivityHandler handleMessage get msg: null
+2026-09-22T16:22:36.461Z 2295 1 D/CarLifeFragmentManager: remover
+2026-09-22T16:22:36.461Z 2295 1 D/CarLifeFragmentManager: Shows
+2026-09-22T16:22:36.461Z 2295 1 D/BaseFragment: onPause
+2026-09-22T16:22:36.461Z 2295 1 D/BaseFragment: onStop
+2026-09-22T16:22:36.462Z 2295 1 D/MainFragment: onHiddenChanged, hidden: false
+2026-09-22T16:22:36.462Z 2295 1 D/CarLife_SDK: WirlessProtocolTransport connect listener
+2026-09-22T16:22:36.463Z 2295 1 D/BaseFragment: onDestroyView
+2026-09-22T16:22:36.463Z 2295 1 D/LaunchFragment: onDestroyView
+2026-09-22T16:22:36.464Z 2295 1 D/BaseFragment: onDestroy
+2026-09-22T16:22:36.464Z 2295 1 D/BaseFragment: onDetach
+2026-09-22T16:22:36.464Z 2295 1 D/LaunchFragment: onDetach
+2026-09-22T16:22:38.739Z 2295 1 D/CarLife_SDK: setConnectType, 2
+2026-09-22T16:22:38.739Z 2295 1 D/CarLife_SDK: WirlessProtocolTransport terminate
+2026-09-22T16:22:38.740Z 2295 1 D/CarLife_SDK: AOAProtocolTransport connect
+2026-09-22T16:22:38.741Z 2295 132 D/CarLife_SDK: UDPSocket IOException:java.net.SocketException: Socket closed
+	at libcore.io.Posix.recvfromBytes(Native Method)
+	at libcore.io.Posix.recvfrom(Posix.java:141)
+	at libcore.io.BlockGuardOs.recvfrom(BlockGuardOs.java:164)
+	at libcore.io.IoBridge.recvfrom(IoBridge.java:506)
+	at java.net.PlainDatagramSocketImpl.doRecv(PlainDatagramSocketImpl.java:161)
+	at java.net.PlainDatagramSocketImpl.receive(PlainDatagramSocketImpl.java:169)
+	at java.net.DatagramSocket.receive(DatagramSocket.java:250)
+	at a.a.a.a.m.m.e.a$a.run(:12)
+2026-09-22T16:22:38.741Z 2295 135 D/CarLife_SDK: UsbAccessoryScanner deviceList[UsbDevice[mName=/dev/bus/usb/001/002,mVendorId=33006,mProductId=33,mClass=0,mSubclass=0,mProtocol=0,mInterfaces=[Landroid.os.Parcelable;@2196c888]]
+2026-09-22T16:22:38.743Z 2295 135 D/CarLife_SDK: UsbAccessoryScanner deal with UsbDevice[mName=/dev/bus/usb/001/002,mVendorId=33006,mProductId=33,mClass=0,mSubclass=0,mProtocol=0,mInterfaces=[Landroid.os.Parcelable;@2196e0e0] has permission false
+2026-09-22T16:22:39.499Z 2295 1 D/CarLife_SDK: setConnectType, 9
+2026-09-22T16:22:39.499Z 2295 1 D/CarLife_SDK: AOAProtocolTransport terminate
+2026-09-22T16:22:39.500Z 2295 1 D/CarLife_SDK: InstantProtocolTransport connect
+2026-09-22T16:22:39.536Z 2295 1 D/CarLife_SDK: requestConnectionInfo groupFormed: false isGroupOwner: false groupOwnerAddress: null
+2026-09-22T16:22:39.537Z 2295 137 E/CarLife_SDK: bluetoothAdapter?.isEnabled: false, so return
+2026-09-22T16:22:41.898Z 2295 1 D/CarLifeFragmentManager: hides
+2026-09-22T16:22:41.898Z 2295 1 D/CarLifeFragmentManager: Addv
+2026-09-22T16:22:41.898Z 2295 1 D/MainFragment: onHiddenChanged, hidden: true
+2026-09-22T16:22:41.899Z 2295 1 D/BaseFragment: onAttach
+2026-09-22T16:22:41.899Z 2295 1 D/BaseFragment: onCreate
+2026-09-22T16:22:41.899Z 2295 1 D/BaseFragment: onCreateView
+2026-09-22T16:22:41.899Z 2295 1 D/SettingsFragment: onCreateView
+2026-09-22T16:22:42.291Z 2295 1 D/BaseFragment: onActivityCreated
+2026-09-22T16:22:42.291Z 2295 1 D/BaseFragment: onStart
+2026-09-22T16:22:42.292Z 2295 1 D/BaseFragment: onResume
+2026-09-22T16:22:43.933Z 2295 1 D/CarLifeFragmentManager: removev
+2026-09-22T16:22:43.933Z 2295 1 D/CarLifeFragmentManager: Shows
+2026-09-22T16:22:43.934Z 2295 1 D/BaseFragment: onPause
+2026-09-22T16:22:43.934Z 2295 1 D/BaseFragment: onStop
+2026-09-22T16:22:43.935Z 2295 1 D/MainFragment: onHiddenChanged, hidden: false
+2026-09-22T16:22:43.936Z 2295 1 D/BaseFragment: onDestroyView
+2026-09-22T16:22:43.937Z 2295 1 D/SettingsFragment: onDestroyView
+2026-09-22T16:22:43.937Z 2295 1 D/BaseFragment: onDestroy
+2026-09-22T16:22:43.937Z 2295 1 D/BaseFragment: onDetach
+2026-09-22T16:22:44.801Z 2295 1 D/CarLifeFragmentManager: hides
+2026-09-22T16:22:44.802Z 2295 1 D/CarLifeFragmentManager: Addh
+2026-09-22T16:22:44.802Z 2295 1 D/MainFragment: onHiddenChanged, hidden: true
+2026-09-22T16:22:44.802Z 2295 1 D/BaseFragment: onAttach
+2026-09-22T16:22:44.803Z 2295 1 D/BaseFragment: onCreate
+2026-09-22T16:22:44.803Z 2295 1 D/BaseFragment: onCreateView
+2026-09-22T16:22:44.803Z 2295 1 D/SettingsFragment: onCreateView
+2026-09-22T16:22:44.824Z 2295 1 D/BaseFragment: onActivityCreated
+2026-09-22T16:22:44.824Z 2295 1 D/BaseFragment: onStart
+2026-09-22T16:22:44.825Z 2295 1 D/BaseFragment: onResume
+2026-09-22T16:22:46.514Z 2295 1 D/CarLifeFragmentManager: removeh
+2026-09-22T16:22:46.514Z 2295 1 D/CarLifeFragmentManager: Shows
+2026-09-22T16:22:46.514Z 2295 1 D/BaseFragment: onPause
+2026-09-22T16:22:46.514Z 2295 1 D/BaseFragment: onStop
+2026-09-22T16:22:46.515Z 2295 1 D/MainFragment: onHiddenChanged, hidden: false
+2026-09-22T16:22:46.515Z 2295 1 D/BaseFragment: onDestroyView
+2026-09-22T16:22:46.515Z 2295 1 D/SettingsFragment: onDestroyView
+2026-09-22T16:22:46.516Z 2295 1 D/BaseFragment: onDestroy
+2026-09-22T16:22:46.516Z 2295 1 D/BaseFragment: onDetach
+2026-09-22T16:22:47.382Z 2295 1 D/BaseFragment: onPause
+2026-09-22T16:22:48.459Z 2412 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 1
+2026-09-22T16:22:48.459Z 2412 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 2
+2026-09-22T16:22:48.460Z 2412 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 3
+2026-09-22T16:22:48.460Z 2412 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 4
+2026-09-22T16:22:48.461Z 2412 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 5
+2026-09-22T16:22:48.461Z 2412 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 6
+2026-09-22T16:22:48.461Z 2412 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 7
+2026-09-22T16:22:48.462Z 2412 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 8
+2026-09-22T16:22:48.462Z 2412 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 9
+2026-09-22T16:22:48.462Z 2412 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 10
+2026-09-22T16:22:48.462Z 2412 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 11
+2026-09-22T16:22:48.463Z 2412 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 12
+2026-09-22T16:22:48.463Z 2412 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 13
+2026-09-22T16:22:48.463Z 2412 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 14
+2026-09-22T16:22:48.464Z 2412 1 W/CarLife_SDK: carlife sdk version: 2.2.2
+2026-09-22T16:22:48.465Z 2412 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 15
+2026-09-22T16:22:48.465Z 2412 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 16
+2026-09-22T16:22:48.465Z 2412 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 17
+2026-09-22T16:22:48.466Z 2412 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 18
+2026-09-22T16:22:48.467Z 2412 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 19
+2026-09-22T16:22:48.468Z 2412 1 D/CarLife_SDK: CarLifeContextImpl monitor listener count 20
+2026-09-22T16:22:48.468Z 2412 1 D/mtg_carlife: VehicleService onCreate
+2026-09-22T16:22:48.468Z 2412 1 D/mtg_carlife: VehicleService onBind

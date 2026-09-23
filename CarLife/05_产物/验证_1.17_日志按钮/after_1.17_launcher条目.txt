@@ -1,0 +1,4 @@
+      android.intent.action.MAIN:
+        2185184c com.baidu.carlifevehicle/.CarlifeActivity filter 21846520
+          Action: "android.intent.action.MAIN"
+          Category: "android.intent.category.LAUNCHER"

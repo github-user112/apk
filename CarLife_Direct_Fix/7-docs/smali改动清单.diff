@@ -1,0 +1,686 @@
+=======================================================================
+ CarLife 1.6 车机端 —— 直连修复补丁 smali 改动清单
+ 原始  : _sm16  (apktool 反编译 1.6 修改版, 未打补丁)
+ 补丁后: _w110  (patchA~G 全部应用, 即 v7 / 1.10)
+ 生成  : 2026-09-21 14:02:46
+=======================================================================
+
+【改动总览】
+  AndroidManifest.xml                     +1 行   补 CHANGE_WIFI_MULTICAST_STATE 权限
+  assets/bdcf                             +4 -2   2.4G 频率 + P2P 设备名 CarLife-HU
+  smali/.../m/m/d/a.smali                 +12     patchB 蓝牙未开时自动 enable
+  smali/.../m/m/d/b.smali                 +3 -2   patchG 抑制 discoverPeers 洪水
+  smali/.../m/m/d/i.smali                 +38 -1  patchC setDeviceName + patchD 挂载自举器
+  smali/.../m/m/e/d.smali                 +16     patchE 断开时清组
+  smali/.../m/m/d/j.smali          (新增) 3371B   patchD 自举器主体
+  smali/.../m/m/d/j$a.smali       (新增) 2120B   createGroup 回调
+  smali/.../m/m/d/j$b.smali       (新增) 3371B   自举器重试 Runnable
+
+=======================================================================
+ 一、逐文件 unified diff
+=======================================================================
+
+########## AndroidManifest.xml ##########
+@@ -4,6 +4,7 @@
+     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE"/>
++    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE"/>
+     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE"/>
+     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+
+########## assets/bdcf ##########
+@@ -47,7 +47,7 @@
+ CONFIG_WIRLESS_TYPE = 3
+ 
+ # 车机端支持的无线连接频率 0：2.4G  1：5G
+-CONFIG_WIRLESS_FREQUENCY = 1
++CONFIG_WIRLESS_FREQUENCY = 0
+ 
+ # 车机端蓝牙名称
+ CONFIG_HU_BT_NAME = xxx
+@@ -56,4 +56,7 @@
+ CONFIG_HU_BT_MAC = yyy-zzz-xxx
+ 
+ # 是否保存音频源文件
+-CONFIG_SAVE_AUDIO_FILE = false
+\ No newline at end of file
++CONFIG_SAVE_AUDIO_FILE = false
++
++# 车机端 WiFi 直连名称(P2P 设备名, 手机端据此寻找车机)
++CONFIG_WIFI_DIRECT_NAME = CarLife-HU
+
+########## smali/a/a/a/a/m/m/d/a.smali ##########
+@@ -67,6 +67,29 @@
+     const/4 v0, 0x0
+ 
+     :goto_1
++
++    # --- patchB: 蓝牙未开启则主动请求开启, 并置等待标志 h=true,
++    # ---          使系统"蓝牙已开启"广播(STATE_ON)能真正触发 1s 后重试
++    invoke-virtual {v2}, La/a/a/a/m/m/d/d;->b()Landroid/bluetooth/BluetoothAdapter;
++
++    move-result-object v5
++
++    if-eqz v5, :bt_auto_enable
++
++    invoke-virtual {v5}, Landroid/bluetooth/BluetoothAdapter;->isEnabled()Z
++
++    move-result v6
++
++    if-nez v6, :bt_auto_enable
++
++    invoke-virtual {v5}, Landroid/bluetooth/BluetoothAdapter;->enable()Z
++
++    const/4 v6, 0x1
++
++    iput-boolean v6, v2, La/a/a/a/m/m/d/d;->h:Z
++
++    :bt_auto_enable
++
+     const-string v5, "args"
+ 
+     const-string v6, "tag"
+
+########## smali/a/a/a/a/m/m/d/b.smali ##########
+@@ -73,9 +73,11 @@
+ 
+     .line 5
+     :goto_0
+-    iget-object v0, v0, La/a/a/a/m/m/d/h;->c:La/a/a/a/n/i/b;
++    const-string v2, "CarLifeP2PBoot"
+ 
+-    invoke-virtual {v0}, La/a/a/a/n/i/b;->a()V
++    const-string v3, "discoverPeers suppressed (HU creates group instead)"
++
++    invoke-static {v2, v3}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
+ 
+     return-void
+ .end method
+
+########## smali/a/a/a/a/m/m/d/i.smali ##########
+@@ -24,10 +24,12 @@
+ 
+ .field public f:Z
+ 
++.field public g:La/a/a/a/m/m/d/j;
++
+ 
+ # direct methods
+ .method public constructor <init>(La/a/a/a/c;La/a/a/a/m/m/d/i$b;)V
+-    .locals 3
++    .locals 6
+ 
+     const-string v0, "context"
+ 
+@@ -87,6 +89,50 @@
+ 
+     iput-object v1, p0, La/a/a/a/m/m/d/i;->e:La/a/a/a/m/m/d/h;
+ 
++    # --- patchC(v3): 把系统 P2P 设备名同步为配置的直连名称, 手机端才能按名字找到车机 ---
++    # ---  Android 10+ (API >= 29) 起 setDeviceName 属系统级隐藏 API, 第三方应用调用会被 ---
++    # ---  WifiP2pService 拒绝(Permission violation - NETWORK_SETTING/NETWORK_STACK/     ---
++    # ---  OVERRIDE_WIFI_CONFIG) 并干扰 P2P 流程, 故仅在低版本(含车机 4.4.2)调用        ---
++    sget v2, Landroid/os/Build$VERSION;->SDK_INT:I
++
++    const/16 v1, 0x1d
++
++    if-lt v2, v1, :p2p_name_done
++
++    iget-object v0, p0, La/a/a/a/m/m/d/i;->e:La/a/a/a/m/m/d/h;
++
++    const-string v2, "CONFIG_WIFI_DIRECT_NAME"
++
++    invoke-interface {p1, v2}, La/a/a/a/c;->I0(Ljava/lang/String;)Ljava/lang/Object;
++
++    move-result-object v1
++
++    check-cast v1, Ljava/lang/String;
++
++    if-nez v1, :p2p_name_len
++
++    const-string v1, "CarLife-HU"
++
++    goto :p2p_name_set
++
++    :p2p_name_len
++
++    invoke-virtual {v1}, Ljava/lang/String;->length()I
++
++    move-result v2
++
++    if-nez v2, :p2p_name_set
++
++    const-string v1, "CarLife-HU"
++
++    :p2p_name_set
++
++    iget-object v2, p0, La/a/a/a/m/m/d/i;->d:Landroid/net/wifi/p2p/WifiP2pManager$Channel;
++
++    invoke-virtual {p2, v2, v1, v0}, Landroid/net/wifi/p2p/WifiP2pManager;->setDeviceName(Landroid/net/wifi/p2p/WifiP2pManager$Channel;Ljava/lang/String;Landroid/net/wifi/p2p/WifiP2pManager$ActionListener;)V
++
++    :p2p_name_done
++
+     new-instance v0, Landroid/content/IntentFilter;
+ 
+     invoke-direct {v0}, Landroid/content/IntentFilter;-><init>()V
+@@ -121,6 +167,26 @@
+ 
+     invoke-virtual {p2, p1, v0}, Landroid/net/wifi/p2p/WifiP2pManager;->requestConnectionInfo(Landroid/net/wifi/p2p/WifiP2pManager$Channel;Landroid/net/wifi/p2p/WifiP2pManager$ConnectionInfoListener;)V
+ 
++    # --- patchD: 亿连式 P2P 自举器 (参照 net.easyconn) ---------------------------
++    # ---  车机端原设计完全被动: 只 discoverPeers 等手机来建组, createGroup 调用数为 0。
++    # ---  此处 15 秒后若仍无组, 由车机主动 createGroup() 成为 GO, 手机 discoverPeers
++    # ---  到即可加入。失败每 10 秒重试, 最多 6 次, 组一形成立即停止。
++    iget-object v0, p0, La/a/a/a/m/m/d/i;->a:La/a/a/a/c;
++
++    iget-object v1, p0, La/a/a/a/m/m/d/i;->d:Landroid/net/wifi/p2p/WifiP2pManager$Channel;
++
++    new-instance v2, La/a/a/a/m/m/d/j;
++
++    move-object v3, p2
++
++    move-object v4, p0
++
++    invoke-direct {v2, v0, v3, v1, v4}, La/a/a/a/m/m/d/j;-><init>(La/a/a/a/c;Landroid/net/wifi/p2p/WifiP2pManager;Landroid/net/wifi/p2p/WifiP2pManager$Channel;La/a/a/a/m/m/d/i;)V
++
++    iput-object v2, p0, La/a/a/a/m/m/d/i;->g:La/a/a/a/m/m/d/j;
++
++    invoke-virtual {v2}, La/a/a/a/m/m/d/j;->a()V
++
+     return-void
+ 
+     :cond_0
+
+########## smali/a/a/a/a/m/m/e/d.smali ##########
+@@ -199,6 +199,20 @@
+     :goto_0
+     iget-object v0, v0, La/a/a/a/m/m/d/e;->c:La/a/a/a/m/m/d/i;
+ 
++    # --- patchE: 停止 P2P 自举器 ---
++    iget-object v1, v0, La/a/a/a/m/m/d/i;->g:La/a/a/a/m/m/d/j;
++
++    if-eqz v1, :boot_stopped
++
++    invoke-virtual {v1}, La/a/a/a/m/m/d/j;->b()V
++
++    const/4 v2, 0x0
++
++    iput-object v2, v0, La/a/a/a/m/m/d/i;->g:La/a/a/a/m/m/d/j;
++
++    :boot_stopped
++
++
+     .line 5
+     invoke-virtual {v0}, Ljava/lang/Object;->getClass()Ljava/lang/Class;
+ 
+@@ -265,6 +279,21 @@
+ 
+     invoke-virtual {v3, v0, v7}, Landroid/net/wifi/p2p/WifiP2pManager;->cancelConnect(Landroid/net/wifi/p2p/WifiP2pManager$Channel;Landroid/net/wifi/p2p/WifiP2pManager$ActionListener;)V
+ 
++    # --- patchE: 参照亿连的清理习惯. 原来只 cancelConnect, 残留组会让下一次
++    # ---  discoverPeers 一直返回 BUSY(真机日志中的 reason: 2), 补上 removeGroup
++    # ---  与 stopPeerDiscovery, 保证下次进直连是干净状态。
++    new-instance v7, La/a/a/a/m/m/d/g;
++
++    invoke-direct {v7}, La/a/a/a/m/m/d/g;-><init>()V
++
++    invoke-virtual {v3, v0, v7}, Landroid/net/wifi/p2p/WifiP2pManager;->removeGroup(Landroid/net/wifi/p2p/WifiP2pManager$Channel;Landroid/net/wifi/p2p/WifiP2pManager$ActionListener;)V
++
++    new-instance v7, La/a/a/a/m/m/d/g;
++
++    invoke-direct {v7}, La/a/a/a/m/m/d/g;-><init>()V
++
++    invoke-virtual {v3, v0, v7}, Landroid/net/wifi/p2p/WifiP2pManager;->stopPeerDiscovery(Landroid/net/wifi/p2p/WifiP2pManager$Channel;Landroid/net/wifi/p2p/WifiP2pManager$ActionListener;)V
++
+     .line 13
+     invoke-virtual {p0}, La/a/a/a/m/m/e/d;->h()La/a/a/a/m/m/e/b;
+ 
+
+=======================================================================
+ 二、新增文件全文 (原始不存在)
+=======================================================================
+
+########## smali/a/a/a/a/m/m/d/j.smali ##########
+.class public final La/a/a/a/m/m/d/j;
+.super Ljava/lang/Object;
+.source "P2pBootstrap.java"
+
+
+# instance fields
+.field public final a:La/a/a/a/c;
+
+.field public final b:Landroid/net/wifi/p2p/WifiP2pManager;
+
+.field public final c:Landroid/net/wifi/p2p/WifiP2pManager$Channel;
+
+.field public final d:La/a/a/a/m/m/d/i;
+
+.field public final e:Landroid/os/Handler;
+
+.field public final f:Ljava/lang/Runnable;
+
+.field public g:I
+
+.field public h:Z
+
+.field public i:Landroid/net/wifi/WifiManager$MulticastLock;
+
+
+# direct methods
+.method public constructor <init>(La/a/a/a/c;Landroid/net/wifi/p2p/WifiP2pManager;Landroid/net/wifi/p2p/WifiP2pManager$Channel;La/a/a/a/m/m/d/i;)V
+    .locals 3
+
+    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
+
+    iput-object p1, p0, La/a/a/a/m/m/d/j;->a:La/a/a/a/c;
+
+    iput-object p2, p0, La/a/a/a/m/m/d/j;->b:Landroid/net/wifi/p2p/WifiP2pManager;
+
+    iput-object p3, p0, La/a/a/a/m/m/d/j;->c:Landroid/net/wifi/p2p/WifiP2pManager$Channel;
+
+    iput-object p4, p0, La/a/a/a/m/m/d/j;->d:La/a/a/a/m/m/d/i;
+
+    const/4 v0, 0x0
+
+    iput v0, p0, La/a/a/a/m/m/d/j;->g:I
+
+    iput-boolean v0, p0, La/a/a/a/m/m/d/j;->h:Z
+
+    const/4 v0, 0x0
+
+    iput-object v0, p0, La/a/a/a/m/m/d/j;->i:Landroid/net/wifi/WifiManager$MulticastLock;
+
+    new-instance v0, Landroid/os/Handler;
+
+    invoke-static {}, Landroid/os/Looper;->getMainLooper()Landroid/os/Looper;
+
+    move-result-object v1
+
+    invoke-direct {v0, v1}, Landroid/os/Handler;-><init>(Landroid/os/Looper;)V
+
+    iput-object v0, p0, La/a/a/a/m/m/d/j;->e:Landroid/os/Handler;
+
+    new-instance v0, La/a/a/a/m/m/d/j$b;
+
+    invoke-direct {v0, p0}, La/a/a/a/m/m/d/j$b;-><init>(La/a/a/a/m/m/d/j;)V
+
+    iput-object v0, p0, La/a/a/a/m/m/d/j;->f:Ljava/lang/Runnable;
+
+    return-void
+.end method
+
+
+# virtual methods
+.method public final a()V
+    .locals 6
+
+    const/4 v0, 0x1
+
+    iput-boolean v0, p0, La/a/a/a/m/m/d/j;->h:Z
+
+    const-string v0, "CarLifeP2PBoot"
+
+    const-string v1, "armed: if no P2P group in 8s, HU will createGroup() and become GO"
+
+    invoke-static {v0, v1}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
+
+    # patchF-1: 停掉 CarLife 每秒一次的 discoverPeers 循环 (n/h.b -> Timer)
+    # 真机实测: 该循环只 schedule 从不 cancel, discovery 永久进行中,
+    # 导致 WifiP2pServiceImpl 的 mIsBusy/mDiscoveryStarted 一直被占,
+    # 于是 discoverPeers 自己 BUSY、我们新加的 createGroup 也 BUSY(reason=2)。
+    :try_start_1
+    iget-object v0, p0, La/a/a/a/m/m/d/j;->d:La/a/a/a/m/m/d/i;
+
+    iget-object v0, v0, La/a/a/a/m/m/d/i;->e:La/a/a/a/m/m/d/h;
+
+    iget-object v0, v0, La/a/a/a/m/m/d/h;->d:Ljava/lang/Runnable;
+
+    sget-object v1, La/a/a/a/n/h;->a:La/a/a/a/n/h;
+
+    invoke-virtual {v1, v0}, La/a/a/a/n/h;->c(Ljava/lang/Runnable;)V
+
+    const-string v0, "CarLifeP2PBoot"
+
+    const-string v1, "discover loop cancelled (free P2P state machine)"
+
+    invoke-static {v0, v1}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
+    :try_end_1
+    .catch Ljava/lang/Throwable; {:try_start_1 .. :try_end_1} :catch_1
+
+    goto :goto_1
+
+    :catch_1
+    move-exception v0
+
+    const-string v1, "CarLifeP2PBoot"
+
+    const-string v2, "cancel discover loop failed (ignored)"
+
+    invoke-static {v1, v2}, Landroid/util/Log;->e(Ljava/lang/String;Ljava/lang/String;)I
+
+    :goto_1
+    :try_start_0
+    iget-object v0, p0, La/a/a/a/m/m/d/j;->a:La/a/a/a/c;
+
+    invoke-interface {v0}, La/a/a/a/c;->getApplicationContext()Landroid/content/Context;
+
+    move-result-object v0
+
+    const-string v1, "wifi"
+
+    invoke-virtual {v0, v1}, Landroid/content/Context;->getSystemService(Ljava/lang/String;)Ljava/lang/Object;
+
+    move-result-object v0
+
+    check-cast v0, Landroid/net/wifi/WifiManager;
+
+    const-string v1, "CarLifeP2P"
+
+    invoke-virtual {v0, v1}, Landroid/net/wifi/WifiManager;->createMulticastLock(Ljava/lang/String;)Landroid/net/wifi/WifiManager$MulticastLock;
+
+    move-result-object v0
+
+    iput-object v0, p0, La/a/a/a/m/m/d/j;->i:Landroid/net/wifi/WifiManager$MulticastLock;
+
+    invoke-virtual {v0}, Landroid/net/wifi/WifiManager$MulticastLock;->acquire()V
+
+    const-string v0, "CarLifeP2PBoot"
+
+    const-string v1, "MulticastLock acquired"
+
+    invoke-static {v0, v1}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
+    :try_end_0
+    .catch Ljava/lang/Throwable; {:try_start_0 .. :try_end_0} :catch_0
+
+    goto :goto_0
+
+    :catch_0
+    move-exception v0
+
+    const-string v1, "CarLifeP2PBoot"
+
+    new-instance v2, Ljava/lang/StringBuilder;
+
+    invoke-direct {v2}, Ljava/lang/StringBuilder;-><init>()V
+
+    const-string v3, "MulticastLock failed: "
+
+    invoke-virtual {v2, v3}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    move-result-object v2
+
+    invoke-virtual {v2, v0}, Ljava/lang/StringBuilder;->append(Ljava/lang/Object;)Ljava/lang/StringBuilder;
+
+    move-result-object v0
+
+    invoke-virtual {v0}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+
+    move-result-object v0
+
+    invoke-static {v1, v0}, Landroid/util/Log;->e(Ljava/lang/String;Ljava/lang/String;)I
+
+    :goto_0
+    iget-object v0, p0, La/a/a/a/m/m/d/j;->e:Landroid/os/Handler;
+
+    iget-object v1, p0, La/a/a/a/m/m/d/j;->f:Ljava/lang/Runnable;
+
+    const-wide/16 v2, 0x1f40
+
+    invoke-virtual {v0, v1, v2, v3}, Landroid/os/Handler;->postDelayed(Ljava/lang/Runnable;J)Z
+
+    return-void
+.end method
+
+.method public final b()V
+    .locals 4
+
+    const/4 v0, 0x0
+
+    iput-boolean v0, p0, La/a/a/a/m/m/d/j;->h:Z
+
+    iget-object v0, p0, La/a/a/a/m/m/d/j;->e:Landroid/os/Handler;
+
+    iget-object v1, p0, La/a/a/a/m/m/d/j;->f:Ljava/lang/Runnable;
+
+    invoke-virtual {v0, v1}, Landroid/os/Handler;->removeCallbacks(Ljava/lang/Runnable;)V
+
+    :try_start_0
+    iget-object v0, p0, La/a/a/a/m/m/d/j;->i:Landroid/net/wifi/WifiManager$MulticastLock;
+
+    if-eqz v0, :done
+
+    invoke-virtual {v0}, Landroid/net/wifi/WifiManager$MulticastLock;->isHeld()Z
+
+    move-result v1
+
+    if-eqz v1, :done
+
+    invoke-virtual {v0}, Landroid/net/wifi/WifiManager$MulticastLock;->release()V
+    :try_end_0
+    .catch Ljava/lang/Throwable; {:try_start_0 .. :try_end_0} :catch_0
+
+    goto :done
+
+    :catch_0
+    move-exception v0
+
+    :done
+    return-void
+.end method
+
+########## smali/a/a/a/a/m/m/d/j$a.smali ##########
+.class public final La/a/a/a/m/m/d/j$a;
+.super Ljava/lang/Object;
+.source "P2pBootstrap.java"
+
+
+# interfaces
+.implements Landroid/net/wifi/p2p/WifiP2pManager$ActionListener;
+
+
+# instance fields
+.field public final a:La/a/a/a/m/m/d/j;
+
+
+# direct methods
+.method public constructor <init>(La/a/a/a/m/m/d/j;)V
+    .locals 0
+
+    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
+
+    iput-object p1, p0, La/a/a/a/m/m/d/j$a;->a:La/a/a/a/m/m/d/j;
+
+    return-void
+.end method
+
+
+# virtual methods
+.method public onFailure(I)V
+    .locals 6
+
+    const-string v0, "CarLifeP2PBoot"
+
+    new-instance v1, Ljava/lang/StringBuilder;
+
+    invoke-direct {v1}, Ljava/lang/StringBuilder;-><init>()V
+
+    const-string v2, "createGroup failed, reason="
+
+    invoke-virtual {v1, v2}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    move-result-object v1
+
+    invoke-virtual {v1, p1}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
+
+    move-result-object v1
+
+    const-string v2, " -> retry in 8s"
+
+    invoke-virtual {v1, v2}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    move-result-object v1
+
+    invoke-virtual {v1}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+
+    move-result-object v1
+
+    invoke-static {v0, v1}, Landroid/util/Log;->e(Ljava/lang/String;Ljava/lang/String;)I
+
+    iget-object v0, p0, La/a/a/a/m/m/d/j$a;->a:La/a/a/a/m/m/d/j;
+
+    iget-object v1, v0, La/a/a/a/m/m/d/j;->e:Landroid/os/Handler;
+
+    iget-object v2, v0, La/a/a/a/m/m/d/j;->f:Ljava/lang/Runnable;
+
+    const-wide/16 v3, 0x1f40
+
+    invoke-virtual {v1, v2, v3, v4}, Landroid/os/Handler;->postDelayed(Ljava/lang/Runnable;J)Z
+
+    return-void
+.end method
+
+.method public onSuccess()V
+    .locals 2
+
+    const-string v0, "CarLifeP2PBoot"
+
+    const-string v1, "createGroup SUCCESS: HU is Group Owner, phone may join now"
+
+    invoke-static {v0, v1}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
+
+    iget-object v0, p0, La/a/a/a/m/m/d/j$a;->a:La/a/a/a/m/m/d/j;
+
+    invoke-virtual {v0}, La/a/a/a/m/m/d/j;->b()V
+
+    return-void
+.end method
+
+########## smali/a/a/a/a/m/m/d/j$b.smali ##########
+.class public final La/a/a/a/m/m/d/j$b;
+.super Ljava/lang/Object;
+.source "P2pBootstrap.java"
+
+
+# interfaces
+.implements Ljava/lang/Runnable;
+
+
+# instance fields
+.field public final a:La/a/a/a/m/m/d/j;
+
+
+# direct methods
+.method public constructor <init>(La/a/a/a/m/m/d/j;)V
+    .locals 0
+
+    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
+
+    iput-object p1, p0, La/a/a/a/m/m/d/j$b;->a:La/a/a/a/m/m/d/j;
+
+    return-void
+.end method
+
+
+# virtual methods
+.method public final run()V
+    .locals 7
+
+    iget-object v0, p0, La/a/a/a/m/m/d/j$b;->a:La/a/a/a/m/m/d/j;
+
+    iget-boolean v1, v0, La/a/a/a/m/m/d/j;->h:Z
+
+    if-eqz v1, :done
+
+    iget-object v1, v0, La/a/a/a/m/m/d/j;->d:La/a/a/a/m/m/d/i;
+
+    iget-boolean v1, v1, La/a/a/a/m/m/d/i;->f:Z
+
+    if-nez v1, :formed
+
+    iget v1, v0, La/a/a/a/m/m/d/j;->g:I
+
+    const/4 v2, 0x6
+
+    if-ge v1, v2, :giveup
+
+    add-int/lit8 v1, v1, 0x1
+
+    iput v1, v0, La/a/a/a/m/m/d/j;->g:I
+
+    const-string v2, "CarLifeP2PBoot"
+
+    new-instance v3, Ljava/lang/StringBuilder;
+
+    invoke-direct {v3}, Ljava/lang/StringBuilder;-><init>()V
+
+    const-string v4, "createGroup attempt "
+
+    invoke-virtual {v3, v4}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    move-result-object v3
+
+    invoke-virtual {v3, v1}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
+
+    move-result-object v1
+
+    const-string v3, "/6"
+
+    invoke-virtual {v1, v3}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    move-result-object v1
+
+    invoke-virtual {v1}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+
+    move-result-object v1
+
+    invoke-static {v2, v1}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
+
+    # patchF-2: createGroup 前先显式停发现, 避免 discovery 进行中导致 BUSY
+    iget-object v1, v0, La/a/a/a/m/m/d/j;->b:Landroid/net/wifi/p2p/WifiP2pManager;
+
+    iget-object v2, v0, La/a/a/a/m/m/d/j;->c:Landroid/net/wifi/p2p/WifiP2pManager$Channel;
+
+    const/4 v3, 0x0
+
+    invoke-virtual {v1, v2, v3}, Landroid/net/wifi/p2p/WifiP2pManager;->stopPeerDiscovery(Landroid/net/wifi/p2p/WifiP2pManager$Channel;Landroid/net/wifi/p2p/WifiP2pManager$ActionListener;)V
+
+    const-string v1, "CarLifeP2PBoot"
+
+    const-string v2, "stopPeerDiscovery done, createGroup now"
+
+    invoke-static {v1, v2}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
+
+    iget-object v1, v0, La/a/a/a/m/m/d/j;->b:Landroid/net/wifi/p2p/WifiP2pManager;
+
+    iget-object v2, v0, La/a/a/a/m/m/d/j;->c:Landroid/net/wifi/p2p/WifiP2pManager$Channel;
+
+    new-instance v3, La/a/a/a/m/m/d/j$a;
+
+    invoke-direct {v3, v0}, La/a/a/a/m/m/d/j$a;-><init>(La/a/a/a/m/m/d/j;)V
+
+    invoke-virtual {v1, v2, v3}, Landroid/net/wifi/p2p/WifiP2pManager;->createGroup(Landroid/net/wifi/p2p/WifiP2pManager$Channel;Landroid/net/wifi/p2p/WifiP2pManager$ActionListener;)V
+
+    return-void
+
+    :formed
+    const-string v1, "CarLifeP2PBoot"
+
+    const-string v2, "P2P group detected, bootstrap idle"
+
+    invoke-static {v1, v2}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
+
+    return-void
+
+    :giveup
+    const-string v1, "CarLifeP2PBoot"
+
+    const-string v2, "give up after 6 createGroup attempts"
+
+    invoke-static {v1, v2}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
+
+    :done
+    return-void
+.end method
+

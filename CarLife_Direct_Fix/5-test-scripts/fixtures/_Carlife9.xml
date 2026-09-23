@@ -1,0 +1,5 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<map>
+    <boolean name="first_install_key" value="false" />
+    <int name="CarlifeConnectType" value="9" />
+</map>

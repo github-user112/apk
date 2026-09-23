@@ -1,0 +1,39 @@
+package com.tencent.tinker.commons.dexpatcher.struct;
+
+/* loaded from: classes.dex */
+public final class PatchOperation<T> {
+    public static final int OP_ADD = 1;
+    public static final int OP_DEL = 0;
+    public static final int OP_REPLACE = 2;
+    public int index;
+    public T newItem;
+    public int op;
+
+    public PatchOperation(int i, int i2) {
+        this(i, i2, null);
+    }
+
+    public PatchOperation(int i, int i2, T t) {
+        this.op = i;
+        this.index = i2;
+        this.newItem = t;
+    }
+
+    public static java.lang.String translateOpToString(int i) {
+        return i != 0 ? i != 1 ? i != 2 ? "OP_UNKNOWN" : "OP_REPLACE" : "OP_ADD" : "OP_DEL";
+    }
+
+    public java.lang.String toString() {
+        java.lang.StringBuilder sb = new java.lang.StringBuilder();
+        java.lang.String strTranslateOpToString = translateOpToString(this.op);
+        sb.append('{');
+        sb.append("op: ");
+        sb.append(strTranslateOpToString);
+        sb.append(", index: ");
+        sb.append(this.index);
+        sb.append(", newItem: ");
+        sb.append(this.newItem);
+        sb.append('}');
+        return sb.toString();
+    }
+}

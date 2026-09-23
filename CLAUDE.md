@@ -3,7 +3,8 @@
 > 读完这一份，就能安全地改代码、构建、验证，不重踩已经踩过的坑。
 > 本文件与同目录的 `AGENTS.md` **内容同步维护**，读任意一份即可。
 >
-> 最后更新：2026-09-23（1.26 修 1.25 的 Dalvik 启动崩溃；**1.25 已作废**——它一启动就 VerifyError）
+> 最后更新：2026-09-23（1.28 修 P0：createGroup 失败三分，reason=0 不再永久放弃；
+> 顺带修 DNS-SD 从 1.15 起因 `invoke-direct` 误用而从未发布成功）
 >
 > ⚠️ **1.25 不可用**：装上去 App 一动就 Force Close（`VerifyError: ConnLog`）。
 > 根因是 1.25 新增的 `precheck()` / `hasUsableLocalIp()` / `awaitLocalIp()` 三个方法
@@ -30,7 +31,7 @@
 
 ---
 
-## 1. 当前状态（截至 2026-09-23，当前版本 **1.27**）
+## 1. 当前状态（截至 2026-09-23，当前版本 **1.28**）
 
 | 版本 | 内容 | 验证状态 |
 |---|---|---|
@@ -50,7 +51,12 @@
 | 1.24 | 下载日志三修：① bind 失败红字透出界面 ② 删 `192.168.49.1` 假码兜底 ③ sendFile 定长截断 ④ 门禁 TARGETS 补 logxfer | **仅静态门禁+构建复核**；**未上车实测** |
 | ~~1.25~~ | 前置自检与提示加固：① 阶段0 `precheck()` ② `logP2pCreateFail` 极性修复 ③ 热点 `awaitLocalIp` 500ms×10 轮询 ④ `j$b` 慢扫改无限 ⑤ ConnLog 缓冲扩容 ⑥ 门禁补 ConnLog | ❌ **作废：Dalvik 一启动就 `VerifyError` 拒类**（见 1.26 文档）。仅做过静态+构建复核就入库，是反面教材 |
 | 1.26 | 修 1.25 的启动崩溃：`ConnLog` 三个方法的 try/catch 结构规范化（正常出口提到 handler 之前、handler 独占方法末尾）+ `hasUsableLocalIp()` 长度判空极性写反 | **MuMu 实测通过**：0 崩溃 / 0 VerifyError，自举器基准全命中，心跳 1s 起停正常，点热点页签无 ANR |
-| **1.27（当前）** | 桌面图标名带版本号（`app_name` → `百度CarLife 1.27`，versionName 自动推导，patch_v24） | **真机 realme X7 Pro 实测通过**：0 崩溃 0 VerifyError；图标名/首页版本双确认；日志下载三端点 200、zip CRC OK |
+| 1.27 | 桌面图标名带版本号（`app_name` → `百度CarLife 1.27`，versionName 自动推导，patch_v24） | **真机 realme X7 Pro 实测通过**：0 崩溃 0 VerifyError；图标名/首页版本双确认；日志下载三端点 200、zip CRC OK |
+| **1.28（当前）** | **P0 修复**：`j$a.onFailure` 三分——只有 reason=1(不支持) 才放弃；reason=2(BUSY) 仍 removeGroup+退避；**reason=0(ERROR)/未知值改退避重试**（原来会被当"不支持"永久 disarm）。退避抽成 `j.d()V` 消除跨分支寄存器合并。**顺带修 DNS-SD**：`j.a()` 用 `invoke-direct` 调 `public final c()V` 解析失败，1.15 起 `_presence._tcp` 服务从未发布成功，改 `invoke-virtual` | **MuMu + realme 双实测**：0 崩溃 0 VerifyError；MuMu reason=1 正确放弃；realme reason=2 六连退避(6/8/10/12/14s)→慢扫；两端均首次打出 `local service published`；reason=0 分支未动态触发，待车机 |
+
+
+**1.28 成品**：`CarLife/05_产物/CarLife4.0车机端个人修改版1.28_修建组失败三分.apk`
+（2,618,617 字节，versionCode 128，versionName `mod1.28`，签名 v1+v2+v3；详见 `04_文档/1.28_修P0建组失败三分.md`）
 
 **1.27 成品**：`CarLife/05_产物/CarLife4.0车机端个人修改版1.27_图标名带版本号.apk`
 （2,618,617 字节，versionCode 127，versionName `mod1.27`，签名 v1+v2+v3）
@@ -503,9 +509,12 @@ $ADB -s $D logcat -d -v time | grep CarLifeHB | head -20
 1. **`invoke` / `if-*` 只能用寄存器 v0–v15**。apktool 会报 `Invalid register: v17`，
    而且**改 `.locals` 没用**。正解：把整段逻辑收进一个**静态方法**，
    调用点只替换那两行，一个寄存器都不加。
-2. **分支方向已经写反过三次**（`if-eqz` = 寄存器==0 则跳；`if-nez` = !=0 则跳）。
-   静态检查**抓不到**这类错误，只有实测日志能发现。1.14 就是专门修这个。
-   → 改完分支后，**必须**在日志里找到那条"只有方向正确才会出现"的锚点。
+2. **分支方向已经写反过四次**（`if-eqz` = 寄存器==0 则跳；`if-nez` = !=0 则跳；
+   `if-eq`/`if-ne` 同理）。静态检查**抓不到**这类错误，只有实测日志能发现。
+   1.14、1.28（`if-eq p1, 0x2, :error_retry` 会把 BUSY/ERROR 对调）都是这个坑。
+   → 改完分支后，**必须**在日志里找到那条"只有方向正确才会出现"的锚点
+     （1.28 的锚点：MuMu reason=1 打出 give up；realme reason=2 打出 BUSY+退避）。
+   → 补丁脚本里对助记符写断言：出现 `if-eq p1, v0, :error_retry` 直接报错退出。
 3. **Dalvik（Android 4.4）的硬崩只有一种：`VerifyError`**，成因是「汇合点寄存器类型不一致」。
    这是本项目的头号红线。应对：
    - 寄存器按类型固定分工（String 寄存器不兼职 int）
@@ -572,6 +581,13 @@ $ADB -s $D logcat -d -v time | grep CarLifeHB | head -20
     被调到的（调用点在 `m.m.b:235/423`）。查"某个方法是不是死代码"时注意这一类。
 21. **调度器 `a.a.a.a.n.h` 的 `b()` 是每任务新建独立 Timer**（不是共享），
     所以某个任务抛异常不会污染其他定时任务 —— 这一点是安全的，但别再引入共享 Timer。
+18. **`invoke-direct` 只能调 private 方法和 `<init>`**。1.15 的 `j.a()` 用
+    `invoke-direct` 调 `public final c()V` → Dalvik 报
+    `VFY: unable to resolve direct method ... j;.c ()V`，运行时抛异常被 catch 吞掉，
+    表面只是日志里一句 `addLocalService failed (ignored)` —— 结果 DNS-SD 服务
+    **从 1.15 到 1.27 从未发布成功过**（patchI 空转了 13 个版本）。
+    识别信号：日志里出现 `unable to resolve direct method` 且目标不是 `<init>`，
+    就要查调用助记符。final 方法用 `invoke-virtual`，private 才用 `invoke-direct`。
 
 ### 6.4 测试环境层
 

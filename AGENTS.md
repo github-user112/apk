@@ -5,7 +5,12 @@
 > 本文件与同目录的 `CLAUDE.md` 内容同步维护，读任意一份即可。
 >
 > 目标读者：刚接手这个仓库、不想重踩坑的 agent。
-> 最后更新：2026-09-23（1.22 蓝牙等待自愈 + 1.23 修极性/心跳1s/失败提示 + 1.24 下载日志三修 + 1.25 前置自检与IP轮询；1.23~1.25 仅静态+构建验证）
+> 最后更新：2026-09-23（1.26 修 1.25 的 Dalvik 启动崩溃；**1.25 已作废**——它一启动就 VerifyError）
+>
+> ⚠️ **1.25 不可用**：装上去 App 一动就 Force Close（`VerifyError: ConnLog`）。
+> 根因是 1.25 新增的 `precheck()` / `hasUsableLocalIp()` / `awaitLocalIp()` 三个方法
+> try/catch 结构全写坏（循环退出跳进了 catch handler）。1.26 已修，MuMu 实测通过。
+> 回退时**不要**退到 1.25。详见 `CarLife/04_文档/1.26_修ConnLog校验崩溃.md`。
 
 ---
 
@@ -28,7 +33,7 @@
 
 ---
 
-## 1. 当前状态（截至 2026-09-23，当前版本 **1.25**）
+## 1. 当前状态（截至 2026-09-23，当前版本 **1.26**）
 
 | 版本 | 内容 | 验证状态 |
 |---|---|---|
@@ -46,11 +51,15 @@
 | 1.22 | 蓝牙未开不再一次判死：等待 30s 自愈 + 定位日志 | 代码已提交；本环境无 adb 未实跑 |
 | **1.23** | 修 `setDeviceName` 极性（`if-lt`→`if-ge`，1.11~1.22 全中）+ 心跳周期 2s→1s（对齐 5+）+ 失败分级中文提示透出 `ConnLog` 日志区 | **仅静态门禁+构建复核**（badging/versionCode/dex 字符串）；**未上车实测** |
 | 1.24 | 下载日志三修：① bind 失败红字透出界面 ② 删 `192.168.49.1` 假码兜底 ③ sendFile 定长截断 ④ 门禁 TARGETS 补 logxfer | **仅静态门禁+构建复核**；**未上车实测** |
-| **1.25（当前）** | 前置自检与提示加固：① 阶段0 `precheck()` WiFi关/无直连名提示（只提示不阻断） ② `logP2pCreateFail` 极性修复（1=不支持/2=BUSY） ③ 热点 `awaitLocalIp` 500ms×10 轮询等合法 IP ④ `j$b` 慢扫改无限（删 12 轮 giveup） ⑤ ConnLog 缓冲 1500→3750/2000→3150 ⑥ 门禁 TARGETS 补 ConnLog | **仅静态门禁+构建复核**（30 项自检/dex 字符串/badging）；**未上车实测** |
+| ~~1.25~~ | 前置自检与提示加固：① 阶段0 `precheck()` ② `logP2pCreateFail` 极性修复 ③ 热点 `awaitLocalIp` 500ms×10 轮询 ④ `j$b` 慢扫改无限 ⑤ ConnLog 缓冲扩容 ⑥ 门禁补 ConnLog | ❌ **作废：Dalvik 一启动就 `VerifyError` 拒类**（见 1.26 文档）。仅做过静态+构建复核就入库，是反面教材 |
+| **1.26（当前）** | 修 1.25 的启动崩溃：`ConnLog` 三个方法的 try/catch 结构规范化（正常出口提到 handler 之前、handler 独占方法末尾）+ `hasUsableLocalIp()` 长度判空极性写反 | **MuMu 实测通过**：0 崩溃 / 0 VerifyError，自举器基准全命中，心跳 1s 起停正常，点热点页签无 ANR |
 
-**1.25 成品**：`CarLife/05_产物/CarLife4.0车机端个人修改版1.25_前置自检与IP轮询.apk`
-（2,594,148 字节，versionCode 125，versionName `mod1.25`，签名 v1+v2+v3，**未 zipalign**，
-sha256 `b5bf818557eef0d1e2dd40601e4c43625ce96488c9904f3e6f73253da82f0ce6`）
+**1.26 成品**：`CarLife/05_产物/CarLife4.0车机端个人修改版1.26_修ConnLog校验崩溃.apk`
+（2,618,617 字节，versionCode 126，versionName `mod1.26`，签名 v1+v2+v3，
+sha256 `3693b03c21876a1afdb0e24123df2d4d9cad0aa90cd9583c81f0b95fd9296de5`）
+
+**1.25 成品**（作废，仅留档）：`CarLife/05_产物/CarLife4.0车机端个人修改版1.25_前置自检与IP轮询.apk`
+（2,594,148 字节，versionCode 125，versionName `mod1.25`）
 
 **1.24 成品**：`CarLife/05_产物/CarLife4.0车机端个人修改版1.24_日志下载三修.apk`
 （2,590,052 字节，versionCode 124，versionName `mod1.24`，签名 v1+v2+v3，**未 zipalign**）
@@ -113,6 +122,47 @@ java.lang.VerifyError: Verifier rejected class a.a.a.a.m.m.d.a:
 → **新写/改动的 smali 类，必须至少在一台 ART 设备上跑一遍启动**（`logcat -b crash` 空 + `VerifyError` 计数 0）。
 → **插桩一律走「零参静态方法」**：在 `ConnLog` 里加包装方法，插桩点只写
 `invoke-static {}, Lcom/baidu/carlifevehicle/ConnLog;->logXxx()V` —— 零寄存器操作数，verifier 无从挑剔。
+
+### 1.0.1 ★★ 手写 try/catch 的三条硬规则（1.26 用一次「启动即崩」换来）
+
+1.26 修的就是 1.25 的 `VerifyError: ConnLog`。**静态门禁全绿、apktool 打包成功、版本号复核也过，
+装上去一启动就 Force Close** —— 因为 1.25 新增的三个方法 try/catch 结构全写坏：
+
+```smali
+    :goto_0
+    if-eqz v1, :catch_0      # ✗ 致命：正常分支跳进 catch handler
+    ...
+    :catch_0
+    move-exception v4        # 没有异常却执行 move-exception -> Dalvik 拒类
+```
+
+规则：
+1. **catch handler 首指令必须是 `move-exception`，且只能由异常到达。**
+   任何「循环退出 / 条件分支」都不要复用 `:catch_x` 当跳转目标 —— 那是本次崩溃的直接原因。
+2. **正常出口的标签（`:done` / `:ret` / `:tick`）一律放在 `:catch_0` 之前；**
+   handler 独占方法末尾，处理完自己 `return-xxx` 或 `goto` 回循环。
+   正常分支跳进 handler 区域同样是违规。
+3. 正确骨架：
+   ```smali
+       :try_end_0
+       .catch Ljava/lang/Throwable; {:try_start_0 .. :try_end_0} :catch_0
+
+       :ret              # 正常出口（handler 之前）
+       return v0
+
+       :catch_0          # 独占末尾，只由异常到达
+       move-exception v4
+       const/4 v0, 0x0
+       return v0
+   .end method
+   ```
+
+配套做法：补丁脚本用 `sub_once()` 精确替换（匹配次数≠1 直接报错退出），
+末尾再自检「方法体内不得有非 handler 分支跳 `:catch_x`」。
+排查命令：`grep -rn ":catch_" smali/ | grep -v "\.catch" | grep -v ":catch_[0-9]*$" | grep -v move-exception`
+
+> 教训：**静态门禁 + 构建复核 ≠ 能跑**。1.25 就是只做了这两步就入库的反面教材，
+> 结果 Dalvik（不是 ART）直接拒类。
 
 ---
 

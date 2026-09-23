@@ -296,6 +296,14 @@ TARGETS = [
     # 1.18 新增/改动
     'com/baidu/carlifevehicle/ConnSwitchTask.smali',      # 新增: 模式切换后台线程
     'com/baidu/carlifevehicle/ConnModeHelper.smali',
+    # 1.25: ConnLog 大量零参插桩目标，一并进合并点门禁
+    'com/baidu/carlifevehicle/ConnLog.smali',
+    # 1.24: logxfer 由 D8 产出，但手改 Java 重编后仍要过合并点门禁（原先盲区）
+    'com/baidu/carlifevehicle/logxfer/LogHttpServer.smali',
+    'com/baidu/carlifevehicle/logxfer/LogDownloadActivity.smali',
+    'com/baidu/carlifevehicle/logxfer/LogXferEntry.smali',
+    'com/baidu/carlifevehicle/logxfer/LogHttpServer$1.smali',
+    'com/baidu/carlifevehicle/logxfer/LogDownloadActivity$BackHandler.smali',
 ]
 
 errs = []

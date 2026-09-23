@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <usb-device />
+    <usb-device vendor-id="6353" product-id="11520" />
+    <usb-device vendor-id="6353" product-id="11521" />
+    <usb-device vendor-id="6353" product-id="11522" />
+    <usb-device vendor-id="6353" product-id="11523" />
+    <usb-device vendor-id="6353" product-id="11524" />
+    <usb-device vendor-id="6353" product-id="11525" />
+    <!-- 6353 = 0x18D1 Google AOA(Android Open Accessory) 态 VID -->
+</resources>

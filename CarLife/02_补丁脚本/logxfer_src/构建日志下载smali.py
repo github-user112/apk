@@ -28,13 +28,79 @@ PKG_DIR = os.path.join("com", "baidu", "carlifevehicle", "logxfer")
 BUILD = tempfile.mkdtemp(prefix="logxfer_src_")
 OUT_SMALI = os.path.join(HERE, "smali")
 
-JAVA_HOME = r"C:\PJGG\apk\tools\jdk-17.0.20.1+1"
-JAVAC = os.path.join(JAVA_HOME, "bin", "javac.exe")
-JAVA = os.path.join(JAVA_HOME, "bin", "java.exe")
-JAVAP = os.path.join(JAVA_HOME, "bin", "javap.exe")
-R8_JAR = os.path.join(HERE, "tools", "r8.jar")
-ANDROID_JAR = os.path.join(HERE, "tools", "android.jar")
-APKTOOL_JAR = r"C:\PJGG\apk\tools\apktool.jar"
+# 工具链：优先用环境变量覆盖；否则按平台探测（Linux CI / 原 Windows 开发机）
+_HERE = os.path.dirname(os.path.abspath(__file__))
+_REPO = os.path.abspath(os.path.join(_HERE, "..", "..", ".."))  # 仓库根
+
+
+def _first_existing(*paths):
+    for p in paths:
+        if p and os.path.exists(p):
+            return p
+    return paths[0] if paths else ""
+
+
+_IS_WIN = os.name == "nt"
+_JAVA_HOME_ENV = os.environ.get("JAVA_HOME", "")
+if _JAVA_HOME_ENV:
+    JAVAC = os.path.join(_JAVA_HOME_ENV, "bin", "javac" + (".exe" if _IS_WIN else ""))
+    JAVA = os.path.join(_JAVA_HOME_ENV, "bin", "java" + (".exe" if _IS_WIN else ""))
+    JAVAP = os.path.join(_JAVA_HOME_ENV, "bin", "javap" + (".exe" if _IS_WIN else ""))
+else:
+    _javac = shutil.which("javac") or "javac"
+    _java = shutil.which("java") or "java"
+    _javap = shutil.which("javap") or "javap"
+    JAVAC, JAVA, JAVAP = _javac, _java, _javap
+
+def _jar_ok(p):
+    """真 jar（ZIP/PK 头）才算数；git-lfs 指针文件是纯文本。"""
+    if not p or not os.path.exists(p):
+        return False
+    try:
+        with open(p, "rb") as f:
+            return f.read(2) == b"PK"
+    except OSError:
+        return False
+
+
+R8_JAR = ""
+for _c in (
+    os.environ.get("R8_JAR", ""),
+    "/tmp/opencode/logxfer_tools/r8.jar",
+    os.path.join(HERE, "tools", "r8.jar"),
+):
+    if _jar_ok(_c):
+        R8_JAR = _c
+        break
+if not R8_JAR:
+    R8_JAR = os.path.join(HERE, "tools", "r8.jar")
+
+# tools/android.jar 可能是 LFS 指针；真实 jar 放 /tmp 或 HBuilderX
+ANDROID_JAR = ""
+for _c in (
+    os.environ.get("ANDROID_JAR", ""),
+    os.path.join(HERE, "tools", "android.jar"),
+    "/tmp/opencode/logxfer_tools/android-all.jar",
+    "/home/opc/workspace/HBuilderX/plugins/uts-development-android/static/android.jar",
+):
+    if _jar_ok(_c):
+        ANDROID_JAR = _c
+        break
+if not ANDROID_JAR:
+    ANDROID_JAR = os.path.join(HERE, "tools", "android.jar")
+
+APKTOOL_JAR = ""
+for _c in (
+    os.environ.get("APKTOOL_JAR", ""),
+    "/tmp/opencode/apktools/apktool_qemu.jar",
+    "/tmp/opencode/apktools/apktool.jar",
+    os.path.join(_REPO, "tools", "apktool.jar"),
+):
+    if _jar_ok(_c):
+        APKTOOL_JAR = _c
+        break
+if not APKTOOL_JAR:
+    APKTOOL_JAR = os.path.join(_REPO, "tools", "apktool.jar")
 
 
 def apk_contains_logxfer(p):
@@ -70,8 +136,8 @@ def pick_shell_apk():
     改成自动挑选 + 硬性排除含 logxfer 的壳，避免重蹈覆辙。
     """
     bases = [
-        r"C:\PJGG\apk\CarLife_Direct_Fix\1-baseline-apk",
-        r"C:\PJGG\apk\CarLife\05_产物",
+        os.path.join(_REPO, "CarLife_Direct_Fix", "1-baseline-apk"),
+        os.path.join(_REPO, "CarLife", "05_产物"),
     ]
     cands = []
     for d in bases:

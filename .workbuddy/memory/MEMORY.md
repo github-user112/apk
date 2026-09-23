@@ -5,7 +5,20 @@
 
 ## 版本演进（`CarLife/01_工程源码/_w1xx`）
 - 1.11 H失败分级/I DNS-SD+组播锁/K断线自愈/L USB去抖/F-3抑制重排｜1.12 USB免授权四层降级｜1.13 去开机引导页｜1.14 修 j$b 有无组判断+j$a reason 对调
-- **1.22（当前交付版）**：`_w122` / `patch_v19_蓝牙等待自愈.py` / versionCode 122 / mod1.22。
+- **1.26（当前交付版）**：`_w126` / `patch_v23_修ConnLog校验与极性.py` / versionCode 126 / mod1.26。
+  **修 1.25 的启动崩溃**：MuMu 上 1.25 一启动就 `VerifyError: com/baidu/carlifevehicle/ConnLog`
+  （`VFY: invalid use of move-exception`，崩在 `VehicleApplication.onCreate()`）。
+  根因：1.25 新增的 `precheck()`/`hasUsableLocalIp()`/`awaitLocalIp()` 三个方法 try/catch 结构全写坏，
+  最致命的是 `hasUsableLocalIp()` 把**循环退出**三条分支跳到了 `:catch_0`（handler 首指令是
+  `move-exception`）；另两处是正常出口 `:done`/`:tick` 落在 handler 区内。
+  修法：正常出口标签一律提到 `:catch_0` **之前**，handler 独占方法末尾自己 return/goto。
+  顺带修 1 处极性写反（`getHostAddress().length()` 的 `if-nez`→`if-eqz`；同方法里
+  isLoopback/isLoopbackAddress/两个 startsWith 的极性**本来就是对的**，别乱改）。
+  MuMu 实测：0 崩溃 0 VerifyError、自举器基准全命中、`CarLifeHB started (period 1000ms)`（1.23 的 2s→1s 生效）、
+  点热点(732,205)→`heartbeat watchdog stopped`→terminate→`⚠ 等待网卡 IP 超时(5s)`→`✔ UDP 7999 监听已启动`，无 ANR。
+  ⚠ **1.25 作废**（只做静态+构建复核就入库的反面教材），回退别退到 1.25。
+- 1.23 修 setDeviceName 极性+心跳1s+失败提示｜1.24 日志下载三修｜1.25 前置自检与 IP 轮询（**作废，见 1.26**）
+- 1.22：`_w122` / `patch_v19_蓝牙等待自愈.py` / versionCode 122 / mod1.22。
   车机直连显示「蓝牙未开启，跳过蓝牙通道」但蓝牙实际已连手机。定位：打印唯一位置
   `d/a.run()`，**唯一触发条件**是 `d.b()`（`d$b`→`BluetoothManager.getAdapter()`，API18）
   非 null 且 `isEnabled()==false`；adapter 为 null 走 Kotlin 空安全另一支不判死。
@@ -66,6 +79,14 @@
 13. **改 smali 顺手改控制流是大坑**：1.18 把 `if-eqz v0, :cond_1b` 改成 `if-eqz v0, :bt_all_failed` 且**紧跟同名标签**、还多了一条 `goto :cond_1b` → 两条路径都落进日志分支 + **原有的 1 秒重试被整个跳过**（功能回归）。改完必须用「基线指标回归」核对。
 14. **`校验并补齐工程.py` 的参照要用「直接上一版」**，不能跨版（`_w119` 拿 `_w118` 当参照会误报）。
 15. **去重别用 `getAbsolutePath()`**：Android 上 `/sdcard`、`/storage/sdcard0`、`/mnt/sdcard` 都是 `/storage/emulated/0` 的符号链接，同一文件会以多种字符串出现。用 `getCanonicalPath()` 或手工归一化别名前缀（`"前缀".length()` 取下标，别硬编码）。
+16. ★★ **手写 try/catch 三条硬规则**（1.26 用一次「启动即崩」换来）：① catch handler 首指令必须是
+    `move-exception` 且**只能由异常到达**——绝不能把 `:catch_x` 当循环/条件退出的跳转目标
+    （否则 `invalid use of move-exception`，Dalvik 直接拒类，App 起不来）；
+    ② 正常出口标签（`:done`/`:ret`/`:tick`）一律放在 `:catch_0` **之前**，handler 独占方法末尾
+    自己 `return-xxx` 或 `goto` 回循环；③ 静态门禁全绿 + 打包成功 **≠ 能跑**，新写 smali 必须实机起一遍。
+    排查：`grep -rn ":catch_" smali/ | grep -v "\.catch" | grep -v ":catch_[0-9]*$" | grep -v move-exception`
+17. **补丁脚本用 `sub_once()` 精确替换**（匹配次数≠1 直接报错退出）+ 末尾结构自检——
+    静默失效的补丁比报错贵得多（1.26 就是靠它确认三处结构改动真落盘了）。
 
 ## 环境
 - tools/ 下有 apktool/signer/jadx，JAVA_HOME=`C:/PJGG/apk/tools/jdk-17.0.20.1+1`

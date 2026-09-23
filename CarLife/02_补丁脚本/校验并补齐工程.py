@@ -80,6 +80,13 @@ EXPECTED_DIFF = {
     # 1.22 BtGuard（新类也会在"目标多出"里出现，但参照树已有则登记为 diff）
     "smali/com/baidu/carlifevehicle/logxfer/BtGuard.smali",
     "smali/com/baidu/carlifevehicle/logxfer/BtGuard$1.smali",
+    # 1.24 下载日志三修（bind 提示 / 去假码 / sendFile 定长）
+    "smali/com/baidu/carlifevehicle/logxfer/LogHttpServer.smali",
+    "smali/com/baidu/carlifevehicle/logxfer/LogDownloadActivity.smali",
+    "smali/com/baidu/carlifevehicle/logxfer/LogDownloadActivity$BackHandler.smali",
+    "smali/com/baidu/carlifevehicle/logxfer/LogHttpServer$1.smali",
+    "smali/com/baidu/carlifevehicle/logxfer/LogXferEntry.smali",
+    "smali/com/baidu/carlifevehicle/logxfer/LogXferEntry$ClickHandler.smali",
 }
 
 # 这些顶层目录是 apktool 的构建缓存，不参与比对

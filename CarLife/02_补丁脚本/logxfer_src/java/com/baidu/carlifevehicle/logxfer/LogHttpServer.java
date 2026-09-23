@@ -302,10 +302,9 @@ public final class LogHttpServer {
             }
         }
 
-        if (ips.isEmpty()) {
-            // Wi-Fi Direct 直连时车机作为 GO，默认网关地址（1.18 已有的兜底，保留）
-            ips.add("192.168.49.1");
-        }
+        // 1.24: 不再无条件塞 192.168.49.1。没有可用网卡时返回空数组，
+        // 让 buildHint 走「未检测到可用网络地址」分支 —— 否则会画出一个
+        // 必然打不开的死二维码，同时 netSummary 却显示「未检测到可用网卡」。
         String[] out = (String[]) ips.toArray(new String[ips.size()]);
         Log.i(TAG, "localIps -> " + joinIps(out));
         return out;
@@ -682,11 +681,16 @@ public final class LogHttpServer {
         String name = f.getName();
         String extra = "Content-Disposition: attachment; filename=\"" + asciiName(name)
                 + "\"; filename*=UTF-8''" + pctEncode(name) + "\r\n";
+        // 1.24: 文件长度在写头之前取死；发送循环按该长度截断。
+        // 日志轮转（gzip+删原文件）发生在下载中途时，不再发出超过
+        // Content-Length 的字节（协议越界）。文件变短仍可能短发，
+        // 但这是 close 连接能兜住的，比超发安全。
+        final long len = f.length();
         OutputStream os = s.getOutputStream();
         StringBuilder h = new StringBuilder(256);
         h.append("HTTP/1.1 200 OK\r\n");
         h.append("Content-Type: application/octet-stream\r\n");
-        h.append("Content-Length: ").append(f.length()).append("\r\n");
+        h.append("Content-Length: ").append(len).append("\r\n");
         h.append("Connection: close\r\n");
         h.append("Cache-Control: no-store\r\n");
         h.append(extra);
@@ -696,17 +700,24 @@ public final class LogHttpServer {
         FileInputStream fis = new FileInputStream(f);
         byte[] buf = new byte[8192];
         long sent = 0;
-        int n;
-        while ((n = fis.read(buf)) > 0) {
-            os.write(buf, 0, n);
-            sent += n;
-        }
         try {
-            fis.close();
-        } catch (Throwable ignored) {
+            while (sent < len) {
+                int want = (int) Math.min(buf.length, len - sent);
+                int n = fis.read(buf, 0, want);
+                if (n <= 0) {
+                    break;
+                }
+                os.write(buf, 0, n);
+                sent += n;
+            }
+        } finally {
+            try {
+                fis.close();
+            } catch (Throwable ignored) {
+            }
         }
         os.flush();
-        Log.i(TAG, "SENT " + name + " bytes=" + sent);
+        Log.i(TAG, "SENT " + name + " bytes=" + sent + "/" + len);
     }
 
     private void sendZip(Socket s) throws Exception {

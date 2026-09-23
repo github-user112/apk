@@ -33,6 +33,9 @@ public class LogDownloadActivity extends Activity {
     private static final int FG2 = 0xFF9B98A8;
 
     private WebView mWeb;
+    /** 1.24: onStart 里 start() 失败时用来透出提示（bind 失败原先只打 logcat）。 */
+    private TextView mHint;
+    private String[] mUrls;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,7 +45,8 @@ public class LogDownloadActivity extends Activity {
         } catch (Throwable ignored) {
         }
 
-        String[] urls = LogHttpServer.baseUrls();
+        mUrls = LogHttpServer.baseUrls();
+        String[] urls = mUrls;
 
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
@@ -89,6 +93,7 @@ public class LogDownloadActivity extends Activity {
         }
 
         TextView hint = new TextView(this);
+        mHint = hint;
         hint.setText(buildHint(urls));
         hint.setTextColor(FG2);
         hint.setTextSize(13);
@@ -211,6 +216,16 @@ public class LogDownloadActivity extends Activity {
         // 被调用（会退到 CarLife 主界面，本页只是 stopped），只用 onCreate/onDestroy 会留下
         // 一个一直占着 18080 的 accept 线程。放 onStart/onStop 才能保证"页面关掉即放端口"。
         LogHttpServer.get().start();
+        // 1.24: bind 失败（端口被占等）原先只打 logcat，车机上用户看不到，
+        // 界面照常画二维码 -> 扫码 connection refused。失败时改 hint 文案。
+        if (!LogHttpServer.get().isRunning() && mHint != null) {
+            mHint.setText("端口 " + LogHttpServer.PORT + " 启动失败（可能被占用），请稍后重试");
+            mHint.setTextColor(0xFFFF6B6B);
+            Log.e(TAG, "server not running after start()");
+        } else if (mHint != null && mUrls != null) {
+            mHint.setText(buildHint(mUrls));
+            mHint.setTextColor(FG2);
+        }
         Log.i(TAG, "activity started");
     }
 

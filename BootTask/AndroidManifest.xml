@@ -1,23 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.boottask" android:versionCode="1" android:versionName="1.0">
-    <uses-sdk android:minSdkVersion="19" android:targetSdkVersion="19"/>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.boottask" android:versionCode="2" android:versionName="1.1">
+    <uses-sdk android:minSdkVersion="8" android:targetSdkVersion="19"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-permission android:name="android.permission.KILL_BACKGROUND_PROCESSES"/>
-    <application android:label="开机任务" android:allowBackup="false">
-        <activity android:name=".MainActivity" android:exported="true">
+    <application android:label="开机任务" android:icon="@drawable/ic_launcher" android:allowBackup="false">
+        <activity android:name=".MainActivity" android:label="开机任务" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <activity android:name=".EditActivity"/>
-        <activity android:name=".AppPickActivity"/>
+        <activity android:name=".EditActivity" android:label="添加规则"/>
+        <activity android:name=".AppPickActivity" android:label="选择应用"/>
         <receiver android:name=".BootReceiver" android:exported="true">
             <intent-filter android:priority="2147483647">
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>
-            </intent-filter>
-            <intent-filter android:priority="2147483647">
-                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED"/>
             </intent-filter>
         </receiver>
         <service android:name=".ExecService"/>

@@ -5,15 +5,20 @@
 
 ## 版本演进（`CarLife/01_工程源码/_w1xx`）
 - 1.11 H失败分级/I DNS-SD+组播锁/K断线自愈/L USB去抖/F-3抑制重排｜1.12 USB免授权四层降级｜1.13 去开机引导页｜1.14 修 j$b 有无组判断+j$a reason 对调
-- **1.21（当前交付版）**：`_w121` / `patch_v18_修打包下载重名.py` / versionCode 121 / mod1.21。
-  修 `/all.zip` 的 `ZipException: duplicate entry` —— `refreshFiles()` 登记的
-  `getExternalFilesDir(null)/log` 与硬编码 `/sdcard/Android/data/<pkg>/files/log`
-  **是同一目录**（`/sdcard`、`/storage/sdcard0` 都是 `/storage/emulated/0` 的符号链接），
-  去重键用 `getAbsolutePath()` 字符串不同 → 去重失效 → 同一文件进 `mFiles` 两次 → zip 重名条目。
-  修法：新增 `canonicalKey(File)`（优先 `getCanonicalPath()`，失败退回手工归一化
-  `/sdcard/`、`/mnt/sdcard/`、`/storage/sdcard0/` 前缀）+ `uniqueName(List,String)`（zip 条目重名补 `_2`）。
-  **realme 真机全通过**：三端点 200（`/`=1266B、`/f/0`=1415510B、`/all.zip`=92081B）、
-  zip 无重名 + CRC OK、`VerifyError` 计数 0。详见 `04_文档/1.21_修打包下载重名条目.md`
+- **1.22（当前交付版）**：`_w122` / `patch_v19_蓝牙等待自愈.py` / versionCode 122 / mod1.22。
+  车机直连显示「蓝牙未开启，跳过蓝牙通道」但蓝牙实际已连手机。定位：打印唯一位置
+  `d/a.run()`，**唯一触发条件**是 `d.b()`（`d$b`→`BluetoothManager.getAdapter()`，API18）
+  非 null 且 `isEnabled()==false`；adapter 为 null 走 Kotlin 空安全另一支不判死。
+  修法：新增 `logxfer_src/.../BtGuard.java`→`BtGuard.smali`（`onSkipDecision(ZLjava/lang/Runnable;)Z`），
+  未开启时每 1s 重试最多 30 次、每次顺手 enable()，无适配器/超时/双路径不一致分别打日志
+  （反射调 `ConnLog.logLine`）。重试走 `ScheduledExecutorService` 守护线程——**不能上主线程**
+  （后面 SPP connect 阻塞）。插桩 `:goto_1` 后一行 `invoke-static {v0,v1}` + `move-result v0`，
+  不新占寄存器。ART 真机验证：0 崩溃 0 VerifyError；**svc bluetooth disable 后冷启动**，
+  界面打出「第 1/30 次等待」+ 1s 后重跑阶段1 + 系统 enable 授权框 → 生效。
+  车机判读：等待后转"已开启"=时序(已解决)；"状态不一致"=改 `d$b` 换 getDefaultAdapter；
+  30s 超时=MCU 蓝牙，App 无解改走热点。详见 `04_文档/1.22_蓝牙等待自愈.md`
+- 1.21：修 `/all.zip` 的 `ZipException: duplicate entry`（canonicalKey 解符号链接 + uniqueName），
+  realme 真机全通过（三端点 200、zip CRC OK）。详见 `04_文档/1.21_修打包下载重名条目.md`
 - 1.20 `_w120` / `patch_v17`：修 1.18 蓝牙插桩在 ART 上的 `VerifyError`（真机一启动就崩，见「血泪 11」）
 - 1.19 `_w119` / `patch_v16`：修二维码指向蜂窝地址（`localIps()` 按网卡排序 + 排除蜂窝）
 - **1.18**：车机实测 1.17 报三症状后的「定位+修复」版

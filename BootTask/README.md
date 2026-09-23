@@ -3,9 +3,67 @@
 从 CarLife 车机端「开机自启」功能反向分析而来，做成一个**独立、通用**的开机事件自动化工具。
 
 - 包名：`com.boottask`
-- 最低版本：Android 4.4（API 19）—— 与车机端一致，可直接在 4.4.2 车机运行
+- 最低版本：Android 2.3（API 9，实际按 4.4 编写）—— 兼容一切 4.x，**包括 4.4.2 车机**
 - 构建方式：**纯 smali 手写 + apktool 打包**（本机无 Android SDK，不需要 Java 源码）
-- 成品：`dist/开机任务.apk`（v1+v2+v3 签名）
+- 成品：`dist/BootTask_v1.1.apk`（**纯 v1 签名**，SHA-1 摘要，无 v2/v3 签名块）
+- 与 CarLife 并存：**不冲突**（包名不同、无 `sharedUserId`、双方都无 `ContentProvider`，
+  签名不同只在"同包名升级"时才校验）
+
+### v1.1（针对 4.4.2 车机装不上的兼容性改造）
+
+| 项 | v1.0 | v1.1 | 为什么 |
+|---|---|---|---|
+| `minSdkVersion` | 19 | **8** | 部分车机 ROM 的 `ro.build.version.sdk` 会谎报成 < 19，会静默 `INSTALL_FAILED_OLDER_SDK` |
+| 签名 | v1+v2+v3（uber-apk-signer） | **纯 v1**（SHA-1 摘要） | 去掉 APK Signing Block 与 `X-Android-APK-Signed: 2, 3`，老 Dalvik 最稳 |
+| 图标 | 无（默认图标） | `@drawable/ic_launcher` | 个别 OEM 安装器对无 icon / 无 resources.arsc 的包处理不佳 |
+| 文件名 | `开机任务.apk`（中文） | **`BootTask_v1.1.apk`（ASCII）** | **实测中文文件名在 adb 安装时直接 `INSTALL_FAILED_INVALID_URI`** |
+| `LOCKED_BOOT_COMPLETED` | 有（API 24+） | 移除 | 4.4 上无用，减少 OEM 解析变量 |
+| versionCode | 1 | 2 | 支持覆盖升级 |
+
+MuMu 4.4.4 回归全过：装/启/三页面、规则落盘、`am broadcast BOOT_COMPLETED` →
+延迟 2s → CarLife 前台拉起（日志 `rule matched, executing` → `launched com.baidu.carlifevehicle`）。
+
+### 排查工具：安装自检包 `dist/btcheck.apk`
+
+**用途：隔离"车机环境问题" vs "BootTask 包问题"。** 它是个只有一页 TextView 的最小 App，
+包名 `com.btcheck`，minSdk 8，纯 v1 签名，4 KB。
+
+- `btcheck.apk` 能装上、能打开 → 说明车机安装环节没问题，问题在 BootTask 包本身（再反馈给我）
+- `btcheck.apk` 也装不上 → 车机的安装器/系统在拦（未知名来源开关、ROM 白名单、/data 满等）
+
+### 车机装不上时的定位步骤（拿到真实错误码）
+
+4.4.2 车机"没报错就是装不上"，九成是 OEM 定制安装器把真实失败码吞了。用 adb 拿真相：
+
+```bash
+# 1) 看系统真实版本（若 sdk 不是 19，则 minSdk=19 的包必被拒）
+adb shell getprop ro.build.version.release; adb shell getprop ro.build.version.sdk
+
+# 2) 直接 pm install，错误码不会被安装器 UI 吞掉
+adb push BootTask_v1.1.apk /data/local/tmp/
+adb shell pm install -r /data/local/tmp/BootTask_v1.1.apk
+
+# 3) 看 /data 剩余空间（满了会静默失败）
+adb shell df /data
+
+# 4) 边装边抓 logcat，看 PackageManager / dexopt / VFY
+adb logcat -c && adb install -r BootTask_v1.1.apk && adb logcat -d | grep -E "PackageManager|dexopt|VFY|INSTALL"
+
+# 5) 若以前装过同名包且签名不同 → 卸干净再装
+adb shell pm uninstall com.boottask
+```
+
+**兜底方案：装成系统应用**（车机一般有 root，`BOOT_COMPLETED` 广播也更可靠）：
+
+```bash
+adb remount                      # 或 adb shell mount -o remount,rw /system
+adb push BootTask_v1.1.apk /system/app/BootTask.apk   # 4.4 用 /system/app，文件名必须 ASCII
+adb shell chmod 644 /system/app/BootTask.apk
+adb reboot
+```
+
+系统应用不走安装器，能绕开 OEM 安装器的所有限制；4.4 不需要 priv-app 也能收开机广播。
+
 
 ---
 

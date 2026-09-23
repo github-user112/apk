@@ -33,7 +33,7 @@
 
 ---
 
-## 1. 当前状态（截至 2026-09-23，当前版本 **1.26**）
+## 1. 当前状态（截至 2026-09-23，当前版本 **1.27**）
 
 | 版本 | 内容 | 验证状态 |
 |---|---|---|
@@ -52,7 +52,11 @@
 | **1.23** | 修 `setDeviceName` 极性（`if-lt`→`if-ge`，1.11~1.22 全中）+ 心跳周期 2s→1s（对齐 5+）+ 失败分级中文提示透出 `ConnLog` 日志区 | **仅静态门禁+构建复核**（badging/versionCode/dex 字符串）；**未上车实测** |
 | 1.24 | 下载日志三修：① bind 失败红字透出界面 ② 删 `192.168.49.1` 假码兜底 ③ sendFile 定长截断 ④ 门禁 TARGETS 补 logxfer | **仅静态门禁+构建复核**；**未上车实测** |
 | ~~1.25~~ | 前置自检与提示加固：① 阶段0 `precheck()` ② `logP2pCreateFail` 极性修复 ③ 热点 `awaitLocalIp` 500ms×10 轮询 ④ `j$b` 慢扫改无限 ⑤ ConnLog 缓冲扩容 ⑥ 门禁补 ConnLog | ❌ **作废：Dalvik 一启动就 `VerifyError` 拒类**（见 1.26 文档）。仅做过静态+构建复核就入库，是反面教材 |
-| **1.26（当前）** | 修 1.25 的启动崩溃：`ConnLog` 三个方法的 try/catch 结构规范化（正常出口提到 handler 之前、handler 独占方法末尾）+ `hasUsableLocalIp()` 长度判空极性写反 | **MuMu 实测通过**：0 崩溃 / 0 VerifyError，自举器基准全命中，心跳 1s 起停正常，点热点页签无 ANR |
+| 1.26 | 修 1.25 的启动崩溃：`ConnLog` 三个方法的 try/catch 结构规范化（正常出口提到 handler 之前、handler 独占方法末尾）+ `hasUsableLocalIp()` 长度判空极性写反 | **MuMu 实测通过**：0 崩溃 / 0 VerifyError，自举器基准全命中，心跳 1s 起停正常，点热点页签无 ANR |
+| **1.27（当前）** | 桌面图标名带版本号（`app_name` → `百度CarLife 1.27`，versionName 自动推导，patch_v24） | **真机 realme X7 Pro 实测通过**：0 崩溃 0 VerifyError；图标名/首页版本双确认；日志下载三端点 200、zip CRC OK |
+
+**1.27 成品**：`CarLife/05_产物/CarLife4.0车机端个人修改版1.27_图标名带版本号.apk`
+（2,618,617 字节，versionCode 127，versionName `mod1.27`，签名 v1+v2+v3）
 
 **1.26 成品**：`CarLife/05_产物/CarLife4.0车机端个人修改版1.26_修ConnLog校验崩溃.apk`
 （2,618,617 字节，versionCode 126，versionName `mod1.26`，签名 v1+v2+v3，

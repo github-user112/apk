@@ -28,6 +28,8 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)),
 # 路径统一用 /，比较前会把 os.sep 归一化，Linux/Windows 通用
 EXPECTED_DIFF = {
     "apktool.yml",
+    # patch_v24：桌面图标名带版本号（app_name）
+    "res/values/strings.xml",
     # patchB：蓝牙未开自动 enable + 状态位
     "smali/a/a/a/a/m/m/d/a.smali",
     # patch_v12 收发/连接/断开插桩

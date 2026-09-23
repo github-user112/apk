@@ -5,7 +5,7 @@
 > 本文件与同目录的 `CLAUDE.md` 内容同步维护，读任意一份即可。
 >
 > 目标读者：刚接手这个仓库、不想重踩坑的 agent。
-> 最后更新：2026-09-23（1.19~1.21 三连版：日志下载地址修复 → 修 ART VerifyError → 修 /all.zip；realme 真机全项通过）
+> 最后更新：2026-09-23（1.22 蓝牙等待自愈 + 1.23 修极性/心跳1s/失败提示；1.23 仅静态+构建验证）
 
 ---
 
@@ -28,7 +28,7 @@
 
 ---
 
-## 1. 当前状态（截至 2026-09-23）
+## 1. 当前状态（截至 2026-09-23，当前版本 **1.23**）
 
 | 版本 | 内容 | 验证状态 |
 |---|---|---|
@@ -42,7 +42,12 @@
 | 1.18 | 车机三症状定位+修复：蓝牙阶段1 三处静默 return 补日志 + 空配对 5s 自愈；模式切换异步化（新增 `ConnSwitchTask`）；热点 `e/a` 补日志 | **真机一启动就崩**（见 1.20），已被取代 |
 | 1.19 | 修二维码指向蜂窝地址（`localIps()` 按网卡排序 + 排除蜂窝；只渲染 1 个码；界面显示网卡摘要） | 真机：地址已修对，但被 1.18 的崩溃挡住 |
 | 1.20 | 修 1.18 蓝牙插桩在 **ART** 上的 `VerifyError`（插桩改**零参静态方法** + 恢复被写坏的 1 秒重试） | 真机通过：0 崩溃、0 VerifyError |
-| **1.21（当前）** | 修 `/all.zip` 的 `ZipException: duplicate entry`（`canonicalKey` 解符号链接去重 + `uniqueName` 保证条目唯一） | **真机 realme X7 Pro 全项通过**（见下）；车机实测待做 |
+| **1.21** | 修 `/all.zip` 的 `ZipException: duplicate entry`（`canonicalKey` 解符号链接去重 + `uniqueName` 保证条目唯一） | **真机 realme X7 Pro 全项通过**（见下）；车机实测待做 |
+| 1.22 | 蓝牙未开不再一次判死：等待 30s 自愈 + 定位日志 | 代码已提交；本环境无 adb 未实跑 |
+| **1.23（当前）** | 修 `setDeviceName` 极性（`if-lt`→`if-ge`，1.11~1.22 全中）+ 心跳周期 2s→1s（对齐 5+）+ 失败分级中文提示透出 `ConnLog` 日志区 | **仅静态门禁+构建复核**（badging/versionCode/dex 字符串）；**未上车实测** |
+
+**1.23 成品**：`CarLife/05_产物/CarLife4.0车机端个人修改版1.23_修极性心跳提示.apk`
+（2,590,052 字节，versionCode 123，versionName `mod1.23`，签名 v1+v2+v3，**未 zipalign**）
 
 **1.21 成品**：`CarLife/05_产物/CarLife4.0车机端个人修改版1.21_修打包下载.apk`
 （2,614,521 字节，versionCode 121，versionName `mod1.21`，签名 v1+v2+v3）
@@ -123,6 +128,8 @@ C:\PJGG\apk\
 │   │   ├── patch_v16_日志地址修复.py        → _w119 (1.19)
 │   │   ├── patch_v17_修插桩VerifyError.py   → _w120 (1.20)
 │   │   ├── patch_v18_修打包下载重名.py      → _w121 (1.21)
+│   │   ├── patch_v19_蓝牙等待自愈.py        → _w122 (1.22)
+│   │   ├── patch_v20_修极性心跳提示.py       → _w123 (1.23)
 │   │   ├── logxfer_src\                      ★ 1.16 日志下载的 Java 源码 + 前端资产 + 转换脚本
 │   │   │   ├── java\**  assets\logxfer\**     改这里，再跑 构建日志下载smali.py
 │   │   │   ├── 构建日志下载smali.py            Java → smali（javac+D8+apktool 反汇编）

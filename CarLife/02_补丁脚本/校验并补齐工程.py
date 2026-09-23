@@ -21,55 +21,65 @@ import sys
 import shutil
 import hashlib
 
-ROOT = r"C:\PJGG\apk\CarLife\01_工程源码"
+ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                    "..", "01_工程源码"))
 
 # 这些差异是"故意打补丁"造成的，属于正常；其余内容差异都要人工确认
+# 路径统一用 /，比较前会把 os.sep 归一化，Linux/Windows 通用
 EXPECTED_DIFF = {
     "apktool.yml",
     # patchB：蓝牙未开自动 enable + 状态位
-    r"smali\a\a\a\a\m\m\d\a.smali",
+    "smali/a/a/a/a/m/m/d/a.smali",
     # patch_v12 收发/连接/断开插桩
-    r"smali\a\a\a\a\m\m\e\b.smali",
-    r"smali\a\a\a\a\m\m\e\d.smali",
+    "smali/a/a/a/a/m/m/e/b.smali",
+    "smali/a/a/a/a/m/m/e/d.smali",
     # patch_v12 设备名兜底插桩
-    r"smali\a\a\a\a\m\m\d\e.smali",
-    # patch_v12 THIS_DEVICE_CHANGED 分支
-    r"smali\a\a\a\a\m\m\d\i.smali",
-    # 1.14 修复自举器分支方向
-    r"smali\a\a\a\a\m\m\d\j$a.smali",
-    r"smali\a\a\a\a\m\m\d\j$b.smali",
-    r"smali\a\a\a\a\m\m\d\j.smali",
-    # 1.11 patchF/G 抑制发现
-    r"smali\a\a\a\a\m\m\d\h.smali",
+    "smali/a/a/a/a/m/m/d/e.smali",
+    # patch_v12 THIS_DEVICE_CHANGED 分支 + 1.23 setDeviceName 极性
+    "smali/a/a/a/a/m/m/d/i.smali",
+    # 1.14 修复自举器分支方向 + 1.23 失败提示插桩
+    "smali/a/a/a/a/m/m/d/j$a.smali",
+    "smali/a/a/a/a/m/m/d/j$b.smali",
+    "smali/a/a/a/a/m/m/d/j.smali",
+    # 1.11 patchF/G 抑制发现 + 1.23 discover 失败提示
+    "smali/a/a/a/a/m/m/d/h.smali",
+    # 1.15 心跳看门狗 + 1.23 周期 2s->1s
+    "smali/a/a/a/a/m/m/e/f.smali",
     # 1.13 去引导页
-    r"smali\a\a\b\n\r.smali",
+    "smali/a/a/b/n/r.smali",
     # 1.11/1.12 USB 免授权 + 三链路加固（相对 _w110 基线时会出现）
     "AndroidManifest.xml",
-    r"assets\bdcf",
-    r"res\xml\device_filter.xml",
-    r"smali\a\a\a\a\m\m\c\c.smali",
-    r"smali\a\a\a\a\m\m\e\a.smali",
-    r"smali\com\baidu\carlife\sdk\UsbPermissionProxyActivity.smali",
+    "assets/bdcf",
+    "res/xml/device_filter.xml",
+    "smali/a/a/a/a/m/m/c/c.smali",
+    "smali/a/a/a/a/m/m/e/a.smali",
+    "smali/com/baidu/carlife/sdk/UsbPermissionProxyActivity.smali",
     # 1.17 把「下载日志」做进主界面（去掉独立桌面图标）
-    r"res\layout\frag_main.xml",
-    r"res\layout-hdpi\frag_main.xml",
-    r"res\values\ids.xml",
-    r"res\values\public.xml",
-    r"smali\com\baidu\carlifevehicle\ConnModeHelper.smali",
-    r"smali\com\baidu\carlifevehicle\logxfer\LogDownloadActivity.smali",
-    r"smali\com\baidu\carlifevehicle\logxfer\LogHttpServer.smali",
+    "res/layout/frag_main.xml",
+    "res/layout-hdpi/frag_main.xml",
+    "res/values/ids.xml",
+    "res/values/public.xml",
+    "smali/com/baidu/carlifevehicle/ConnModeHelper.smali",
+    "smali/com/baidu/carlifevehicle/logxfer/LogDownloadActivity.smali",
+    "smali/com/baidu/carlifevehicle/logxfer/LogHttpServer.smali",
     # 1.19 日志地址修复：只给首选地址出二维码 + 界面显示网卡摘要
     # （logxfer 下的 smali 由 构建日志下载smali.py 整体重新产出，
     #   外层类一改，内部类 $BackHandler/$1 的 smali 也会跟着变，所以一并登记）
-    r"assets\logxfer\logxfer.html",
-    r"assets\logxfer\qrcode.js",
-    r"smali\com\baidu\carlifevehicle\logxfer\LogDownloadActivity$BackHandler.smali",
-    r"smali\com\baidu\carlifevehicle\logxfer\LogHttpServer$1.smali",
-    r"smali\com\baidu\carlifevehicle\logxfer\LogXferEntry.smali",
-    r"smali\com\baidu\carlifevehicle\logxfer\LogXferEntry$ClickHandler.smali",
+    "assets/logxfer/logxfer.html",
+    "assets/logxfer/qrcode.js",
+    "smali/com/baidu/carlifevehicle/logxfer/LogDownloadActivity$BackHandler.smali",
+    "smali/com/baidu/carlifevehicle/logxfer/LogHttpServer$1.smali",
+    "smali/com/baidu/carlifevehicle/logxfer/LogXferEntry.smali",
+    "smali/com/baidu/carlifevehicle/logxfer/LogXferEntry$ClickHandler.smali",
     # 1.20 修 1.18 插桩引入的 VerifyError：日志改成零参静态方法，
     # 字符串与方法体都搬进了 ConnLog（d/a、e/a 里只剩一行 invoke-static {}）
-    r"smali\com\baidu\carlifevehicle\ConnLog.smali",
+    # 1.23 又追加 4 个 P2P 失败提示方法
+    "smali/com/baidu/carlifevehicle/ConnLog.smali",
+    # 1.18 模式切换异步化
+    "smali/com/baidu/carlifevehicle/ConnSwitchTask.smali",
+    # 1.22 BtGuard（新类也会在"目标多出"里出现，但参照树已有则登记为 diff）
+    "smali/com/baidu/carlifevehicle/logxfer/BtGuard.smali",
+    "smali/com/baidu/carlifevehicle/logxfer/BtGuard$1.smali",
 }
 
 # 这些顶层目录是 apktool 的构建缓存，不参与比对
@@ -81,7 +91,8 @@ def rels(base):
     for root, _dirs, files in os.walk(base):
         for f in files:
             r = os.path.relpath(os.path.join(root, f), base)
-            if r.split(os.sep)[0] in SKIP_TOP:
+            r = r.replace(os.sep, "/")
+            if r.split("/")[0] in SKIP_TOP:
                 continue
             out.add(r)
     return out
@@ -113,8 +124,8 @@ def main():
         # 按顶层两级目录聚合，避免刷屏
         agg = {}
         for r in missing:
-            parts = r.split(os.sep)
-            k = os.sep.join(parts[:3]) if len(parts) > 3 else os.sep.join(parts[:2])
+            parts = r.split("/")
+            k = "/".join(parts[:3]) if len(parts) > 3 else "/".join(parts[:2])
             agg.setdefault(k, []).append(r)
         for k in sorted(agg):
             print("  %-52s x%d" % (k, len(agg[k])))
@@ -137,8 +148,10 @@ def main():
     print("\n=== 内容不同: %d（应全部是故意打补丁的文件）===" % len(diffs))
     surprise = []
     for r in diffs:
-        flag = "OK " if r in EXPECTED_DIFF else "?? "
-        if r not in EXPECTED_DIFF:
+        # r 已归一化为 /；EXPECTED_DIFF 也统一用 /
+        ok = r in EXPECTED_DIFF
+        flag = "OK " if ok else "?? "
+        if not ok:
             surprise.append(r)
         print("  %s%s" % (flag, r))
 

@@ -15,22 +15,94 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
 import zipfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 JAVA_SRC = os.path.join(HERE, "java")
 PKG_DIR = os.path.join("com", "baidu", "carlifevehicle", "logxfer")
-BUILD = os.path.join(HERE, "build")
+# 中间产物放系统临时目录，不要放工程里：
+#   apktool 反汇编一次就是两千多个小文件，攒在 logxfer_src/build 下会让
+#   下一轮的 rmtree 撞上沙箱的"批量删除保护"（一次删 2329 个文件会被拦），
+#   而且这些中间产物本来也不该进仓库。
+BUILD = tempfile.mkdtemp(prefix="logxfer_src_")
 OUT_SMALI = os.path.join(HERE, "smali")
 
 JAVA_HOME = r"C:\PJGG\apk\tools\jdk-17.0.20.1+1"
 JAVAC = os.path.join(JAVA_HOME, "bin", "javac.exe")
 JAVA = os.path.join(JAVA_HOME, "bin", "java.exe")
+JAVAP = os.path.join(JAVA_HOME, "bin", "javap.exe")
 R8_JAR = os.path.join(HERE, "tools", "r8.jar")
 ANDROID_JAR = os.path.join(HERE, "tools", "android.jar")
 APKTOOL_JAR = r"C:\PJGG\apk\tools\apktool.jar"
-# 壳 APK：任意一个结构完整的 CarLife APK 即可（只借它的 AndroidManifest.xml 让 apktool 能反汇编）
-SHELL_APK = r"C:\PJGG\apk\CarLife\05_产物\CarLife4.0车机端个人修改版1.15_5+流程移植.apk"
+
+
+def apk_contains_logxfer(p):
+    """
+    壳 APK 自己有没有 com/baidu/carlifevehicle/logxfer 下的类？
+
+    这是**硬性排除条件**。apktool 反汇编 "壳 APK + 追加的 classes9.dex" 时，
+    同名类只会保留一份 —— 如果壳里已经有 logxfer 类，壳里的旧版本会把我们刚
+    编译出来的新版本**静默覆盖**掉，产物看着"构建成功"，实际还是旧代码。
+
+    2026-09-23 就踩了这个坑：壳自动挑到 1.18 成品，而 1.18 自己已经含 logxfer
+    （1.16 加进去的），结果 1.19 新写的 netSummary() / isUnreachableIf() /
+    prioOf() 全没进 smali，而 dex 里明明是有的。
+    """
+    try:
+        with zipfile.ZipFile(p) as z:
+            for n in z.namelist():
+                if n.startswith("classes") and n.endswith(".dex"):
+                    if b"logxfer" in z.read(n):
+                        return True
+    except Exception:
+        return True     # 读不出来就当"不安全"，跳过这个候选
+    return False
+
+
+def pick_shell_apk():
+    """
+    挑一个当壳用的 CarLife APK —— 只借它的 AndroidManifest.xml 让 apktool 肯干活，
+    壳自身的代码完全不进产物（前提是它不含同名类，见 apk_contains_logxfer）。
+
+    候选来源：1.6 基线 APK（优先，它肯定不含 logxfer）+ 05_产物 里的成品。
+    以前这里写死 1.15 的路径，清理仓库时那个文件被移走脚本就废了；
+    改成自动挑选 + 硬性排除含 logxfer 的壳，避免重蹈覆辙。
+    """
+    bases = [
+        r"C:\PJGG\apk\CarLife_Direct_Fix\1-baseline-apk",
+        r"C:\PJGG\apk\CarLife\05_产物",
+    ]
+    cands = []
+    for d in bases:
+        try:
+            for fn in os.listdir(d):
+                if fn.lower().endswith(".apk") and "CarLife4.0" in fn:
+                    cands.append(os.path.join(d, fn))
+        except OSError:
+            pass
+    if not cands:
+        raise SystemExit("[FAIL] 找不到任何 CarLife4.0*.apk 当壳")
+
+    # 基线目录的排前面；同目录内按版本号，再退回修改时间
+    def key(p):
+        m = re.search(r"版(\d+)\.(\d+)", os.path.basename(p))
+        ver = (int(m.group(1)), int(m.group(2))) if m else (0, 0)
+        return (0 if "1-baseline-apk" in p else 1, ver, os.path.getmtime(p))
+
+    cands.sort(key=key)
+    bad = []
+    for p in cands:
+        if apk_contains_logxfer(p):
+            bad.append(os.path.basename(p))
+            continue
+        return p
+    raise SystemExit(
+        "[FAIL] 所有候选壳 APK 都含 logxfer 类，会覆盖新产物：\n  " + "\n  ".join(bad) +
+        "\n请指定一个不含 logxfer 的 CarLife APK 作壳。")
+
+
+SHELL_APK = pick_shell_apk()
 EX_TMP = os.path.join(BUILD, "shell_extra.apk")
 EXTRA_DEX_NAME = "classes9.dex"
 
@@ -46,6 +118,45 @@ def run(cmd, cwd=None):
     return text
 
 
+def method_names_of_class(classfile):
+    """用 javap 列出一个 .class 里的全部方法名（含私有）。"""
+    out = run([JAVAP, "-p", classfile])
+    names = set()
+    for line in out.splitlines():
+        s = line.strip()
+        if not s or "(" not in s or s.endswith("{"):
+            continue
+        head = s.split("(")[0]
+        toks = head.split()
+        if not toks:
+            continue
+        nm = toks[-1]
+        if nm in ("class", "interface", "enum", "extends", "implements"):
+            continue
+        # javap 把构造器打成全限定类名（public com.foo.Bar();），
+        # 而 smali 里是 ".method public constructor <init>()V" —— 归一化一下，
+        # 否则每个类都会误报"少一个方法"。
+        if "." in nm:
+            nm = "<init>"
+        names.add(nm)
+    return names
+
+
+def method_names_of_smali(path):
+    """列出一个 .smali 文件里定义的全部方法名。"""
+    names = set()
+    with open(path, "r", encoding="utf-8", errors="replace") as f:
+        for line in f:
+            s = line.strip()
+            if not s.startswith(".method "):
+                continue
+            head = s[len(".method "):].split("(")[0]
+            toks = head.split()
+            if toks:
+                names.add(toks[-1])
+    return names
+
+
 def main():
     for p, name in ((JAVAC, "javac"), (R8_JAR, "r8.jar"),
                     (ANDROID_JAR, "android.jar"), (APKTOOL_JAR, "apktool.jar"),
@@ -54,7 +165,7 @@ def main():
             raise SystemExit("[FAIL] 缺少 %s: %s" % (name, p))
 
     if os.path.isdir(BUILD):
-        shutil.rmtree(BUILD)
+        print("[info] 中间目录: " + BUILD)
     classes = os.path.join(BUILD, "classes")
     dexdir = os.path.join(BUILD, "dex")
     os.makedirs(classes)
@@ -132,6 +243,35 @@ def main():
         if not ok:
             bad += 1
     print("  产出 smali 文件数: %d" % count)
+
+    # 7) 方法级一致性：smali 必须覆盖 class 里的全部方法。
+    #    防的就是"壳 APK 里同名类把新产物静默覆盖"这类丢码 —— 只看"构建成功"
+    #    是看不出来的，必须拿 javap 的方法清单逐个对。
+    print("\n=== 方法级一致性 (smali ⊇ class) ===")
+    miss_all = 0
+    for root, _dirs, files in os.walk(classes):
+        for f in sorted(files):
+            if not f.endswith(".class"):
+                continue
+            stem = f[:-len(".class")]
+            sm = os.path.join(OUT_SMALI, stem + ".smali")
+            if not os.path.exists(sm):
+                print("  [FAIL] smali 缺文件 %s.smali" % stem)
+                miss_all += 1
+                continue
+            want = method_names_of_class(os.path.join(root, f))
+            have = method_names_of_smali(sm)
+            miss = want - have
+            if miss:
+                print("  [FAIL] %-28s 少 %d 个方法: %s"
+                      % (stem, len(miss), ", ".join(sorted(miss))))
+                miss_all += 1
+            else:
+                print("  [OK]   %-28s %d 个方法全在" % (stem, len(want)))
+    if miss_all:
+        raise SystemExit("[FAIL] smali 与 class 不一致 —— 最常见原因是壳 APK 里"
+                         "存在同名类（见 pick_shell_apk/apk_contains_logxfer）")
+
     if bad:
         raise SystemExit("[FAIL] 自检未通过")
     print("\n[DONE] %s" % OUT_SMALI)

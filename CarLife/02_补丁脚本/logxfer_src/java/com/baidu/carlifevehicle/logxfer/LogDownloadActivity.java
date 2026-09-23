@@ -58,6 +58,17 @@ public class LogDownloadActivity extends Activity {
         root.addView(title, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
+        // 1.19：把"这次用的是哪张网卡、忽略了哪些"直接晾在界面上。
+        // 之前只有二维码，出了问题是"扫不开"三个字，分不清到底地址选错了还是网络没通。
+        TextView nets = new TextView(this);
+        nets.setText(LogHttpServer.netSummary());
+        nets.setTextColor(FG2);
+        nets.setTextSize(12);
+        nets.setGravity(Gravity.CENTER);
+        nets.setPadding(0, dp(4), 0, 0);
+        root.addView(nets, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
         FrameLayout stage = new FrameLayout(this);
         root.addView(stage, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, 0, 1.0f));
@@ -164,10 +175,13 @@ public class LogDownloadActivity extends Activity {
         if (urls.length == 0) {
             return "未检测到可用网络地址，请检查 WiFi 连接";
         }
-        StringBuilder sb = new StringBuilder("手机与车机接入同一网络后，扫码或在浏览器打开：");
+        // 1.19：只给**首选地址**生成二维码（见 logxfer.html），其余列出来供手动输入。
+        // 1.18 是前 3 个各生成一个二维码，扫到哪个全看运气 —— 真机上正好扫到了蜂窝那个。
+        StringBuilder sb = new StringBuilder("手机连同一网络后，扫上面这个二维码（下面地址可手动输入）：");
         for (int i = 0; i < urls.length && i < 3; i++) {
             sb.append('\n').append(urls[i]);
         }
+        sb.append("\n本机自测也可直接打开 http://127.0.0.1:").append(LogHttpServer.PORT);
         return sb.toString();
     }
 

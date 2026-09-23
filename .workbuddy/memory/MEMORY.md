@@ -5,11 +5,23 @@
 
 ## 版本演进（`CarLife/01_工程源码/_w1xx`）
 - 1.11 H失败分级/I DNS-SD+组播锁/K断线自愈/L USB去抖/F-3抑制重排｜1.12 USB免授权四层降级｜1.13 去开机引导页｜1.14 修 j$b 有无组判断+j$a reason 对调
-- **1.18（当前）**：车机实测 1.17 报三症状后的「定位+修复」版
+- **1.21（当前交付版）**：`_w121` / `patch_v18_修打包下载重名.py` / versionCode 121 / mod1.21。
+  修 `/all.zip` 的 `ZipException: duplicate entry` —— `refreshFiles()` 登记的
+  `getExternalFilesDir(null)/log` 与硬编码 `/sdcard/Android/data/<pkg>/files/log`
+  **是同一目录**（`/sdcard`、`/storage/sdcard0` 都是 `/storage/emulated/0` 的符号链接），
+  去重键用 `getAbsolutePath()` 字符串不同 → 去重失效 → 同一文件进 `mFiles` 两次 → zip 重名条目。
+  修法：新增 `canonicalKey(File)`（优先 `getCanonicalPath()`，失败退回手工归一化
+  `/sdcard/`、`/mnt/sdcard/`、`/storage/sdcard0/` 前缀）+ `uniqueName(List,String)`（zip 条目重名补 `_2`）。
+  **realme 真机全通过**：三端点 200（`/`=1266B、`/f/0`=1415510B、`/all.zip`=92081B）、
+  zip 无重名 + CRC OK、`VerifyError` 计数 0。详见 `04_文档/1.21_修打包下载重名条目.md`
+- 1.20 `_w120` / `patch_v17`：修 1.18 蓝牙插桩在 ART 上的 `VerifyError`（真机一启动就崩，见「血泪 11」）
+- 1.19 `_w119` / `patch_v16`：修二维码指向蜂窝地址（`localIps()` 按网卡排序 + 排除蜂窝）
+- **1.18**：车机实测 1.17 报三症状后的「定位+修复」版
   - ① 蓝牙(阶段1)三处**静默 early-return** 补日志（走 `n/g$a.a`→ConnLog 上车机屏幕）+ 空配对列表 `Handler.postDelayed(d/d$c, 0x1388)` 每 5s 自愈重试（`d/a.smali`）
   - ② 模式切换异步化：**新增** `com.baidu.carlifevehicle.ConnSwitchTask`(继承 Thread，名 `CarLifeSwitch`)；`ConnModeHelper.selectMode()` 不再在 UI 线程跑 `m/d;i()`；`commit()`→`apply()`
   - ③ 热点 `e/a.a()` 补 3 条日志
   - 成品 2,614,521B / versionCode 118 / mod1.18；详见 `04_文档/1.18_直连热点诊断与修复.md`
+  - ⚠ 1.18 的蓝牙插桩就是 1.20 修的那个崩因，**别把它的插桩写法当范本**
 - 1.16 扫码下载日志（内嵌 HTTP 18080 + 二维码）｜1.17 「下载日志」做成主界面按钮（放「方控」左，去掉独立桌面图标）
 - 1.15：移植 5+ 的「保活」+「设备名兜底」
   - 🆕 `m/m/e/f`+`f$a` 心跳看门狗：2s 发 `0x20002`、30s(`0x7530`) 无收包 → `d.f()` terminate → patchK 自愈。插桩：`e/b c()` 收包 touch、`e/d a()` 起表、`e/d f()` 停表
@@ -44,17 +56,26 @@
 8. **构建产线**固化在 build.sh（细则见 skill `android-apk-mod-deploy`）：每轮全新 `_bw_*` 纯复制绝不删；`校验并补齐工程.py <目标> <参照> --fix` 当门禁（超时杀掉的复制会留**整份文件缺失**，md5 抓不到）；`/XD` 要绝对路径；robocopy 带 `/R:0 /W:0`
 9. **交付前必做条目级对比**：1.11~1.15 大小全是 2540650，看大小会被骗。可用 `unzip -p <apk> classes.dex | grep -cF "<新字符串>"` 直接核成品 dex
 10. **`verify_dalvik_合并点检查.py` 的两个坑（1.18 才修）**：① `const/4 vX,0x0` 必须建模为 **Zero/null**（apktool 代码里普遍拿它当 null，当 INT 会产生海量假冲突）② 不动点迭代会重复收集同一条错误，要按首次出现去重。另：`TARGETS` 是**跨版本累积**清单，"缺文件"只提示不报错（完整性归 `校验并补齐工程.py`）
+11. ★★★ **Dalvik 过 ≠ 真机过**。1.18 在蓝牙插桩里写 `new-array + const/4 + aput-object + invoke-static` 四件套，其中 1.2/1.3 处**复用了 v3 当数组索引却没重置**（`d/a.run()` 里 v3 被用 29 次、中间已变成引用类型）→ 合并点类型冲突。**Dalvik（车机 4.4.2 / MuMu 4.4.4）校验宽松完全不报；ART（realme Android 12）直接拒类** `VerifyError: Invalid reg type for array index`，一启动就崩。**结论：新写/改动的 smali 类，必须至少在一台 ART 设备上跑一遍启动**；静态检查只是近似，不能替代真机。
+12. ★ **插桩一律走「零参静态方法」**：在 `ConnLog` 里加 `logLine(String)` + 若干零参包装（每版新增按需），插桩点只写一行 `invoke-static {}, Lcom/baidu/carlifevehicle/ConnLog;->logXxx()V` —— **零寄存器操作数**，彻底根除合并点类型冲突。别再"在别人的大方法里挑一个死掉的寄存器"。
+13. **改 smali 顺手改控制流是大坑**：1.18 把 `if-eqz v0, :cond_1b` 改成 `if-eqz v0, :bt_all_failed` 且**紧跟同名标签**、还多了一条 `goto :cond_1b` → 两条路径都落进日志分支 + **原有的 1 秒重试被整个跳过**（功能回归）。改完必须用「基线指标回归」核对。
+14. **`校验并补齐工程.py` 的参照要用「直接上一版」**，不能跨版（`_w119` 拿 `_w118` 当参照会误报）。
+15. **去重别用 `getAbsolutePath()`**：Android 上 `/sdcard`、`/storage/sdcard0`、`/mnt/sdcard` 都是 `/storage/emulated/0` 的符号链接，同一文件会以多种字符串出现。用 `getCanonicalPath()` 或手工归一化别名前缀（`"前缀".length()` 取下标，别硬编码）。
 
 ## 环境
 - tools/ 下有 apktool/signer/jadx，JAVA_HOME=`C:/PJGG/apk/tools/jdk-17.0.20.1+1`
 - MuMu 4.4.4：`adb connect 127.0.0.1:7555` -P 5039；无 P2P／无蓝牙；**改 prefs 前先 `ls -ld /data/data/<pkg>` 取真实 uid**（本次是 u0_a49=10049）；屏幕 1440×810，页签 y≈205、x≈540/732/925，用 `input touchscreen tap`
-- realme 真机 Android 12，adb -P 5039（当前已断开）
+- realme 真机 Android 12，序列号 `RWPRTCMVSWQWMJBA`，**adb 也用 -P 5039**。调试要点：
+  - **必须先唤醒屏幕**：`adb shell input keyevent KEYCODE_WAKEUP` + `wm dismiss-keyguard`。否则 `mCurrentFocus` 常驻 `NotificationShade`，看着像"没启动"，其实只是息屏
+  - 屏幕 **1080×2400**；CarLife 主界面是 SurfaceView 自绘，**`uiautomator dump` 拿不到控件**，只能截图按比例算坐标（486 宽的渲染图 ×2.222）
+  - `/sdcard` 根目录被分区存储拦（`Operation not permitted`），但 `adb shell` 可写 `/sdcard/Android/data/<pkg>/files/`
+  - `adb forward tcp:18080 tcp:18080` 后本机可 `curl http://127.0.0.1:18080/`
 - Git Bash 先 `export PATH="/usr/bin:/bin:$PATH"`；adb/jar 不认 `/c/` 前缀；adb server 不跨 Bash 调用存活
 
 ## 待办
-1. **车机 4.4.2 实机跑 1.18**：① 翻日志找 `==== [阶段1] 蓝牙带外握手 ====`（看落到"无配对设备/全连不上/SPP 已连上"哪支）② 再点热点确认是否还卡 ③ 看 `✔ 热点模式: UDP 7999 监听线程已启动` 与 `connect  packet:<IP>`
+1. **车机 4.4.2 实机跑 1.21**（最终验收环境）：① 翻日志找 `==== [阶段1] 蓝牙带外握手 ====`（看落到"无配对设备/全连不上/SPP 已连上"哪支）② 点「下载日志」看网卡摘要是否是 `p2p0=192.168.49.1` ③ 点「打包下载全部」确认不再 `ZipException`
 2. 要 100% 定位蓝牙问题需**车机端 logcat**（ConnLog 仅 24000 字符环形缓冲，会滚掉）
 3. **失败分级透出到界面**（对齐 5+ `m7/e0`）
 4. 心跳偏吵调 `e/f.smali a(d)` 的 `0x7d0`(2000ms)；蓝牙重试间隔在 `d/a.smali` 的 `0x1388`(5000ms)
 5. 慢扫改无限；多网卡遍历；BootTask 上车机试开机自启
-6. 1.18 **未做设备冒烟测试**（MuMu 没在线，7555 拒绝连接）→ `ConnSwitchTask` 的 VerifyError 风险待实机确认
+6. 1.18 **未做设备冒烟测试**（MuMu 没在线，7555 拒绝连接）→ `ConnSwitchTask` 的 VerifyError 风险待实机确认（1.20/1.21 在 realme 真机上装过、未崩，间接说明它没问题）

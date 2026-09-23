@@ -58,6 +58,18 @@ EXPECTED_DIFF = {
     r"smali\com\baidu\carlifevehicle\ConnModeHelper.smali",
     r"smali\com\baidu\carlifevehicle\logxfer\LogDownloadActivity.smali",
     r"smali\com\baidu\carlifevehicle\logxfer\LogHttpServer.smali",
+    # 1.19 日志地址修复：只给首选地址出二维码 + 界面显示网卡摘要
+    # （logxfer 下的 smali 由 构建日志下载smali.py 整体重新产出，
+    #   外层类一改，内部类 $BackHandler/$1 的 smali 也会跟着变，所以一并登记）
+    r"assets\logxfer\logxfer.html",
+    r"assets\logxfer\qrcode.js",
+    r"smali\com\baidu\carlifevehicle\logxfer\LogDownloadActivity$BackHandler.smali",
+    r"smali\com\baidu\carlifevehicle\logxfer\LogHttpServer$1.smali",
+    r"smali\com\baidu\carlifevehicle\logxfer\LogXferEntry.smali",
+    r"smali\com\baidu\carlifevehicle\logxfer\LogXferEntry$ClickHandler.smali",
+    # 1.20 修 1.18 插桩引入的 VerifyError：日志改成零参静态方法，
+    # 字符串与方法体都搬进了 ConnLog（d/a、e/a 里只剩一行 invoke-static {}）
+    r"smali\com\baidu\carlifevehicle\ConnLog.smali",
 }
 
 # 这些顶层目录是 apktool 的构建缓存，不参与比对

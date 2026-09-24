@@ -52,6 +52,20 @@
     return-void
 
     :goto_0
+    new-instance v1, Ljava/lang/StringBuilder;
+
+    const-string v2, "dynamic event received: "
+
+    invoke-direct {v1, v2}, Ljava/lang/StringBuilder;-><init>(Ljava/lang/String;)V
+
+    invoke-virtual {v1, v0}, Ljava/lang/StringBuilder;->append(Ljava/lang/Object;)Ljava/lang/StringBuilder;
+
+    invoke-virtual {v1}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+
+    move-result-object v1
+
+    invoke-static {p1, v1}, Lcom/boottask/BootDiagnostics;->log(Landroid/content/Context;Ljava/lang/String;)V
+
     new-instance v1, Landroid/content/Intent;
 
     const-class v2, Lcom/boottask/ExecService;

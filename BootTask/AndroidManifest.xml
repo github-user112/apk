@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.boottask" android:versionCode="2" android:versionName="1.1">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.boottask" android:versionCode="4" android:versionName="1.3">
     <uses-sdk android:minSdkVersion="8" android:targetSdkVersion="19"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-permission android:name="android.permission.KILL_BACKGROUND_PROCESSES"/>
-    <application android:label="开机任务" android:icon="@drawable/ic_launcher" android:allowBackup="false">
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <application android:label="开机任务" android:icon="@drawable/ic_launcher" android:allowBackup="false" android:installLocation="internalOnly">
         <activity android:name=".MainActivity" android:label="开机任务" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -12,6 +13,7 @@
         </activity>
         <activity android:name=".EditActivity" android:label="添加规则"/>
         <activity android:name=".AppPickActivity" android:label="选择应用"/>
+        <activity android:name=".BootDiagnostics$LogActivity" android:label="日志下载" android:exported="false" android:theme="@android:style/Theme.Black.NoTitleBar"/>
         <receiver android:name=".BootReceiver" android:exported="true">
             <intent-filter android:priority="2147483647">
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>

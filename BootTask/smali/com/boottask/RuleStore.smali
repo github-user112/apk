@@ -46,6 +46,20 @@
     :catch_0
     move-exception v0
 
+    new-instance v1, Ljava/lang/StringBuilder;
+
+    const-string v2, "rule JSON parse failed: "
+
+    invoke-direct {v1, v2}, Ljava/lang/StringBuilder;-><init>(Ljava/lang/String;)V
+
+    invoke-virtual {v1, v0}, Ljava/lang/StringBuilder;->append(Ljava/lang/Object;)Ljava/lang/StringBuilder;
+
+    invoke-virtual {v1}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+
+    move-result-object v1
+
+    invoke-static {p0, v1}, Lcom/boottask/BootDiagnostics;->log(Landroid/content/Context;Ljava/lang/String;)V
+
     new-instance v1, Lorg/json/JSONArray;
 
     invoke-direct {v1}, Lorg/json/JSONArray;-><init>()V
@@ -54,8 +68,8 @@
 .end method
 
 
-# private static void save(Context, JSONArray)
-.method private static save(Landroid/content/Context;Lorg/json/JSONArray;)V
+# private static boolean save(Context, JSONArray)
+.method private static save(Landroid/content/Context;Lorg/json/JSONArray;)Z
     .locals 2
 
     invoke-static {p0}, Lcom/boottask/RuleStore;->sp(Landroid/content/Context;)Landroid/content/SharedPreferences;
@@ -78,12 +92,29 @@
 
     invoke-interface {v0}, Landroid/content/SharedPreferences$Editor;->commit()Z
 
-    return-void
+    move-result v1
+
+    if-nez v1, :cond_saved
+
+    const-string v0, "rule save failed: commit returned false"
+
+    invoke-static {p0, v0}, Lcom/boottask/BootDiagnostics;->log(Landroid/content/Context;Ljava/lang/String;)V
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_saved
+    const-string v0, "rule save committed"
+
+    invoke-static {p0, v0}, Lcom/boottask/BootDiagnostics;->log(Landroid/content/Context;Ljava/lang/String;)V
+
+    return v1
 .end method
 
 
-# public static void add(Context, JSONObject)
-.method public static add(Landroid/content/Context;Lorg/json/JSONObject;)V
+# public static boolean add(Context, JSONObject)
+.method public static add(Landroid/content/Context;Lorg/json/JSONObject;)Z
     .locals 1
 
     invoke-static {p0}, Lcom/boottask/RuleStore;->list(Landroid/content/Context;)Lorg/json/JSONArray;
@@ -92,30 +123,67 @@
 
     invoke-virtual {v0, p1}, Lorg/json/JSONArray;->put(Ljava/lang/Object;)Lorg/json/JSONArray;
 
-    invoke-static {p0, v0}, Lcom/boottask/RuleStore;->save(Landroid/content/Context;Lorg/json/JSONArray;)V
+    invoke-static {p0, v0}, Lcom/boottask/RuleStore;->save(Landroid/content/Context;Lorg/json/JSONArray;)Z
 
-    return-void
+    move-result v0
+
+    return v0
 .end method
 
 
-# public static void remove(Context, int)
-.method public static remove(Landroid/content/Context;I)V
-    .locals 1
+# public static boolean remove(Context, int)
+.method public static remove(Landroid/content/Context;I)Z
+    .locals 4
 
+    :try_start_0
     invoke-static {p0}, Lcom/boottask/RuleStore;->list(Landroid/content/Context;)Lorg/json/JSONArray;
 
     move-result-object v0
 
     invoke-virtual {v0, p1}, Lorg/json/JSONArray;->remove(I)Ljava/lang/Object;
 
-    invoke-static {p0, v0}, Lcom/boottask/RuleStore;->save(Landroid/content/Context;Lorg/json/JSONArray;)V
+    move-result-object v1
 
-    return-void
+    if-nez v1, :cond_removed
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_removed
+    invoke-static {p0, v0}, Lcom/boottask/RuleStore;->save(Landroid/content/Context;Lorg/json/JSONArray;)Z
+
+    move-result v0
+    :try_end_0
+    .catch Ljava/lang/Exception; {:try_start_0 .. :try_end_0} :catch_0
+
+    return v0
+
+    :catch_0
+    move-exception v1
+
+    new-instance v2, Ljava/lang/StringBuilder;
+
+    const-string v3, "rule remove failed: "
+
+    invoke-direct {v2, v3}, Ljava/lang/StringBuilder;-><init>(Ljava/lang/String;)V
+
+    invoke-virtual {v2, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/Object;)Ljava/lang/StringBuilder;
+
+    invoke-virtual {v2}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+
+    move-result-object v2
+
+    invoke-static {p0, v2}, Lcom/boottask/BootDiagnostics;->log(Landroid/content/Context;Ljava/lang/String;)V
+
+    const/4 v0, 0x0
+
+    return v0
 .end method
 
 
-# public static void toggle(Context, int)
-.method public static toggle(Landroid/content/Context;I)V
+# public static boolean toggle(Context, int)
+.method public static toggle(Landroid/content/Context;I)Z
     .locals 4
 
     invoke-static {p0}, Lcom/boottask/RuleStore;->list(Landroid/content/Context;)Lorg/json/JSONArray;
@@ -141,7 +209,9 @@
 
     invoke-virtual {v1, v3, v2}, Lorg/json/JSONObject;->put(Ljava/lang/String;Z)Lorg/json/JSONObject;
 
-    invoke-static {p0, v0}, Lcom/boottask/RuleStore;->save(Landroid/content/Context;Lorg/json/JSONArray;)V
+    invoke-static {p0, v0}, Lcom/boottask/RuleStore;->save(Landroid/content/Context;Lorg/json/JSONArray;)Z
+
+    move-result v0
     :try_end_0
     .catch Ljava/lang/Exception; {:try_start_0 .. :try_end_0} :catch_0
 
@@ -150,8 +220,22 @@
     :catch_0
     move-exception v1
 
-    invoke-virtual {v1}, Ljava/lang/Exception;->printStackTrace()V
+    const/4 v0, 0x0
+
+    new-instance v2, Ljava/lang/StringBuilder;
+
+    const-string v3, "rule toggle failed: "
+
+    invoke-direct {v2, v3}, Ljava/lang/StringBuilder;-><init>(Ljava/lang/String;)V
+
+    invoke-virtual {v2, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/Object;)Ljava/lang/StringBuilder;
+
+    invoke-virtual {v2}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+
+    move-result-object v2
+
+    invoke-static {p0, v2}, Lcom/boottask/BootDiagnostics;->log(Landroid/content/Context;Ljava/lang/String;)V
 
     :goto_0
-    return-void
+    return v0
 .end method

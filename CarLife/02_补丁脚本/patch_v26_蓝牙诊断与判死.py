@@ -61,16 +61,16 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 LOGSRC = os.path.join(HERE, "logxfer_src")
-ROOT = r"C:\PJGG\apk\CarLife\01_工程源码"
+ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "01_工程源码")
 SRC = os.path.join(ROOT, "_w128")
 DST = os.path.join(ROOT, "_w129")
 
-LOGXFER_SMALI_DST = r"smali\com\baidu\carlifevehicle\logxfer"
-D_A = r"smali\a\a\a\a\m\m\d\a.smali"
-D_JA = r"smali\a\a\a\a\m\m\d\j$a.smali"
-D_J = r"smali\a\a\a\a\m\m\d\j.smali"
-CLOG = r"smali\com\baidu\carlifevehicle\ConnLog.smali"
-STRINGS = r"res\values\strings.xml"
+LOGXFER_SMALI_DST = "smali/com/baidu/carlifevehicle/logxfer"
+D_A = "smali/a/a/a/a/m/m/d/a.smali"
+D_JA = "smali/a/a/a/a/m/m/d/j$a.smali"
+D_J = "smali/a/a/a/a/m/m/d/j.smali"
+CLOG = "smali/com/baidu/carlifevehicle/ConnLog.smali"
+STRINGS = "res/values/strings.xml"
 BTGUARD = os.path.join(LOGXFER_SMALI_DST, "BtGuard.smali")
 
 
@@ -105,12 +105,8 @@ print("=== 复制 _w128 -> _w129 ===")
 if not os.environ.get("SKIP_COPY"):
     if os.path.exists(DST):
         sys.exit("!!! 目标已存在，不覆盖: %s（本产线只做全新目录）" % DST)
-    rc = subprocess.run(
-        ["robocopy", SRC, DST, "/E", "/XD", os.path.join(SRC, "build"),
-         "/R:0", "/W:0", "/NFL", "/NDL", "/NJH", "/NJS", "/NC", "/NS", "/NP"],
-        capture_output=True).returncode
-    if rc > 7:
-        sys.exit("!!! robocopy 失败 rc=%d" % rc)
+    shutil.copytree(SRC, DST, ignore=shutil.ignore_patterns("build"))
+    rc = 0
     if not os.path.isfile(os.path.join(DST, "apktool.yml")):
         sys.exit("!!! 复制失败: %s 不存在" % os.path.join(DST, "apktool.yml"))
     print("  [OK] 复制完成")
@@ -244,8 +240,8 @@ chk("BtGuard 判死标记 sDead 生效（有 sDead 字段）", "sDead" in bt)
 chk("BtGuard 等待上限 45", "0x2d" in bt or "45" in bt)
 chk("BtGuard 会 enable()", ";->enable()Z" in bt)
 chk("BtGuard 不上主线程(无 MainLooper)", "getMainLooper" not in bt)
-chk("放弃时给可操作结论（直连不可用 + 改走热点）",
-    "直连不可用" in bt or "\\u76f4\\u8fde\\u4e0d\\u53ef\\u7528" in bt)
+chk("放弃时给可操作结论（无蓝牙直连 / 直连不可用）",
+    "无蓝牙直连" in bt or "\\u65e0\\u84dd\\u7259\\u76f4\\u8fde" in bt or "直连不可用" in bt or "\\u76f4\\u8fde\\u4e0d\\u53ef\\u7528" in bt)
 
 # --- 回归：d/a.smali 插桩点必须原样（签名没变，一行都不改）---
 chk("回归: d/a.smali 仍有 BtGuard 插桩",

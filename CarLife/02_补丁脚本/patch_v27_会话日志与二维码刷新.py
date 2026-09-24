@@ -53,14 +53,14 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 LOGSRC = os.path.join(HERE, "logxfer_src")
-ROOT = r"C:\PJGG\apk\CarLife\01_工程源码"
+ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "01_工程源码")
 SRC = os.path.join(ROOT, "_w129")
 DST = os.path.join(ROOT, "_w130")
 
-LOGXFER_SMALI_DST = r"smali\com\baidu\carlifevehicle\logxfer"
-CLOG = r"smali\com\baidu\carlifevehicle\ConnLog.smali"
-VAPP = r"smali\com\baidu\carlifevehicle\VehicleApplication.smali"
-STRINGS = r"res\values\strings.xml"
+LOGXFER_SMALI_DST = "smali/com/baidu/carlifevehicle/logxfer"
+CLOG = "smali/com/baidu/carlifevehicle/ConnLog.smali"
+VAPP = "smali/com/baidu/carlifevehicle/VehicleApplication.smali"
+STRINGS = "res/values/strings.xml"
 
 
 def read(p):
@@ -94,12 +94,8 @@ print("=== 复制 _w129 -> _w130 ===")
 if not os.environ.get("SKIP_COPY"):
     if os.path.exists(DST):
         sys.exit("!!! 目标已存在，不覆盖: %s（本产线只做全新目录）" % DST)
-    rc = subprocess.run(
-        ["robocopy", SRC, DST, "/E", "/XD", os.path.join(SRC, "build"),
-         "/R:0", "/W:0", "/NFL", "/NDL", "/NJH", "/NJS", "/NC", "/NS", "/NP"],
-        capture_output=True).returncode
-    if rc > 7:
-        sys.exit("!!! robocopy 失败 rc=%d" % rc)
+    shutil.copytree(SRC, DST, ignore=shutil.ignore_patterns("build"))
+    rc = 0
     if not os.path.isfile(os.path.join(DST, "apktool.yml")):
         sys.exit("!!! 复制失败: %s 不存在" % os.path.join(DST, "apktool.yml"))
     print("  [OK] 复制完成")

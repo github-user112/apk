@@ -55,6 +55,8 @@ EXPECTED_DIFF = {
     "res/xml/device_filter.xml",
     "smali/a/a/a/a/m/m/c/c.smali",
     "smali/a/a/a/a/m/m/e/a.smali",
+    # 1.41 Q2-B: m/m/b.b() 校验通道齐全再 c.d()
+    "smali/a/a/a/a/m/m/b.smali",
     "smali/com/baidu/carlife/sdk/UsbPermissionProxyActivity.smali",
     # 1.17 把「下载日志」做进主界面（去掉独立桌面图标）
     "res/layout/frag_main.xml",

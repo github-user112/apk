@@ -26,13 +26,8 @@
 # direct methods
 .method constructor <init>([Landroid/net/wifi/p2p/WifiP2pGroup;Ljava/util/concurrent/CountDownLatch;)V
     .locals 0
-    .annotation system Ldalvik/annotation/Signature;
-        value = {
-            "()V"
-        }
-    .end annotation
 
-    .line 210
+    .line 228
     iput-object p1, p0, Lcom/baidu/carlifevehicle/logxfer/NoBtFallback$2;->val$box:[Landroid/net/wifi/p2p/WifiP2pGroup;
 
     iput-object p2, p0, Lcom/baidu/carlifevehicle/logxfer/NoBtFallback$2;->val$latch:Ljava/util/concurrent/CountDownLatch;
@@ -47,18 +42,18 @@
 .method public onGroupInfoAvailable(Landroid/net/wifi/p2p/WifiP2pGroup;)V
     .locals 2
 
-    .line 212
+    .line 230
     iget-object v0, p0, Lcom/baidu/carlifevehicle/logxfer/NoBtFallback$2;->val$box:[Landroid/net/wifi/p2p/WifiP2pGroup;
 
     const/4 v1, 0x0
 
     aput-object p1, v0, v1
 
-    .line 213
+    .line 231
     iget-object p1, p0, Lcom/baidu/carlifevehicle/logxfer/NoBtFallback$2;->val$latch:Ljava/util/concurrent/CountDownLatch;
 
     invoke-virtual {p1}, Ljava/util/concurrent/CountDownLatch;->countDown()V
 
-    .line 214
+    .line 232
     return-void
 .end method

@@ -61,6 +61,11 @@ public final class NoBtFallback {
         return sKeepGroup;
     }
 
+    /** Q3-F 修：切模式时复位，防止 P2P 组永远不被清理。 */
+    public static void resetKeepGroup() {
+        sKeepGroup = false;
+    }
+
     /** 蓝牙判死时由 BtGuard 调用（幂等，只生效一次）。 */
     public static void onBtDead() {
         if (sArmed) {
@@ -110,7 +115,11 @@ public final class NoBtFallback {
         }
     }
 
-    /** getField 兜 getDeclaredField+setAccessible，不区分可见性。 */
+    /**
+     * Q3-A 修：getField 只拿 public 字段，私有字段会抛 NoSuchFieldException。
+     * 原版在 catch 里才 setAccessible，但没有 fallback 重试 —— 第一次就抛异常整个兜底 0 效果。
+     * 修法：getField 失败 → getDeclaredField + setAccessible(true) 再 get。
+     */
     private static Object readField(Object obj, String cls, String name) throws Exception {
         Class<?> k;
         if (obj != null) {
@@ -129,8 +138,8 @@ public final class NoBtFallback {
             f = k.getField(name);
         } catch (NoSuchFieldException e) {
             f = k.getDeclaredField(name);
-            f.setAccessible(true);
         }
+        f.setAccessible(true);
         return f.get(obj);
     }
 
@@ -178,6 +187,15 @@ public final class NoBtFallback {
                     Class.forName("a.a.a.a.a.j.c$a")).newInstance(engine, mgr);
             list.add(t);
             eaCls.getMethod("a").invoke(t);
+            // Q3-B 修：挂进 list 后必须 attach，否则 m/m/b.b() 不会 terminate 其它传输
+            // + q(5) 起会话，UI 永远不更新（与 Q2 同症状）。
+            try {
+                Class<?> bCls = Class.forName("a.a.a.a.m.m.b");
+                java.lang.reflect.Method bMethod = bCls.getMethod("b", Class.forName("a.a.a.a.a.j.c"));
+                bMethod.invoke(mgr, t);
+            } catch (Throwable th) {
+                say("【无蓝牙直连】attach 传输失败(不影响监听): " + th);
+            }
         }
         say("✔ [无蓝牙直连] UDP 7999 监听已挂载, 等待手机接入直连网络后广播");
     }
@@ -228,7 +246,15 @@ public final class NoBtFallback {
             if (g != null) {
                 String ssid = g.getNetworkName();
                 if (g.isGroupOwner()) {
-                    String psk = g.getPassphrase();
+                    // Q3-D 修：getPassphrase() API27+，车机 4.4.2 直接 NoSuchMethodError。
+                    // 改反射调用，4.4.2 上拿到 null 显示 "(无)"，不崩。
+                    String psk = null;
+                    try {
+                        java.lang.reflect.Method pm = g.getClass().getMethod("getPassphrase");
+                        psk = (String) pm.invoke(g);
+                    } catch (Throwable th) {
+                        // API < 27 没有这个方法
+                    }
                     say("════════════════════════════════════════");
                     say("【无蓝牙直连】直连网络已就绪(全程无需蓝牙):");
                     say("  ① 手机【设置 → WLAN】连接网络: " + ssid);

@@ -5,14 +5,37 @@
 > 本文件与同目录的 `CLAUDE.md` 内容同步维护，读任意一份即可。
 >
 > 目标读者：刚接手这个仓库、不想重踩坑的 agent。
-> 最后更新：2026-09-24（1.40 亿连式无蓝牙直连兜底：蓝牙判死后自动挂 UDP 7999 监听 + 显示直连组 SSID/PSK 让手机手动入组，
-> e/d.f() 加 keepP2pGroup 闸门防组被拆。上一版 1.30 三条用户需求：二维码网络自动刷新 / 每次启动新日志+30KB 滚动 / 按日期排序；
-> 1.29 定案：直连堵点=车机 Android 蓝牙起不来，热点模式实测 100% 可用）
+> 最后更新：2026-09-24（**1.42 修 1.41 P0**：e/b 双毒行清理 + m/m/b Q2-B 重写；工作流改为
+> 单树 `01_工程源码/main/` 直接改 + git tag，不再新增 _w1xx 树与 patch_vNN 脚本。
+> 上一版 1.40 亿连式无蓝牙直连兜底：蓝牙判死后自动挂 UDP 7999 监听 + 显示直连组 SSID/PSK 让手机手动入组，
+> e/d.f() 加 keepP2pGroup 闸门防组被拆。1.29 定案：直连堵点=车机 Android 蓝牙起不来，热点模式实测 100% 可用）
 >
 > ⚠️ **1.25 不可用**：装上去 App 一动就 Force Close（`VerifyError: ConnLog`）。
 > 根因是 1.25 新增的 `precheck()` / `hasUsableLocalIp()` / `awaitLocalIp()` 三个方法
 > try/catch 结构全写坏（循环退出跳进了 catch handler）。1.26 已修，MuMu 实测通过。
 > 回退时**不要**退到 1.25。详见 `CarLife/04_文档/1.26_修ConnLog校验崩溃.md`。
+>
+> ⚠️ **1.41 不可用（2026-09-24 MuMu 实测 P0 回归）**：`m/m/e/b` 整类被 Dalvik 拒收
+> （`VFY: register index out of range (14 >= 3)` → `rejected b;.a()V`）——
+> patch_v29 给 `d(String)Z` 注入 `const/4 v14, 0x0` 时，锚点
+> `iget c → BlockingQueue->clear()V` 在 `a()V` 和 `d()` 各出现一次，
+> `replace(...,1)` 打中了排前面的 `a()V`（`.locals 2`）；同时 `.locals 14→15`
+> 替换静默失配（实际是 12）。后果：热点模式（1.40 在车机 100% 可用）被带挂
+> （`Rejecting re-init on previously-failed class`）、无蓝牙兜底挂载失败
+> （`InvocationTargetException`）。**仓库 `_w141` 工程树与成品 APK 均带此毒**；
+> 且 `_w141`/成品里的 `d()` 已是 `newSocket` 手改版，**patch_v29 脚本不含它**
+> （脚本↔工程树失同步，1.41 无法用脚本复现）。修复 1.42 时：删
+> `_w141 b.smali` a()V 里的 `const/4 v14, 0x0` 毒行、把 newSocket 改动回填脚本、
+> 裸 `replace` 全改 `sub_once`。1.41 其余项（装/启 0 崩溃、versionCode 141、
+> Q1 默认直连 90s 超时、日志下载页）MuMu 均正常。
+>
+> ✅ **1.42 已修（2026-09-24）**：`main/smali/a/a/a/a/m/m/e/b.smali` ① 删 a()V 毒行
+> ② d() 计数器 v14→v8（.locals 12 上限 v13，v8 空闲）+ clear()V 后补初始化；
+> `main/smali/a/a/a/a/m/m/b.smali` Q2-B 整块重写（原 `if-gez` 恒真 = 检查死代码；
+> 且裸 `check-cast e/a` 对直连 e/d / USB c/a 传输必抛 CCE——三种传输都经 `j/c.b()`
+> 虚分派进来，MuMu 无 P2P/USB 没炸出来，上车必炸）。
+> 门禁已补**寄存器越界检查**（verify_dalvik 对 _w141 跑能恰好检出这三处毒）+ m/m/b 盲区。
+> 签名未 zipalign（ARM 机 uber 内置 zipalign 是 x86 二进制，与 1.41/1.23/1.24 同状态，MuMu 实测无影响）。
 
 ---
 
@@ -59,8 +82,15 @@
 | 1.28 | **P0 修复**：`j$a.onFailure` 三分——只有 reason=1(不支持) 才放弃；reason=2(BUSY) 仍 removeGroup+退避；**reason=0(ERROR)/未知值改退避重试**（原来会被当"不支持"永久 disarm）。退避抽成 `j.d()V` 消除跨分支寄存器合并。**顺带修 DNS-SD**：`j.a()` 用 `invoke-direct` 调 `public final c()V` 解析失败，1.15 起 `_presence._tcp` 服务从未发布成功，改 `invoke-virtual` | **MuMu + realme 双实测**：0 崩溃 0 VerifyError；MuMu reason=1 正确放弃；realme reason=2 六连退避(6/8/10/12/14s)→慢扫；两端均首次打出 `local service published`；reason=0 分支未动态触发，待车机 |
 | 1.29 | **看车机实机日志改的**：直连连不上的唯一堵点是「车机 Android 蓝牙起不来」（P2P 组其实建成功了 `DIRECT-cH-CarLife-HU`/GO 192.168.49.1，但蓝牙不通 → 手机拿不到 SSID/PSK 就不来 join；全仓无 SSID/PSK 发送代码）。重写 `BtGuard`：深度诊断(state 码/地址/已配对数/enable()返回值/`Settings.Global(bluetooth_on)`/双路径对比) + 双路 enable + TURNING_ON 不打扰 + 试写全局开关 + 30s→45s + **判死一次就记住(sDead)** + 放弃时给可操作结论。**签名不变，`d/a.smali` 零改动** | **realme ART 实测**：0 崩溃 0 VerifyError；`svc bluetooth disable` 后自愈生效(enable()=true → 1s 后 ✔ 已开启)；正确识别 `state=11(TURNING_ON)` 并停止重复 enable。**车机实机待跑** |
 | 1.30 | **看用户三条需求改的**：① 二维码「有时不正确」= 地址变了二维码没变 → 新增 `NetWatch`（监听 WiFi/P2P/以太网/连接变化）自动重载二维码；没网时 HTML 显示「未检测到可用网络地址」不画死码 ② 每次启动新日志 + 30KB 滚动 → 新增 `SessionLog`（`files/log/session/yyyyMMdd-HHmmss.log`，超 30KB 滚 `.partN.log`，最多 30 part/会话、40 份历史），挂 `ConnLog.append` 唯一落盘点 ③ 下载按日期排序 → `dateKey`（文件名日期段优先，退回 mtime）+ `datePrefix`（`YYYYMMDD-HHMMSS_` 前缀）+ HTML 文案改「按日期倒序」。新增 `LogDownloadActivity$1`（runOnUiThread 匿名 Runnable） | **realme ART 实测**：0 崩溃 0 VerifyError；`SessionLog started: 20260924-093703.log` 与 `20260924-093754.log` 两次启动生成两个文件；`NetWatch registered` + `net changed -> http://192.168.227.155:18080` 触发 3 次；`refreshFiles count=3` 按日期倒序（session 两个在前，旧 log 在后）；webview 正确加载 `logxfer.html#http%3A%2F%2F192.168.227.155%3A18080` |
-| **1.40（当前）** | **亿连式「无蓝牙直连」兜底**（用户需求：像亿连一样完全不用蓝牙）。新增 `NoBtFallback`（BtGuard 两个判死点触发，幂等）：① 反射拿引擎 `a.a.a.a.m.b.a` → `.E` 传输管理器 → `.c` 传输列表，挂一个热点传输 `m/m/e/a`（UDP 7999 监听体）并 `a()` 启动——手机手动入组后广播 UDP 7999 走热点模式原路建链（`m/m/b.b()` 会自动 terminate 蓝牙传输、`q(5)` 起会话）② 自建 P2P channel `requestGroupInfo` 轮询 45×2s，本机是 GO 时把组名+`getPassphrase()` 口令打到日志区引导手动入组。**关键闸门**：`e/d.f()` 的 patchE 三连清理（cancelConnect/removeGroup/stopPeerDiscovery）收进私有方法 `p2pCleanup`，`keepP2pGroup()==true` 时跳过——否则兜底一连上 `m/m/b.b()` 调 `f(e/d)` 会把手机刚加入的组拆掉 | **realme ART 实测**：装 mod1.40 成功；Test A（蓝牙开）阶段1 正常无兜底触发；Test B（`svc bluetooth disable`）**判死路径全链路打通**：45 次判死 → 新文案 → `UDP 7999 监听已挂载` → 组信息轮询（无组时打降级提示）；修复了 requestGroupInfo 立即回调 null 导致 90s 轮询 0.5s 烧完的 bug；0 崩溃 0 VerifyError（⚠ ColorOS disable 后 binder 慢 ~20-30s/轮，车机 1s/轮）。**车机实机全流程待验**（判死→显示凭据→手机手动入组→会话） |
+| **1.40** | **亿连式「无蓝牙直连」兜底**（用户需求：像亿连一样完全不用蓝牙）。新增 `NoBtFallback`（BtGuard 两个判死点触发，幂等）：① 反射拿引擎 `a.a.a.a.m.b.a` → `.E` 传输管理器 → `.c` 传输列表，挂一个热点传输 `m/m/e/a`（UDP 7999 监听体）并 `a()` 启动——手机手动入组后广播 UDP 7999 走热点模式原路建链（`m/m/b.b()` 会自动 terminate 蓝牙传输、`q(5)` 起会话）② 自建 P2P channel `requestGroupInfo` 轮询 45×2s，本机是 GO 时把组名+`getPassphrase()` 口令打到日志区引导手动入组。**关键闸门**：`e/d.f()` 的 patchE 三连清理（cancelConnect/removeGroup/stopPeerDiscovery）收进私有方法 `p2pCleanup`，`keepP2pGroup()==true` 时跳过——否则兜底一连上 `m/m/b.b()` 调 `f(e/d)` 会把手机刚加入的组拆掉 | **realme ART 实测**：装 mod1.40 成功；Test A（蓝牙开）阶段1 正常无兜底触发；Test B（`svc bluetooth disable`）**判死路径全链路打通**：45 次判死 → 新文案 → `UDP 7999 监听已挂载` → 组信息轮询（无组时打降级提示）；修复了 requestGroupInfo 立即回调 null 导致 90s 轮询 0.5s 烧完的 bug；0 崩溃 0 VerifyError（⚠ ColorOS disable 后 binder 慢 ~20-30s/轮，车机 1s/轮）。**车机实机全流程待验**（判死→显示凭据→手机手动入组→会话） |
+| **1.41** | Q1/Q2/Q3 全修：① Q1 默认直连、90s 超时明确提示不自动切模式 ② Q2 热点黑屏三连（`e/b.d()` try/catch + `newSocket` 手改版）③ Q3 无蓝牙兜底 6 处。`versionCode 141`，成品 `05_产物/…1.41_Q1Q2Q3全修.apk` | ❌ **MuMu 实测 P0 回归，不可用**：`patch_v29` 的 `replace(...,1)` 锚点撞车把 `const/4 v14, 0x0` 注进 `.locals 2` 的 `a()V` → `m/m/e/b` 整类被拒 → 热点模式被带挂 + 无蓝牙兜底挂载失败（详见页首警告）。装/启 0 崩溃、Q1、日志下载页均正常；**脚本↔工程树失同步**（newSocket 手改未回填脚本） |
+| **1.42（当前）** | **修 1.41 的 P0**（在 `main` 树直接改，git tag `v1.42`）：① `e/b.smali` a()V 删 `const/4 v14` 毒行 ② `e/b.smali` d() 计数器 v14→v8 + clear()V 后补 `const/4 v8, 0x0` ③ `m/m/b.smali` b() 的 Q2-B 重写：`if-gez`（恒真死代码）→ `if-lez`，并给裸 `check-cast e/a` 加 `instance-of` 判别——USB/直连传输也走 `j/c.b()` 虚分派进来，原版必抛 CCE（1.41 遗留第二颗雷，MuMu 无 P2P/USB 未炸出）。门禁补寄存器越界检查（对 _w141 恰好检出全部三处毒）+ m/m/b 进 TARGETS | **静态门禁+构建复核通过**（条目级 687=687、dex +8 字节、versionCode 142/mod1.42）；**MuMu 待实测**（装/启 0 崩溃、无 VFY 拒类、热点页签无异常） |
 
+
+**1.42 成品**：`CarLife/05_产物/CarLife4.0车机端个人修改版1.42_修P0校验拒绝.apk`
+（2,622,610 字节，versionCode 142，versionName `mod1.42`，签名 v1+v2+v3，未 zipalign，
+sha256 `d943983299d28d3b06a77063142bd7e4beba33415bfd0211029281b06f6f91d`；
+改动明细见版本表 1.42 行与 git tag `v1.42`）
 
 **1.40 成品**：`CarLife/05_产物/CarLife4.0车机端个人修改版1.40_无蓝牙直连亿连式.apk`
 （2,622,713 字节，versionCode 140，versionName `mod1.40`，签名 v1+v2+v3，
@@ -248,12 +278,14 @@ C:\PJGG\apk\
                                  确认无用后可以删。
 ```
 
-**工作约定**：每做出一个新版本，就新增一个 `_w1xx` 工程树 + 一个 `patch_vNN_*.py`，
-**不要原地改上一版**。这样任何一版都能复现、能回退、能 diff。
+**工作约定（1.42 起改为单树制）**：源码只有 `01_工程源码/main/` 一份，**直接改**；
+每出一个版本就提交 git 并打 tag（`v1.42`、`v1.43`…），要哪版代码就 `git checkout v1.xx`。
+**不再**新增 `_w1xx` 工程树、**不再**写 `patch_vNN_*.py` 补丁脚本
+（1.41 的 P0 正是补丁脚本锚点打偏 + 脚本↔工程树失同步造成的，教训见页首）。
+历史 `_w111.._w141` 树已入库封存，只读参考，不要再改。
 
-> 小提示：`校验并补齐工程.py` / `build.sh` 的 `REF=` 参数只传**工程目录名**
-> （如 `_w114`），脚本会在 `CarLife/01_工程源码/` 下查找。所以跨目录的
-> `_w110` 不能直接当 REF 用；需要时传相对/绝对路径。
+> 小提示：`校验并补齐工程.py` / 构建脚本的 `REF=` 参数只传**工程目录名**
+> （如 `_w141`），脚本会在 `CarLife/01_工程源码/` 下查找；REF 不传则跳过完整性比对。
 
 ---
 
@@ -389,10 +421,24 @@ b$a.run()   定时 tick
 
 ## 5. 日常操作手册（命令可直接复制）
 
-> **前置**：所有 Bash 命令都要先 `export PATH="/usr/bin:/bin:$PATH"`，
-> 否则 Git Bash 的 shim 会让 `ls` / `grep` / `head` 全部报 command not found。
+> **Linux 环境（本机 /home/opc/workspace/apk）优先用 §5.1 的 build_linux.sh**；
+> 下面的 Windows Git Bash 流程是历史版本（`C:\PJGG\apk`），仅在 Windows 机器上适用。
 
-### 5.1 构建 + 签名（一条命令）
+### 5.1 构建 + 签名（一条命令，Linux）
+
+```bash
+cd /home/opc/workspace/apk
+PRJ="main" REF="_w141" \
+NAME="CarLife4.0车机端个人修改版1.42_修P0校验拒绝.apk" \
+bash CarLife/03_构建脚本/build_linux.sh
+```
+
+参数说明：`PRJ`（默认 `main`）= 工程树目录名；`NAME` = 输出 APK 文件名；
+`REF` 可选 = 上一版工程树名，触发完整性门禁。内部流程与 Windows 版一致：
+Dalvik 门禁（含 1.42 新增的寄存器越界检查）→ 完整性校验 → 复制到 ASCII
+时间戳目录 → apktool 打包 → uber 签名（本机 ARM 用 `--skipZipAlign`）→ 复核版本号。
+
+### 5.1a 构建 + 签名（Windows Git Bash，历史流程）
 
 ```bash
 export PATH="/usr/bin:/bin:$PATH"
@@ -420,7 +466,27 @@ build.sh 内部 4 步：① Dalvik 合并点静态检查 → ② 完整性校验
 ... bash build.sh > /c/PJGG/apk/_build_vNNN.log 2>&1; echo "EXIT=$?"
 ```
 
-### 5.2 改代码的流程（照抄这个顺序）
+### 5.2 改代码的流程（1.42 起的单树制，照抄这个顺序）
+
+> 旧的「复制 _w1xx 新树 + 写 patch_vNN 脚本」流程已废弃（1.41 P0 的教训，
+> 见页首警告）；下面是历史流程归档，仅供考古。
+
+1. **直接改 `CarLife/01_工程源码/main/` 下的 smali/资源**（改动前可跑
+   `verify_dalvik_合并点检查.py main` 确认基线是绿的）
+2. 改完跑两个门禁：
+
+```bash
+python3 CarLife/02_补丁脚本/verify_dalvik_合并点检查.py main
+python3 CarLife/02_补丁脚本/校验并补齐工程.py main _w141   # REF=上一版tag对应的参照树
+```
+
+3. 改 `apktool.yml` 的 `versionCode`（**必须裸整数**）与 `versionName`、
+   `res/values/strings.xml` 的 `app_name`（桌面图标名带版本号）
+4. 构建（§5.1 的 build_linux.sh，带 `REF=`）→ 条目级对比复核 → 模拟器验证
+5. **提交 git 并打 tag `v1.xx`**——tag 就是版本记录，不再生成补丁脚本
+
+<details>
+<summary>历史流程（Windows 补丁脚本制，已废弃）</summary>
 
 1. `robocopy` 从上一版复制出新工程树（**不要用 `cp -r`，2000+ 文件会超时被杀**）
 2. 写 `CarLife/02_补丁脚本/patch_vNN_xxx.py`，脚本里加 `SKIP_COPY=1` 分支
@@ -442,6 +508,8 @@ export PATH="/usr/bin:/bin:$PATH"
 
 5. 改 `apktool.yml` 的 `versionCode`（**必须是裸整数**，写成 `'116'` 会抛 `NumberFormatException`）
 6. 构建（带 `REF=`）→ 按 §5.4 复核 → 部署验证
+
+</details>
 
 ### 5.3 清理构建中间目录
 
@@ -723,18 +791,27 @@ $ADB -s $D logcat -d -v time | grep CarLifeHB | head -20
 
 ## 9. 待办 / 下一步（按优先级）
 
-1. **车机 4.4.2 实机跑 1.15 / 1.16 / 1.17** —— 唯一能验收的环境。1.15 看 `CarLifeHB`
+1. **MuMu 实测 1.42**（用户执行）：装/启 0 崩溃、0 `VFY` 拒类（对照 1.41 的
+   `register index out of range`）、热点页签切换无异常、日志下载页 18080 正常。
+   静态门禁+构建复核已过；修了什么见版本表 1.42 行
+2. **车机 4.4.2 实机跑 1.15 / 1.16 / 1.17** —— 唯一能验收的环境。1.15 看 `CarLifeHB`
    （`started` / `timeout 30s` / `stopped`）与 `CarLifeP2PBoot` 的设备名兜底日志；
    1.16/1.17 点主界面「下载日志」看二维码里的 IP 是否等于车机真实网卡 IP
-2. **失败分级透出到界面**（对齐 5+ 的 `m7/e0`）—— 车机上用户看不到 logcat，
+3. **失败分级透出到界面**（对齐 5+ 的 `m7/e0`）—— 车机上用户看不到 logcat，
    这条比"前置自检"更值得做
-3. **用户提供车机真实蓝牙名 / MAC** → 填进 `assets/bdcf` 的 `CONFIG_HU_BT_NAME` / `CONFIG_HU_BT_MAC`
-4. **热点侧 IP 就绪等待**：照抄亿连的 500ms 轮询 + 合法 IP 正则，避免网卡还没拿到 IP 就发握手包
-5. **心跳周期调优**：实测嫌吵就改 `m/m/e/f.smali` 的 `const-wide/16 v3, 0x7d0`
-6. 慢扫改无限；多网卡遍历
-7. USB 有线模式：模式被记住会锁死；`UsbAccessoryScanner` 拿不到权限仍会一直扫（1.11 已降到 5s 一轮）
-8. BootTask（`BootTask/`，副产物「开机任务」App）上车机试真机开机自启
-9. **日志占用上限若要调整**：`CONFIG_MAX_LOG_FILE_SIZE`(默认 5MB) 与
+4. **用户提供车机真实蓝牙名 / MAC** → 填进 `assets/bdcf` 的 `CONFIG_HU_BT_NAME` / `CONFIG_HU_BT_MAC`
+5. **热点侧 IP 就绪等待**：照抄亿连的 500ms 轮询 + 合法 IP 正则，避免网卡还没拿到 IP 就发握手包
+6. **心跳周期调优**：实测嫌吵就改 `m/m/e/f.smali` 的 `const-wide/16 v3, 0x7d0`
+7. 慢扫改无限；多网卡遍历
+8. USB 有线模式：模式被记住会锁死；`UsbAccessoryScanner` 拿不到权限仍会一直扫（1.11 已降到 5s 一轮）
+9. BootTask（`BootTask/`，副产物「开机任务」App）上车机试真机开机自启。
+   **MuMu 实测坑（v1.3）**：BootReceiver 会被系统自启动管理静默禁用（落在
+   `disabledComponents`，onReceive 零执行，无任何报错）——`pm enable com.boottask/.BootReceiver`
+   恢复后全链路通过（rule matched → 等 2s → launched）。真实车机 OEM 自启动管理大概率同款；
+   diagnostic.txt 应加「组件 enabled 状态」检查项（当前盲区）。v1.3 其余全过（规则升级保留/
+   ExecService 自启/18081 日志页）；小问题：日志下载页二维码下方「备选: http://…」与说明文字重叠
+   （CarLife/BootTask 共用同一份 HTML 模板，改一处两边生效）
+10. **日志占用上限若要调整**：`CONFIG_MAX_LOG_FILE_SIZE`(默认 5MB) 与
    `CONFIG_MAX_LOG_FILE_COUNT`(默认 20) 在 `assets/bdcf` 里**改不了** —— 这两个 key
    在整个 dex 里只出现在读取处（`a/a/a/a/a/e.smali:404` / `:426`），没有任何地方把
    它们塞进配置 map。想改只能改 smali：`:397` 的 `0x500000` 与 `:419` 的 `0x14`

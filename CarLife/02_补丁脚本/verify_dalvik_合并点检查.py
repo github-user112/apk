@@ -264,6 +264,51 @@ def labels_idx(blocks):
     return d
 
 
+# ---------------------------------------------------------------------------
+# 1.42 新增: 寄存器索引越界检查
+# 1.41 的 P0 就是 `const/4 v14` 被注进 .locals 2 的方法 —— Dalvik 直接拒收整类
+# (VFY: register index out of range)。上面 check_method 的状态数组会自动扩容,
+# 抓不到这类问题, 必须显式按「.locals + 参数个数(含 this)」查寄存器上限。
+# 注意先剥掉字符串字面量 / `L..;` 类型描述符 / `->` 后的字段与方法引用,
+# 否则 `Lb/b/h/p0;`、`->p0:` 这类名字会被当成寄存器误报。
+# ---------------------------------------------------------------------------
+REG_TOKEN_RE = re.compile(r'\b([vp])(\d+)\b')
+
+
+def check_reg_bounds(name, sig_line, body, nlocals, errs):
+    m = re.search(r'\(([^)]*)\)', sig_line)
+    nparamregs = 0
+    if m:
+        s = m.group(1)
+        i = 0
+        while i < len(s):
+            if s[i] == '[':
+                i += 1
+                continue
+            if s[i] == 'L':
+                i = s.index(';', i) + 1
+                nparamregs += 1
+            else:
+                # J/D 是宽类型, 占 2 个寄存器(对应两个 p 编号)
+                nparamregs += 2 if s[i] in 'JD' else 1
+                i += 1
+    nthis = 0 if ' static ' in sig_line else 1
+    limit = nlocals + nparamregs + nthis
+    for ln in body:
+        s = ln.strip()
+        if not s or s.startswith('.'):
+            continue
+        s = re.sub(r'"[^"]*"', '', s)          # 字符串字面量里的 "v1" 不算
+        s = s.split('#', 1)[0]                 # 行尾注释里的寄存器名不算
+        s = s.split('->', 1)[0]                # -> 后是字段/方法引用, 不是寄存器
+        s = re.sub(r'L[^;()]*;', '', s)        # L..; 类型描述符(类名可能叫 p0)
+        for m2 in REG_TOKEN_RE.finditer(s):
+            base = nlocals if m2.group(1) == 'p' else 0
+            if base + int(m2.group(2)) >= limit:
+                errs.append('%s: 寄存器越界 %s%s (该方法寄存器上限 v%d) @ "%s"'
+                            % (name, m2.group(1), m2.group(2), limit - 1, ln.strip()))
+
+
 def succ_indices(blocks, bi, insns, lidx):
     out = []
     last = insns[-1].strip() if insns else ''
@@ -293,6 +338,8 @@ TARGETS = [
     # 1.15 起的手工插桩点（原来漏了，1.18 补上）
     'a/a/a/a/m/m/d/a.smali',                      # 蓝牙阶段(阶段1) 三处静默点补日志
     'a/a/a/a/m/m/e/b.smali', 'a/a/a/a/m/m/e/d.smali', 'a/a/a/a/m/m/e/f.smali',
+    # 1.42: m/m/b 是 1.41 Q2-B 手改点, 一直是门禁盲区, 补上
+    'a/a/a/a/m/m/b.smali',
     # 1.18 新增/改动
     'com/baidu/carlifevehicle/ConnSwitchTask.smali',      # 新增: 模式切换后台线程
     'com/baidu/carlifevehicle/ConnModeHelper.smali',
@@ -340,6 +387,7 @@ for rel in TARGETS:
                 j += 1
             name = rel.split('/')[-1] + ' :: ' + lines[i].strip()
             check_method(name, body, nlocals, errs)
+            check_reg_bounds(name, lines[i], body, nlocals, errs)
             checked += 1
             i = j + 1
         else:

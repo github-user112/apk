@@ -1,107 +1,38 @@
 # 项目长期记忆：CarLife 车机端「安卓 4.4.2 直连」
 
 ## 目标
-`com.baidu.carlifevehicle`（1.6 修改版）在 Android 4.4.2 车机跑通 WiFi Direct 直连（及热点/有线）。A 方案：1.6 打补丁，不移植 5+。minSdk 固定 16。
+`com.baidu.carlifevehicle`（1.6 修改版）在 Android 4.4.2 车机跑通 WiFi Direct 直连（及热点/USB）。A 方案：1.6 打补丁，不移植 5+。minSdk 固定 16。产线细节见 skill `android-apk-mod-deploy`，全量交接见 `C:/PJGG/apk/AGENTS.md`（与 CLAUDE.md 同步）。
 
-## 版本演进（`CarLife/01_工程源码/_w1xx`）
-- 1.11 H失败分级/I DNS-SD+组播锁/K断线自愈/L USB去抖/F-3抑制重排｜1.12 USB免授权四层降级｜1.13 去开机引导页｜1.14 修 j$b 有无组判断+j$a reason 对调
-- **1.26（当前交付版）**：`_w126` / `patch_v23_修ConnLog校验与极性.py` / versionCode 126 / mod1.26。
-  **修 1.25 的启动崩溃**：MuMu 上 1.25 一启动就 `VerifyError: com/baidu/carlifevehicle/ConnLog`
-  （`VFY: invalid use of move-exception`，崩在 `VehicleApplication.onCreate()`）。
-  根因：1.25 新增的 `precheck()`/`hasUsableLocalIp()`/`awaitLocalIp()` 三个方法 try/catch 结构全写坏，
-  最致命的是 `hasUsableLocalIp()` 把**循环退出**三条分支跳到了 `:catch_0`（handler 首指令是
-  `move-exception`）；另两处是正常出口 `:done`/`:tick` 落在 handler 区内。
-  修法：正常出口标签一律提到 `:catch_0` **之前**，handler 独占方法末尾自己 return/goto。
-  顺带修 1 处极性写反（`getHostAddress().length()` 的 `if-nez`→`if-eqz`；同方法里
-  isLoopback/isLoopbackAddress/两个 startsWith 的极性**本来就是对的**，别乱改）。
-  MuMu 实测：0 崩溃 0 VerifyError、自举器基准全命中、`CarLifeHB started (period 1000ms)`（1.23 的 2s→1s 生效）、
-  点热点(732,205)→`heartbeat watchdog stopped`→terminate→`⚠ 等待网卡 IP 超时(5s)`→`✔ UDP 7999 监听已启动`，无 ANR。
-  ⚠ **1.25 作废**（只做静态+构建复核就入库的反面教材），回退别退到 1.25。
-- 1.23 修 setDeviceName 极性+心跳1s+失败提示｜1.24 日志下载三修｜1.25 前置自检与 IP 轮询（**作废，见 1.26**）
-- 1.22：`_w122` / `patch_v19_蓝牙等待自愈.py` / versionCode 122 / mod1.22。
-  车机直连显示「蓝牙未开启，跳过蓝牙通道」但蓝牙实际已连手机。定位：打印唯一位置
-  `d/a.run()`，**唯一触发条件**是 `d.b()`（`d$b`→`BluetoothManager.getAdapter()`，API18）
-  非 null 且 `isEnabled()==false`；adapter 为 null 走 Kotlin 空安全另一支不判死。
-  修法：新增 `logxfer_src/.../BtGuard.java`→`BtGuard.smali`（`onSkipDecision(ZLjava/lang/Runnable;)Z`），
-  未开启时每 1s 重试最多 30 次、每次顺手 enable()，无适配器/超时/双路径不一致分别打日志
-  （反射调 `ConnLog.logLine`）。重试走 `ScheduledExecutorService` 守护线程——**不能上主线程**
-  （后面 SPP connect 阻塞）。插桩 `:goto_1` 后一行 `invoke-static {v0,v1}` + `move-result v0`，
-  不新占寄存器。ART 真机验证：0 崩溃 0 VerifyError；**svc bluetooth disable 后冷启动**，
-  界面打出「第 1/30 次等待」+ 1s 后重跑阶段1 + 系统 enable 授权框 → 生效。
-  车机判读：等待后转"已开启"=时序(已解决)；"状态不一致"=改 `d$b` 换 getDefaultAdapter；
-  30s 超时=MCU 蓝牙，App 无解改走热点。详见 `04_文档/1.22_蓝牙等待自愈.md`
-- 1.21：修 `/all.zip` 的 `ZipException: duplicate entry`（canonicalKey 解符号链接 + uniqueName），
-  realme 真机全通过（三端点 200、zip CRC OK）。详见 `04_文档/1.21_修打包下载重名条目.md`
-- 1.20 `_w120` / `patch_v17`：修 1.18 蓝牙插桩在 ART 上的 `VerifyError`（真机一启动就崩，见「血泪 11」）
-- 1.19 `_w119` / `patch_v16`：修二维码指向蜂窝地址（`localIps()` 按网卡排序 + 排除蜂窝）
-- **1.18**：车机实测 1.17 报三症状后的「定位+修复」版
-  - ① 蓝牙(阶段1)三处**静默 early-return** 补日志（走 `n/g$a.a`→ConnLog 上车机屏幕）+ 空配对列表 `Handler.postDelayed(d/d$c, 0x1388)` 每 5s 自愈重试（`d/a.smali`）
-  - ② 模式切换异步化：**新增** `com.baidu.carlifevehicle.ConnSwitchTask`(继承 Thread，名 `CarLifeSwitch`)；`ConnModeHelper.selectMode()` 不再在 UI 线程跑 `m/d;i()`；`commit()`→`apply()`
-  - ③ 热点 `e/a.a()` 补 3 条日志
-  - 成品 2,614,521B / versionCode 118 / mod1.18；详见 `04_文档/1.18_直连热点诊断与修复.md`
-  - ⚠ 1.18 的蓝牙插桩就是 1.20 修的那个崩因，**别把它的插桩写法当范本**
-- 1.16 扫码下载日志（内嵌 HTTP 18080 + 二维码）｜1.17 「下载日志」做成主界面按钮（放「方控」左，去掉独立桌面图标）
-- 1.15：移植 5+ 的「保活」+「设备名兜底」
-  - 🆕 `m/m/e/f`+`f$a` 心跳看门狗：2s 发 `0x20002`、30s(`0x7530`) 无收包 → `d.f()` terminate → patchK 自愈。插桩：`e/b c()` 收包 touch、`e/d a()` 起表、`e/d f()` 停表
-  - 🆕 `d/m` 设备名兜底：`WIFI_P2P_THIS_DEVICE_CHANGED_ACTION`（API14）读系统 deviceName；插桩 `i.smali :cond_state_chg` + `e.smali` 两处
-  - 不需移植（1.6 已有）：P2P 串行队列 `n/i/b`+`n/i/c/{b,a}`；IP 就绪轮询 `e.smali :cond_6`+1s
-  - **MuMu(4.4.4) 实测过**：自举器基准全命中（含 `createGroup attempt 1/6`）、`CarLifeHB started`、零崩溃；切「热点」时打出 `CarLifeHB stopped` → 停表锚点可达（基类 `j.c;->f()V` 虚分派，调用点 `m.m.b:235/423`）
-  - ⚠ `f$a.run()` 仅当 `f.c==1`（收到过对端包）才判超时 → MuMu 过不去，**发包/超时/设备名兜底只能上车机验**
-- 早期补丁：A bdcf 加 `CONFIG_WIFI_DIRECT_NAME=CarLife-HU`+2.4G；B 蓝牙自动 enable()；C setDeviceName(API<29)
+## ★★ 车机定案（2026-09-24，实机日志实锤）
+车机 = telechips tcc893x / Android 4.4.2 / KVT49L（eng）。P2P 组网是好的（GO 192.168.49.1，DIRECT-cH-CarLife-HU），别动自举器；**唯一堵点 = 车机 Android 蓝牙起不来**（state 恒 10，enable() 全无效 → 手机拿不到 SSID/PSK 不来 join）。热点模式 100% 可用。⚠ 车机 UI 的"蓝牙已连"是 MCU 蓝牙，≠ Android BluetoothAdapter。
+
+## 1.40（当前交付版）：亿连式无蓝牙直连兜底
+`_w140` / `patch_v28_无蓝牙直连.py` / versionCode 140 / mod1.40。
+- 新增 `NoBtFallback.java`：BtGuard 判死（无适配器 / 45s 超时）→ 幂等触发 ① 反射挂热点传输 `m/m/e/a`（引擎 `a.a.a.a.m.b.a`→`.E` 管理器→`.c` 列表）启动 UDP 7999 监听，手机手动入组后广播走热点模式原路建链 ② 自建 P2P channel requestGroupInfo 轮询，GO 时打印组名+getPassphrase() 口令到日志区。
+- **闸门**：`e/d.f()` 的 cancelConnect/removeGroup/stopPeerDiscovery 收进私有 `p2pCleanup`，`keepP2pGroup()==true` 跳过（否则兜底一连上 `m/m/b.b()` 调 `f(e/d)` 会拆掉手机刚加入的组）。
+- realme ART：装成功、蓝牙开时阶段1 正常无兜底、`svc bluetooth disable` 后等待正常推进（⚠ ColorOS disable 后 binder 慢 ~20s/轮，车机 1s/轮）；0 崩溃 0 VerifyError。**车机实机全流程待验**。详见 `04_文档/1.40_无蓝牙直连亿连式.md`。
+
+## 版本史（细节全在 `04_文档/`，别凭记忆改）
+1.30 二维码自动刷新+SessionLog+按日期排序（realme 全过）｜1.29 BtGuard 重写深度诊断+判死｜1.28 createGroup 失败三分(reason=0 退避)+DNS-SD invoke-direct 修复｜1.27 图标名带版本｜1.26 修 1.25 的 ConnLog VerifyError（**1.25 作废勿回退**）｜1.23 setDeviceName 极性(if-lt→if-ge)+心跳1s｜1.22 BtGuard 蓝牙等待自愈｜1.21 /all.zip duplicate entry｜1.20 修 1.18 ART VerifyError｜1.19 二维码排除蜂窝｜1.18 模式切换异步化 ConnSwitchTask｜1.15 心跳看门狗+设备名兜底｜1.16/1.17 扫码下载日志｜早期：bdcf WiFiDirect 名+2.4G、蓝牙 enable、setDeviceName。
 
 ## 关键类映射
-- 直连四件套 `m.m.d.{e,i,h,d}`；传输层 `m.m.e.d`（a=connect/f=terminate/g=send）；调度器 `a.a.a.a.n.h`（**每任务独立 Timer**）；自举器 `d.j`；自愈 `d.k`；组播锁 `m.m.e.e`；端口表 `m.m.e.b` 7 元数组；USB `c.c`/`c.f`；开机页 `a.a.b.n.r`；引导 `a.a.b.n.u`(2009)
-- 带外消息号：`0x100001`/`0x100004`/`0x100007`/`0x100008`/`0x108006`；`i.f`：groupFormed→1
+直连四件套 `m.m.d.{e,i,h,d}`；蓝牙阶段1 `d/a.run()`(经 `d$c` handler) + `d/d`(BT socket/target)；自举器 `d.j`；传输基类 `a.j.c`(a=connect f=terminate, b()→callback.b) ；热点传输 `m.m.e.a`（UDP 7999，收到广播→`e/b.d(手机IP)`→c.b()）；直连传输 `m.m.e.d`；端口表 `m.m.e.b`（7240/8240/9240/9241/9242/9340/9440，车机=TCP 客户端）；引擎 `m/d`（静态引用 `m/b.a`，`.E`=传输管理器 `m/m/b`，其 `.c`=传输列表，`.b(transport)`=连上→terminate 其它+q(类型)+起 reader）；`l/b.g`=PHONE_IP 静态（从不写入，恒空）；调度器 `n.h`；组播锁 `m.m.e.e`；CONNECT_TYPE: 2=USB 5=热点 9=直连（q() 只改内存不落盘）。
 
-## 5+ 版（`CarLife5plus/`，未混淆，minSdk21）
-协议层同源：SPP UUID、端口 7240/8240/9240/9241/9242/9340/9440（**7 通道全同**）、车机=TCP 客户端、类型 2/5/9、reason 1=不支持 2=BUSY。
-**1.15 对齐度**：主链路阶段 0–6 已对齐；未对齐仅 2 项（`m7/f0` 前置自检、`m7/e0` 失败分级界面提示）。
-我们比 5+ 多的 7 项：createGroup 自举、组播锁、DNS-SD、蓝牙自动 enable、setDeviceName、terminate 更彻底、USB 免授权。详见 `04_文档/1.15_vs_5+_对齐度核对.md`。
-
-## 车机 4.4.2 三症状定位（2026-09-23）
-- **直连"组网成功但进不去"**：阶段1 蓝牙 SPP 没通 → 手机拿不到 SSID/PSK 就不会 join 组，GO 只能等超时。`d/a.smali` 三处静默 return：target 名无匹配 / `getBondedDevices()` 为空（**且永不重试**）/ 全 connect 失败且 `d/d.h==0`。判据可信：`n/g.smali:455` 已把 SDK 日志器桥接到 `ConnLog`，屏幕上没蓝牙日志 = 真没走到
-- **点热点卡死**：`ConnModeHelper.selectMode()` 在点击回调(=UI 线程)上同步跑 `m/d.i()`→`m/m/b.j()`(逐个旧任务 `f()`) + `V()`(建新任务) + `commit()` fsync。**P2P/USB 的 `f()`/`a()` 里都没有 sleep/wait/join** → 不是死锁，是 UI 线程同步活太多
-- **热点连不上**：全仓（含 5+）**无** `WifiManager.addNetwork`/`WifiConfiguration` → 车机端**不会自己连手机热点**，必须用户先在车机 WLAN 里连手机热点；`e/a$a.run()` 只在 UDP 7999 收手机广播（收到时 SDK 打 `connect  packet:<IP>`）
-
-## 关键约束（血泪）
-1. 蓝牙是无线连接带外握手通道，不可省；手机端是百度二进制
-2. Android 12+ 第三方 App 做不了老 SDK P2P 组网；车机 4.4.2 无此限制
-3. smali invoke/if-* 只能 v0–v15；不够就抽静态方法只改两行调用点
-4. **分支方向已写反三次**（if-eqz==0 跳／if-nez!=0 跳），静态检查抓不到，必须实测
-5. bdcf 别加空的 CONFIG_TARGET_BLUETOOTH_NAME。`CONFIG_HU_BT_NAME/MAC`（仍 `xxx`/`yyy-zzz-xxx`）**只用在 `m/k/a/e`**（连上后发给手机的 feature config）→ **不是连接阻塞点**，不必等用户（原"待提供"已降级）
-6. patchG 抑制 discoverPeers 后组丢失只能靠 patchK 自愈
-7. USB 弹窗根因：AOSP 只认 Activity intent-filter，CarLife 挂在 Receiver
-8. **构建产线**固化在 build.sh（细则见 skill `android-apk-mod-deploy`）：每轮全新 `_bw_*` 纯复制绝不删；`校验并补齐工程.py <目标> <参照> --fix` 当门禁（超时杀掉的复制会留**整份文件缺失**，md5 抓不到）；`/XD` 要绝对路径；robocopy 带 `/R:0 /W:0`
-9. **交付前必做条目级对比**：1.11~1.15 大小全是 2540650，看大小会被骗。可用 `unzip -p <apk> classes.dex | grep -cF "<新字符串>"` 直接核成品 dex
-10. **`verify_dalvik_合并点检查.py` 的两个坑（1.18 才修）**：① `const/4 vX,0x0` 必须建模为 **Zero/null**（apktool 代码里普遍拿它当 null，当 INT 会产生海量假冲突）② 不动点迭代会重复收集同一条错误，要按首次出现去重。另：`TARGETS` 是**跨版本累积**清单，"缺文件"只提示不报错（完整性归 `校验并补齐工程.py`）
-11. ★★★ **Dalvik 过 ≠ 真机过**。1.18 在蓝牙插桩里写 `new-array + const/4 + aput-object + invoke-static` 四件套，其中 1.2/1.3 处**复用了 v3 当数组索引却没重置**（`d/a.run()` 里 v3 被用 29 次、中间已变成引用类型）→ 合并点类型冲突。**Dalvik（车机 4.4.2 / MuMu 4.4.4）校验宽松完全不报；ART（realme Android 12）直接拒类** `VerifyError: Invalid reg type for array index`，一启动就崩。**结论：新写/改动的 smali 类，必须至少在一台 ART 设备上跑一遍启动**；静态检查只是近似，不能替代真机。
-12. ★ **插桩一律走「零参静态方法」**：在 `ConnLog` 里加 `logLine(String)` + 若干零参包装（每版新增按需），插桩点只写一行 `invoke-static {}, Lcom/baidu/carlifevehicle/ConnLog;->logXxx()V` —— **零寄存器操作数**，彻底根除合并点类型冲突。别再"在别人的大方法里挑一个死掉的寄存器"。
-13. **改 smali 顺手改控制流是大坑**：1.18 把 `if-eqz v0, :cond_1b` 改成 `if-eqz v0, :bt_all_failed` 且**紧跟同名标签**、还多了一条 `goto :cond_1b` → 两条路径都落进日志分支 + **原有的 1 秒重试被整个跳过**（功能回归）。改完必须用「基线指标回归」核对。
-14. **`校验并补齐工程.py` 的参照要用「直接上一版」**，不能跨版（`_w119` 拿 `_w118` 当参照会误报）。
-15. **去重别用 `getAbsolutePath()`**：Android 上 `/sdcard`、`/storage/sdcard0`、`/mnt/sdcard` 都是 `/storage/emulated/0` 的符号链接，同一文件会以多种字符串出现。用 `getCanonicalPath()` 或手工归一化别名前缀（`"前缀".length()` 取下标，别硬编码）。
-16. ★★ **手写 try/catch 三条硬规则**（1.26 用一次「启动即崩」换来）：① catch handler 首指令必须是
-    `move-exception` 且**只能由异常到达**——绝不能把 `:catch_x` 当循环/条件退出的跳转目标
-    （否则 `invalid use of move-exception`，Dalvik 直接拒类，App 起不来）；
-    ② 正常出口标签（`:done`/`:ret`/`:tick`）一律放在 `:catch_0` **之前**，handler 独占方法末尾
-    自己 `return-xxx` 或 `goto` 回循环；③ 静态门禁全绿 + 打包成功 **≠ 能跑**，新写 smali 必须实机起一遍。
-    排查：`grep -rn ":catch_" smali/ | grep -v "\.catch" | grep -v ":catch_[0-9]*$" | grep -v move-exception`
-17. **补丁脚本用 `sub_once()` 精确替换**（匹配次数≠1 直接报错退出）+ 末尾结构自检——
-    静默失效的补丁比报错贵得多（1.26 就是靠它确认三处结构改动真落盘了）。
+## 血泪 TOP（完整 18 条见 AGENTS.md）
+1. ★★★ Dalvik 过≠真机过：新写/改动的 smali 必须 ART 实机起一遍。
+2. ★ 插桩一律零参静态方法（`ConnLog.logXxx()`），别在大方法里挑寄存器。
+3. ★★ 手写 try/catch：catch handler 首指令必须 move-exception 且只能异常到达；正常出口标签放 :catch_0 之前。
+4. 分支极性已写反 N 次（if-eqz/if-nez、if-lt/if-ge），脚本断言"该有+不该有"。
+5. 抽私有方法消除共享标签寄存器合并（1.28 j.d()V、1.40 p2pCleanup）。
+6. 交付前条目级对比 + dex 字符串核对（1.11~1.15 大小全相同，看大小被骗）。
+7. `校验并补齐工程.py` 参照用**直接上一版**；`/XD` 绝对路径；每轮全新 `_bw_*` 目录。
+8. 构建目录/工程路径必须纯 ASCII；MSYS 要 `MSYS_NO_PATHCONV=1`（adb 传 /data 路径也会被改写！）。
+9. logxfer Java→smali：`logxfer_src/构建日志下载smali.py`（javac→D8→壳apk→apktool），壳 APK 不得含 logxfer 类。
 
 ## 环境
-- tools/ 下有 apktool/signer/jadx，JAVA_HOME=`C:/PJGG/apk/tools/jdk-17.0.20.1+1`
-- MuMu 4.4.4：`adb connect 127.0.0.1:7555` -P 5039；无 P2P／无蓝牙；**改 prefs 前先 `ls -ld /data/data/<pkg>` 取真实 uid**（本次是 u0_a49=10049）；屏幕 1440×810，页签 y≈205、x≈540/732/925，用 `input touchscreen tap`
-- realme 真机 Android 12，序列号 `RWPRTCMVSWQWMJBA`，**adb 也用 -P 5039**。调试要点：
-  - **必须先唤醒屏幕**：`adb shell input keyevent KEYCODE_WAKEUP` + `wm dismiss-keyguard`。否则 `mCurrentFocus` 常驻 `NotificationShade`，看着像"没启动"，其实只是息屏
-  - 屏幕 **1080×2400**；CarLife 主界面是 SurfaceView 自绘，**`uiautomator dump` 拿不到控件**，只能截图按比例算坐标（486 宽的渲染图 ×2.222）
-  - `/sdcard` 根目录被分区存储拦（`Operation not permitted`），但 `adb shell` 可写 `/sdcard/Android/data/<pkg>/files/`
-  - `adb forward tcp:18080 tcp:18080` 后本机可 `curl http://127.0.0.1:18080/`
-- Git Bash 先 `export PATH="/usr/bin:/bin:$PATH"`；adb/jar 不认 `/c/` 前缀；adb server 不跨 Bash 调用存活
+JAVA_HOME=`C:/PJGG/apk/tools/jdk-17.0.20.1+1`；adb=`C:/PJGG/platform-tools/adb.exe`。realme X7 Pro(Android 12, RWPRTCMVSWQWMJBA) **-P 5039**，须先唤醒+dismiss-keyguard，SurfaceView 拿不到 uiautomator；MuMu 4.4.4 7555（无 P2P/无蓝牙）。
 
 ## 待办
-1. **车机 4.4.2 实机跑 1.21**（最终验收环境）：① 翻日志找 `==== [阶段1] 蓝牙带外握手 ====`（看落到"无配对设备/全连不上/SPP 已连上"哪支）② 点「下载日志」看网卡摘要是否是 `p2p0=192.168.49.1` ③ 点「打包下载全部」确认不再 `ZipException`
-2. 要 100% 定位蓝牙问题需**车机端 logcat**（ConnLog 仅 24000 字符环形缓冲，会滚掉）
-3. **失败分级透出到界面**（对齐 5+ `m7/e0`）
-4. 心跳偏吵调 `e/f.smali a(d)` 的 `0x7d0`(2000ms)；蓝牙重试间隔在 `d/a.smali` 的 `0x1388`(5000ms)
-5. 慢扫改无限；多网卡遍历；BootTask 上车机试开机自启
-6. 1.18 **未做设备冒烟测试**（MuMu 没在线，7555 拒绝连接）→ `ConnSwitchTask` 的 VerifyError 风险待实机确认（1.20/1.21 在 realme 真机上装过、未崩，间接说明它没问题）
+1. **车机实机验收 1.40**：判死→`UDP 7999 监听已挂载`→显示 DIRECT-… 密码→手机手动入组→`connect packet:192.168.49.x`→会话。日志判读表见 1.40 文档 §6。
+2. 手机端连不上 `DIRECT-` SSID 的机型 → 提示退回热点/USB。
+3. 车机端完整 logcat（ConnLog 环形缓冲会滚掉）。

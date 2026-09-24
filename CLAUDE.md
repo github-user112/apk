@@ -2,14 +2,17 @@
 > 给 AI Agent 的项目交接文档，人类读者同样适用。
 > 读完这一份，就能安全地改代码、构建、验证，不重踩已经踩过的坑。
 > 本文件与同目录的 `AGENTS.md` **内容同步维护**，读任意一份即可。
->
-> 最后更新：2026-09-23（1.28 修 P0：createGroup 失败三分，reason=0 不再永久放弃；
-> 顺带修 DNS-SD 从 1.15 起因 `invoke-direct` 误用而从未发布成功）
+
+> 目标读者：刚接手这个仓库、不想重踩坑的 agent。
+> 最后更新：2026-09-24（1.40 亿连式无蓝牙直连兜底：蓝牙判死后自动挂 UDP 7999 监听 + 显示直连组 SSID/PSK 让手机手动入组，
+> e/d.f() 加 keepP2pGroup 闸门防组被拆。上一版 1.30 三条用户需求：二维码网络自动刷新 / 每次启动新日志+30KB 滚动 / 按日期排序；
+> 1.29 定案：直连堵点=车机 Android 蓝牙起不来，热点模式实测 100% 可用）
 >
 > ⚠️ **1.25 不可用**：装上去 App 一动就 Force Close（`VerifyError: ConnLog`）。
 > 根因是 1.25 新增的 `precheck()` / `hasUsableLocalIp()` / `awaitLocalIp()` 三个方法
 > try/catch 结构全写坏（循环退出跳进了 catch handler）。1.26 已修，MuMu 实测通过。
 > 回退时**不要**退到 1.25。详见 `CarLife/04_文档/1.26_修ConnLog校验崩溃.md`。
+
 ---
 
 ## 0. 一句话说清这个项目
@@ -31,7 +34,7 @@
 
 ---
 
-## 1. 当前状态（截至 2026-09-23，当前版本 **1.28**）
+## 1. 当前状态（截至 2026-09-24，当前版本 **1.40**）
 
 | 版本 | 内容 | 验证状态 |
 |---|---|---|
@@ -52,8 +55,25 @@
 | ~~1.25~~ | 前置自检与提示加固：① 阶段0 `precheck()` ② `logP2pCreateFail` 极性修复 ③ 热点 `awaitLocalIp` 500ms×10 轮询 ④ `j$b` 慢扫改无限 ⑤ ConnLog 缓冲扩容 ⑥ 门禁补 ConnLog | ❌ **作废：Dalvik 一启动就 `VerifyError` 拒类**（见 1.26 文档）。仅做过静态+构建复核就入库，是反面教材 |
 | 1.26 | 修 1.25 的启动崩溃：`ConnLog` 三个方法的 try/catch 结构规范化（正常出口提到 handler 之前、handler 独占方法末尾）+ `hasUsableLocalIp()` 长度判空极性写反 | **MuMu 实测通过**：0 崩溃 / 0 VerifyError，自举器基准全命中，心跳 1s 起停正常，点热点页签无 ANR |
 | 1.27 | 桌面图标名带版本号（`app_name` → `百度CarLife 1.27`，versionName 自动推导，patch_v24） | **真机 realme X7 Pro 实测通过**：0 崩溃 0 VerifyError；图标名/首页版本双确认；日志下载三端点 200、zip CRC OK |
-| **1.28（当前）** | **P0 修复**：`j$a.onFailure` 三分——只有 reason=1(不支持) 才放弃；reason=2(BUSY) 仍 removeGroup+退避；**reason=0(ERROR)/未知值改退避重试**（原来会被当"不支持"永久 disarm）。退避抽成 `j.d()V` 消除跨分支寄存器合并。**顺带修 DNS-SD**：`j.a()` 用 `invoke-direct` 调 `public final c()V` 解析失败，1.15 起 `_presence._tcp` 服务从未发布成功，改 `invoke-virtual` | **MuMu + realme 双实测**：0 崩溃 0 VerifyError；MuMu reason=1 正确放弃；realme reason=2 六连退避(6/8/10/12/14s)→慢扫；两端均首次打出 `local service published`；reason=0 分支未动态触发，待车机 |
+| 1.28 | **P0 修复**：`j$a.onFailure` 三分——只有 reason=1(不支持) 才放弃；reason=2(BUSY) 仍 removeGroup+退避；**reason=0(ERROR)/未知值改退避重试**（原来会被当"不支持"永久 disarm）。退避抽成 `j.d()V` 消除跨分支寄存器合并。**顺带修 DNS-SD**：`j.a()` 用 `invoke-direct` 调 `public final c()V` 解析失败，1.15 起 `_presence._tcp` 服务从未发布成功，改 `invoke-virtual` | **MuMu + realme 双实测**：0 崩溃 0 VerifyError；MuMu reason=1 正确放弃；realme reason=2 六连退避(6/8/10/12/14s)→慢扫；两端均首次打出 `local service published`；reason=0 分支未动态触发，待车机 |
+| 1.29 | **看车机实机日志改的**：直连连不上的唯一堵点是「车机 Android 蓝牙起不来」（P2P 组其实建成功了 `DIRECT-cH-CarLife-HU`/GO 192.168.49.1，但蓝牙不通 → 手机拿不到 SSID/PSK 就不来 join；全仓无 SSID/PSK 发送代码）。重写 `BtGuard`：深度诊断(state 码/地址/已配对数/enable()返回值/`Settings.Global(bluetooth_on)`/双路径对比) + 双路 enable + TURNING_ON 不打扰 + 试写全局开关 + 30s→45s + **判死一次就记住(sDead)** + 放弃时给可操作结论。**签名不变，`d/a.smali` 零改动** | **realme ART 实测**：0 崩溃 0 VerifyError；`svc bluetooth disable` 后自愈生效(enable()=true → 1s 后 ✔ 已开启)；正确识别 `state=11(TURNING_ON)` 并停止重复 enable。**车机实机待跑** |
+| 1.30 | **看用户三条需求改的**：① 二维码「有时不正确」= 地址变了二维码没变 → 新增 `NetWatch`（监听 WiFi/P2P/以太网/连接变化）自动重载二维码；没网时 HTML 显示「未检测到可用网络地址」不画死码 ② 每次启动新日志 + 30KB 滚动 → 新增 `SessionLog`（`files/log/session/yyyyMMdd-HHmmss.log`，超 30KB 滚 `.partN.log`，最多 30 part/会话、40 份历史），挂 `ConnLog.append` 唯一落盘点 ③ 下载按日期排序 → `dateKey`（文件名日期段优先，退回 mtime）+ `datePrefix`（`YYYYMMDD-HHMMSS_` 前缀）+ HTML 文案改「按日期倒序」。新增 `LogDownloadActivity$1`（runOnUiThread 匿名 Runnable） | **realme ART 实测**：0 崩溃 0 VerifyError；`SessionLog started: 20260924-093703.log` 与 `20260924-093754.log` 两次启动生成两个文件；`NetWatch registered` + `net changed -> http://192.168.227.155:18080` 触发 3 次；`refreshFiles count=3` 按日期倒序（session 两个在前，旧 log 在后）；webview 正确加载 `logxfer.html#http%3A%2F%2F192.168.227.155%3A18080` |
+| **1.40（当前）** | **亿连式「无蓝牙直连」兜底**（用户需求：像亿连一样完全不用蓝牙）。新增 `NoBtFallback`（BtGuard 两个判死点触发，幂等）：① 反射拿引擎 `a.a.a.a.m.b.a` → `.E` 传输管理器 → `.c` 传输列表，挂一个热点传输 `m/m/e/a`（UDP 7999 监听体）并 `a()` 启动——手机手动入组后广播 UDP 7999 走热点模式原路建链（`m/m/b.b()` 会自动 terminate 蓝牙传输、`q(5)` 起会话）② 自建 P2P channel `requestGroupInfo` 轮询 45×2s，本机是 GO 时把组名+`getPassphrase()` 口令打到日志区引导手动入组。**关键闸门**：`e/d.f()` 的 patchE 三连清理（cancelConnect/removeGroup/stopPeerDiscovery）收进私有方法 `p2pCleanup`，`keepP2pGroup()==true` 时跳过——否则兜底一连上 `m/m/b.b()` 调 `f(e/d)` 会把手机刚加入的组拆掉 | **realme ART 实测**：装 mod1.40 成功；Test A（蓝牙开）阶段1 正常无兜底触发；Test B（`svc bluetooth disable`）**判死路径全链路打通**：45 次判死 → 新文案 → `UDP 7999 监听已挂载` → 组信息轮询（无组时打降级提示）；修复了 requestGroupInfo 立即回调 null 导致 90s 轮询 0.5s 烧完的 bug；0 崩溃 0 VerifyError（⚠ ColorOS disable 后 binder 慢 ~20-30s/轮，车机 1s/轮）。**车机实机全流程待验**（判死→显示凭据→手机手动入组→会话） |
 
+
+**1.40 成品**：`CarLife/05_产物/CarLife4.0车机端个人修改版1.40_无蓝牙直连亿连式.apk`
+（2,622,713 字节，versionCode 140，versionName `mod1.40`，签名 v1+v2+v3，
+sha256 `3140802708b2a49627067c243b5e853b807133bbc6c58ff7278f2500f97701b3`；
+详见 `04_文档/1.40_无蓝牙直连亿连式.md`）
+
+**1.30 成品**：`CarLife/05_产物/CarLife4.0车机端个人修改版1.30_会话日志与二维码刷新.apk`
+（2,622,713 字节，versionCode 130，versionName `mod1.30`，签名 v1+v2+v3，
+sha256 `c801a2a2d9e3a83a91d56217c6ed206d0c591e99428387b889b07cd3fbfa1506`；
+详见 `04_文档/1.30_会话日志与二维码刷新.md`）
+
+**1.29 成品**：`CarLife/05_产物/CarLife4.0车机端个人修改版1.29_蓝牙诊断与判死.apk`
+（2,618,617 字节，versionCode 129，versionName `mod1.29`，签名 v1+v2+v3，
+sha256 `4122091fca8eebc3c53ba8eac5fd009375808e110d23944ae97f36b96bc06b1d`；详见 `04_文档/1.29_蓝牙诊断与判死.md`）
 
 **1.28 成品**：`CarLife/05_产物/CarLife4.0车机端个人修改版1.28_修建组失败三分.apk`
 （2,618,617 字节，versionCode 128，versionName `mod1.28`，签名 v1+v2+v3；详见 `04_文档/1.28_修P0建组失败三分.md`）
@@ -129,8 +149,6 @@ java.lang.VerifyError: Verifier rejected class a.a.a.a.m.m.d.a:
 → **新写/改动的 smali 类，必须至少在一台 ART 设备上跑一遍启动**（`logcat -b crash` 空 + `VerifyError` 计数 0）。
 → **插桩一律走「零参静态方法」**：在 `ConnLog` 里加包装方法，插桩点只写
 `invoke-static {}, Lcom/baidu/carlifevehicle/ConnLog;->logXxx()V` —— 零寄存器操作数，verifier 无从挑剔。
-
----
 
 ### 1.0.1 ★★ 手写 try/catch 的三条硬规则（1.26 用一次「启动即崩」换来）
 

@@ -5,10 +5,9 @@
 # 用法:
 #   PRJ="main" NAME="CarLife4.0车机端个人修改版1.42_xxx.apk" \
 #     bash CarLife/03_构建脚本/build_linux.sh
-# 可选: REF="_w141" — 与上一版工程树做完整性校验（缺失自动补齐、计划外差异终止）
 #
 # 1.42 起新流程: 源码树只有 01_工程源码/main 一份, 直接改 + git tag;
-# 历史版本用 `git checkout v1.xx` 取, 不再新增 _w1xx 树和 patch_vNN 脚本。
+# 历史版本用 `git checkout v1.xx` 取, 不再保留 _w1xx 树和 patch_vNN 脚本。
 set -euo pipefail
 
 ROOT=$(cd "$(dirname "$0")/../.." && pwd)
@@ -20,16 +19,20 @@ OUT="$ROOT/CarLife/05_产物"
 echo "=== 0. Dalvik 静态门禁 (合并点 + 寄存器越界): $PRJ ==="
 python3 "$ROOT/CarLife/02_补丁脚本/verify_dalvik_合并点检查.py" "$PRJ"
 
-if [ -n "${REF:-}" ]; then
-  echo "=== 0.5 完整性校验 (参照 $REF) ==="
-  python3 "$ROOT/CarLife/02_补丁脚本/校验并补齐工程.py" "$PRJ" "$REF" --fix
-fi
-
 # aapt2 是原生进程, 工程路径含中文会崩 —— 复制到仓库根的纯 ASCII 目录再打包。
 # 目录名带时间戳、绝不复用、绝不删除(沙箱拦 rm), 攒多了用 清理构建目录.py 回收。
 WORK="$ROOT/_bw_${PRJ}_$(date +%s)"
 cp -r "$SRC/$PRJ" "$WORK"
 echo "$WORK" >> "$ROOT/_build_dirs.txt"
+# 血泪: 复制 2000+ 文件时进程被超时杀掉, 会留下**整份文件缺失**的工程(不是内容损坏)——
+# apktool 照样打包成功, 只小 139KB, 装上必 NoClassDefFoundError。
+# 参照树制已随单树制废弃, 改成复制后直接核对文件数。
+N1=$(find "$SRC/$PRJ" -type f | wc -l)
+N2=$(find "$WORK" -type f | wc -l)
+if [ "$N1" != "$N2" ]; then
+  echo "!!! 复制不完整: 源 $N1 个文件, 目标 $N2 个文件, 终止构建"; exit 1
+fi
+echo "文件数核对通过: $N1"
 grep -m1 "versionCode" "$WORK/apktool.yml"
 
 echo "=== 1. 打包 ==="

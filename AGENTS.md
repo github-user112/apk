@@ -232,30 +232,18 @@ C:\PJGG\apk\
 ├── _w110\                       ★ 1.10 基线工程树（A~G 补丁）— 注意在**仓库根目录**
 ├── CarLife\                     ★ 主工程（1.6 修改版的所有工作成果）
 │   ├── 01_工程源码\
-│   │   └── _w111 .. _w121\      1.11 ~ 1.21 各版本工程树（_w121 = 当前）
+│   │   └── main\                       ★ **唯一源码树**（1.42 起单树制，直接改 + git tag）
 │   ├── 02_补丁脚本\
-│   │   ├── patch_v8_三链路加固.py           → _w111 (1.11)
-│   │   ├── patch_v9_USB免授权.py            → _w112 (1.12)
-│   │   ├── patch_v10_去引导页.py            → _w113 (1.13)
-│   │   ├── patch_v11_修复自举分支.py        → _w114 (1.14)
-│   │   ├── patch_v12_移植5+心跳与设备名.py  → _w115 (1.15)
-│   │   ├── patch_v13_日志下载.py            → _w116 (1.16)
-│   │   ├── patch_v14_日志按钮.py            → _w117 (1.17)
-│   │   ├── patch_v15_直连热点诊断.py        → _w118 (1.18)
-│   │   ├── patch_v16_日志地址修复.py        → _w119 (1.19)
-│   │   ├── patch_v17_修插桩VerifyError.py   → _w120 (1.20)
-│   │   ├── patch_v18_修打包下载重名.py      → _w121 (1.21)
-│   │   ├── patch_v19_蓝牙等待自愈.py        → _w122 (1.22)
-│   │   ├── patch_v20_修极性心跳提示.py       → _w123 (1.23)
-│   │   ├── patch_v21_日志下载三修.py         → _w124 (1.24)
-│   │   ├── patch_v22_前置自检与提示.py       → _w125 (1.25)
+│   │   ├── patch_v8..patch_v29_*.py        ← 历史脚本，只读考古（1.42 起不再用；
+│   │   │   树映射: v8→1.11 … v28→1.40 无蓝牙直连, v29→1.41 **P0 作废**）
+│   │   │                                      需要旧版源码时从 git tag 取, 别跑旧脚本
 │   │   ├── logxfer_src\                      ★ 1.16 日志下载的 Java 源码 + 前端资产 + 转换脚本
 │   │   │   ├── java\**  assets\logxfer\**     改这里，再跑 构建日志下载smali.py
 │   │   │   ├── 构建日志下载smali.py            Java → smali（javac+D8+apktool 反汇编）
-│   │   │   ├── smali\                         转换产物，patch 脚本直接复制
+│   │   │   ├── smali\                         转换产物，复制进 main 树
 │   │   │   └── tools\{r8.jar,android.jar}    转换用工具链（构建 APK 时不需要）
-│   │   ├── verify_dalvik_合并点检查.py      ★ 构建门禁，必跑
-│   │   ├── 校验并补齐工程.py                ★ 完整性门禁，必跑
+│   │   ├── verify_dalvik_合并点检查.py      ★ 构建门禁（合并点 + 寄存器越界），必跑
+│   │   ├── 校验并补齐工程.py                单树制后仅考古用（需 REF=另一棵树）
 │   │   └── 历史_patch_*.py                 早期（1.7~1.9）补丁，留档
 │   ├── 03_构建脚本\
 │   │   ├── build.sh                        ★ 一键构建+签名，见 §5
@@ -279,13 +267,14 @@ C:\PJGG\apk\
 ```
 
 **工作约定（1.42 起改为单树制）**：源码只有 `01_工程源码/main/` 一份，**直接改**；
-每出一个版本就提交 git 并打 tag（`v1.42`、`v1.43`…），要哪版代码就 `git checkout v1.xx`。
+每出一个版本就提交 git 并打 tag（`v1.42`、`v1.43`…），要哪版代码就
+`git checkout v1.xx && git checkout -- CarLife`（旧 `_w1xx` 树保留在 git 历史里，
+需要时从历史提交取回，不必在工作区常驻）。
 **不再**新增 `_w1xx` 工程树、**不再**写 `patch_vNN_*.py` 补丁脚本
 （1.41 的 P0 正是补丁脚本锚点打偏 + 脚本↔工程树失同步造成的，教训见页首）。
-历史 `_w111.._w141` 树已入库封存，只读参考，不要再改。
 
-> 小提示：`校验并补齐工程.py` / 构建脚本的 `REF=` 参数只传**工程目录名**
-> （如 `_w141`），脚本会在 `CarLife/01_工程源码/` 下查找；REF 不传则跳过完整性比对。
+> `校验并补齐工程.py` 需要参照树（REF=另一工程树目录名）才有用，单树制下
+> 构建改用 `build_linux.sh` 内置的「复制后文件数核对」防残包，旧脚本留作考古。
 
 ---
 
@@ -428,15 +417,15 @@ b$a.run()   定时 tick
 
 ```bash
 cd /home/opc/workspace/apk
-PRJ="main" REF="_w141" \
+PRJ="main" \
 NAME="CarLife4.0车机端个人修改版1.42_修P0校验拒绝.apk" \
 bash CarLife/03_构建脚本/build_linux.sh
 ```
 
-参数说明：`PRJ`（默认 `main`）= 工程树目录名；`NAME` = 输出 APK 文件名；
-`REF` 可选 = 上一版工程树名，触发完整性门禁。内部流程与 Windows 版一致：
-Dalvik 门禁（含 1.42 新增的寄存器越界检查）→ 完整性校验 → 复制到 ASCII
-时间戳目录 → apktool 打包 → uber 签名（本机 ARM 用 `--skipZipAlign`）→ 复核版本号。
+参数说明：`PRJ`（默认 `main`）= 工程树目录名；`NAME` = 输出 APK 文件名。内部流程：
+Dalvik 门禁（含 1.42 新增的寄存器越界检查）→ 复制到 ASCII 时间戳目录 →
+复制后文件数核对（防残包）→ apktool 打包 → uber 签名（本机 ARM 用
+`--skipZipAlign`）→ 复核版本号。
 
 ### 5.1a 构建 + 签名（Windows Git Bash，历史流程）
 
@@ -473,16 +462,15 @@ build.sh 内部 4 步：① Dalvik 合并点静态检查 → ② 完整性校验
 
 1. **直接改 `CarLife/01_工程源码/main/` 下的 smali/资源**（改动前可跑
    `verify_dalvik_合并点检查.py main` 确认基线是绿的）
-2. 改完跑两个门禁：
+2. 改完跑门禁（`git diff` 天然能看出改了什么，不需要参照树）：
 
 ```bash
 python3 CarLife/02_补丁脚本/verify_dalvik_合并点检查.py main
-python3 CarLife/02_补丁脚本/校验并补齐工程.py main _w141   # REF=上一版tag对应的参照树
 ```
 
 3. 改 `apktool.yml` 的 `versionCode`（**必须裸整数**）与 `versionName`、
    `res/values/strings.xml` 的 `app_name`（桌面图标名带版本号）
-4. 构建（§5.1 的 build_linux.sh，带 `REF=`）→ 条目级对比复核 → 模拟器验证
+4. 构建（§5.1 的 build_linux.sh）→ 条目级对比复核 → 模拟器验证
 5. **提交 git 并打 tag `v1.xx`**——tag 就是版本记录，不再生成补丁脚本
 
 <details>

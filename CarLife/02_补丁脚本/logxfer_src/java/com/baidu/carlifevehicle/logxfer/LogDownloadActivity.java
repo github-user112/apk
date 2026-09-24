@@ -24,8 +24,11 @@ import java.net.URLEncoder;
  *   [ 兜底地址文字 TextView ]
  *
  * WebView 不可用时（部分车机 ROM 精简了 WebView）自动降级：只显示可手动输入的地址文字。
+ *
+ * 1.30：接入 NetWatch —— WiFi/P2P/以太网一变化就重取地址并重载二维码。
+ * 没网时 logxfer.html 显示「未生成二维码：当前没有可用网络」，不再画一个扫不开的死码。
  */
-public class LogDownloadActivity extends Activity {
+public class LogDownloadActivity extends Activity implements NetWatch.Listener {
 
     private static final String TAG = "CarLifeLogXfer";
     private static final int BG = 0xFF17161B;
@@ -35,6 +38,7 @@ public class LogDownloadActivity extends Activity {
     private WebView mWeb;
     /** 1.24: onStart 里 start() 失败时用来透出提示（bind 失败原先只打 logcat）。 */
     private TextView mHint;
+    private TextView mNets;
     private String[] mUrls;
 
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,6 +69,7 @@ public class LogDownloadActivity extends Activity {
         // 1.19：把"这次用的是哪张网卡、忽略了哪些"直接晾在界面上。
         // 之前只有二维码，出了问题是"扫不开"三个字，分不清到底地址选错了还是网络没通。
         TextView nets = new TextView(this);
+        mNets = nets;
         nets.setText(LogHttpServer.netSummary());
         nets.setTextColor(FG2);
         nets.setTextSize(12);
@@ -178,7 +183,7 @@ public class LogDownloadActivity extends Activity {
 
     private static String buildHint(String[] urls) {
         if (urls.length == 0) {
-            return "未检测到可用网络地址，请检查 WiFi 连接";
+            return "未检测到可用网络地址\n请连接 WiFi 或开启热点，二维码会自动出现";
         }
         // 1.19：只给**首选地址**生成二维码（见 logxfer.html），其余列出来供手动输入。
         // 1.18 是前 3 个各生成一个二维码，扫到哪个全看运气 —— 真机上正好扫到了蜂窝那个。
@@ -216,6 +221,8 @@ public class LogDownloadActivity extends Activity {
         // 被调用（会退到 CarLife 主界面，本页只是 stopped），只用 onCreate/onDestroy 会留下
         // 一个一直占着 18080 的 accept 线程。放 onStart/onStop 才能保证"页面关掉即放端口"。
         LogHttpServer.get().start();
+        // 1.30：网络变化自动刷新二维码（用户："有时候生成的不正确" = 地址变了二维码没变）。
+        NetWatch.start(this, this);
         // 1.24: bind 失败（端口被占等）原先只打 logcat，车机上用户看不到，
         // 界面照常画二维码 -> 扫码 connection refused。失败时改 hint 文案。
         if (!LogHttpServer.get().isRunning() && mHint != null) {
@@ -229,8 +236,57 @@ public class LogDownloadActivity extends Activity {
         Log.i(TAG, "activity started");
     }
 
+    /** NetWatch.Listener：网络变化时重取地址、重载二维码、刷新网卡摘要。 */
+    public void onNetChanged(final String[] urls) {
+        try {
+            runOnUiThread(new Runnable() {
+                public void run() {
+                    applyUrls(urls);
+                }
+            });
+        } catch (Throwable t) {
+            Log.w(TAG, "onNetChanged: " + t);
+        }
+    }
+
+    /** 把新地址列表套用到 WebView + 提示文字 + 网卡摘要（必须在 UI 线程）。 */
+    private void applyUrls(String[] urls) {
+        if (urls == null) {
+            return;
+        }
+        String old = join(mUrls);
+        String now = join(urls);
+        if (old.equals(now)) {
+            return;     // 地址没变就不折腾 WebView（重载会闪一下）
+        }
+        mUrls = urls;
+        if (mWeb != null) {
+            String u = buildAssetUrl(urls);
+            Log.i(TAG, "webview reload " + u);
+            try {
+                mWeb.loadUrl(u);
+            } catch (Throwable t) {
+                Log.e(TAG, "webview reload failed: " + t);
+            }
+        }
+        if (mHint != null) {
+            mHint.setText(buildHint(urls));
+            mHint.setTextColor(FG2);
+        }
+        if (mNets != null) {
+            try {
+                mNets.setText(LogHttpServer.netSummary());
+            } catch (Throwable ignored) {
+            }
+        }
+    }
+
     protected void onStop() {
         super.onStop();
+        try {
+            NetWatch.stop(this);
+        } catch (Throwable ignored) {
+        }
         try {
             LogHttpServer.get().stop();
         } catch (Throwable t) {

@@ -89,6 +89,11 @@ EXPECTED_DIFF = {
     "smali/com/baidu/carlifevehicle/logxfer/LogHttpServer$1.smali",
     "smali/com/baidu/carlifevehicle/logxfer/LogXferEntry.smali",
     "smali/com/baidu/carlifevehicle/logxfer/LogXferEntry$ClickHandler.smali",
+    # 1.30 会话日志 + 二维码网络刷新
+    "smali/com/baidu/carlifevehicle/VehicleApplication.smali",
+    "smali/com/baidu/carlifevehicle/logxfer/SessionLog.smali",
+    "smali/com/baidu/carlifevehicle/logxfer/NetWatch.smali",
+    "smali/com/baidu/carlifevehicle/logxfer/NetWatch$Listener.smali",
 }
 
 # 这些顶层目录是 apktool 的构建缓存，不参与比对

@@ -21,7 +21,7 @@
 .method public constructor <init>()V
     .locals 0
 
-    .line 135
+    .line 140
     invoke-direct {p0}, Ljava/lang/Object;-><init>()V
 
     return-void
@@ -32,7 +32,7 @@
 .method public onClick(Landroid/view/View;)V
     .locals 3
 
-    .line 138
+    .line 143
     const-string v0, "CarLifeLogXfer"
 
     :try_start_0
@@ -44,21 +44,21 @@
 
     invoke-virtual {p1}, Landroid/app/Activity;->finish()V
 
-    .line 139
+    .line 144
     const-string p1, "back pressed, finish activity"
 
     invoke-static {v0, p1}, Landroid/util/Log;->i(Ljava/lang/String;Ljava/lang/String;)I
     :try_end_0
     .catchall {:try_start_0 .. :try_end_0} :catchall_0
 
-    .line 142
+    .line 147
     goto :goto_0
 
-    .line 140
+    .line 145
     :catchall_0
     move-exception p1
 
-    .line 141
+    .line 146
     new-instance v1, Ljava/lang/StringBuilder;
 
     invoke-direct {v1}, Ljava/lang/StringBuilder;-><init>()V
@@ -79,7 +79,7 @@
 
     invoke-static {v0, p1}, Landroid/util/Log;->w(Ljava/lang/String;Ljava/lang/String;)I
 
-    .line 143
+    .line 148
     :goto_0
     return-void
 .end method

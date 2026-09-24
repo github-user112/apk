@@ -535,6 +535,7 @@ public final class LogHttpServer {
                 File ef = sCtx.getExternalFilesDir(null);
                 if (ef != null) {
                     dirs.add(new File(ef, "log"));
+                    dirs.add(new File(ef, "log/session"));   // 1.30: 会话日志
                     dirs.add(ef);
                 }
             } catch (Throwable ignored) {
@@ -580,13 +581,19 @@ public final class LogHttpServer {
             }
         }
 
-        // 手写冒泡排序（按修改时间倒序），避免额外引入 Comparator 匿名类
+        // 1.30: 按**日期**倒序（用户需求："下载时候，按日期排序好"）。
+        // 排序键取「文件名里解析出的日期」优先，解析不出退回修改时间。
+        // 为什么不用 lastModified 就够：拷贝/解压/修复都可能改 mtime，
+        // 而文件名里的日期是写死的，才是用户眼里的"日期"。
+        // session 日志名就是 yyyyMMdd-HHmmss[.partN].log，天然有序。
         int n = mFiles.size();
         for (int i = 0; i < n - 1; i++) {
             for (int j = 0; j < n - 1 - i; j++) {
                 File a = (File) mFiles.get(j);
                 File b = (File) mFiles.get(j + 1);
-                if (a.lastModified() < b.lastModified()) {
+                long ka = dateKey(a);
+                long kb = dateKey(b);
+                if (ka < kb) {
                     mFiles.set(j, b);
                     mFiles.set(j + 1, a);
                 }
@@ -601,6 +608,87 @@ public final class LogHttpServer {
             sb.append(((File) mFiles.get(i)).getAbsolutePath()).append(';');
         }
         Log.i(TAG, "refreshFiles count=" + mFiles.size() + " -> " + sb.toString());
+    }
+
+    /**
+     * 日期排序键：越大越新。取「文件名里解析出的日期」优先（用户眼里的日期），
+     * 解析不出退回 lastModified()。全链路统一走这一个口径（refreshFiles / datePrefix）。
+     *
+     * 为什么不用 lastModified 就够：拷贝/解压/修复都会改 mtime，而文件名里的
+     * 日期是写死的。session 日志名就是 yyyyMMdd-HHmmss[.partN].log，天然有序。
+     */
+    private static long dateKey(File f) {
+        String n = f.getName();
+        for (int i = 0; i + 8 <= n.length(); i++) {
+            char c = n.charAt(i);
+            if (c < '0' || c > '9') {
+                continue;
+            }
+            boolean ok = true;
+            for (int k = 1; k < 8; k++) {
+                char d = n.charAt(i + k);
+                if (d < '0' || d > '9') {
+                    ok = false;
+                    break;
+                }
+            }
+            if (!ok) {
+                continue;
+            }
+            int month = (n.charAt(i + 4) - '0') * 10 + (n.charAt(i + 5) - '0');
+            int day = (n.charAt(i + 6) - '0') * 10 + (n.charAt(i + 7) - '0');
+            if (month < 1 || month > 12 || day < 1 || day > 31) {
+                continue;
+            }
+            long v = 0;
+            for (int k = 0; k < 8; k++) {
+                v = v * 10 + (n.charAt(i + k) - '0');
+            }
+            // yyyyMMdd-HHmmss 时分秒也带上，同日会话能拉开顺序
+            if (i + 15 <= n.length() && n.charAt(i + 8) == '-') {
+                boolean ok2 = true;
+                for (int k = 9; k < 15; k++) {
+                    char d = n.charAt(i + k);
+                    if (d < '0' || d > '9') {
+                        ok2 = false;
+                        break;
+                    }
+                }
+                if (ok2) {
+                    long hms = 0;
+                    for (int k = 9; k < 15; k++) {
+                        hms = hms * 10 + (n.charAt(i + k) - '0');
+                    }
+                    v = v * 1000000L + hms;
+                }
+            }
+            return v * 1000000L + 999999L;
+        }
+        // 无日期名：用 mtime 等价口径（yyyyMMdd-HHmmss 数量级），保证和上面同量级可比
+        String t = timeFull(f.lastModified());
+        long v = 0;
+        for (int k = 0; k < 8; k++) {
+            v = v * 10 + (t.charAt(k) - '0');
+        }
+        long hms = 0;
+        for (int k = 9; k < 15; k++) {
+            hms = hms * 10 + (t.charAt(k) - '0');
+        }
+        return v * 1000000L + hms;
+    }
+
+    /** zip 条目前缀：YYYYMMDD-HHMMSS_，让解压后天然按日期排序（用户需求 3）。 */
+    private static String datePrefix(File f) {
+        return timeFull(f.lastModified()) + "_";
+    }
+
+    /** "yyyyMMdd-HHmmss"（dateKey/datePrefix 共用）。 */
+    private static String timeFull(long ms) {
+        try {
+            return new SimpleDateFormat("yyyyMMdd-HHmmss", Locale.US).format(new Date(ms));
+        } catch (Throwable t) {
+            return "00000000-000000";
+        }
     }
 
     // ------------------------------------------------------------------ 响应构造
@@ -628,7 +716,7 @@ public final class LogHttpServer {
         b.append(".empty{color:#9b98a8;padding:24px;text-align:center;background:#1b1a21;border-radius:10px}");
         b.append("</style></head><body>");
         b.append("<h1>CarLife 车机日志</h1>");
-        b.append("<div class=\"sub\">共 ").append(snapshot.size()).append(" 个文件（按时间倒序，最多 ")
+        b.append("<div class=\"sub\">共 ").append(snapshot.size()).append(" 个文件（按日期倒序，最多 ")
                 .append(MAX_FILES).append(" 个）</div>");
         if (snapshot.isEmpty()) {
             b.append("<div class=\"empty\">暂无可下载的日志文件</div>");
@@ -739,7 +827,7 @@ public final class LogHttpServer {
                 if (f.length() > 32L * 1024 * 1024) {
                     continue;
                 }
-                zos.putNextEntry(new ZipEntry(uniqueName(used, f.getName())));
+                zos.putNextEntry(new ZipEntry(uniqueNamePref(used, f.getName(), datePrefix(f))));
                 FileInputStream fis = new FileInputStream(f);
                 byte[] buf = new byte[8192];
                 int n;
@@ -840,31 +928,39 @@ public final class LogHttpServer {
      * 即使去重做对了，不同目录下仍可能出现同名日志文件，而 ZipOutputStream
      * 不接受重名条目（解压端也会报 duplicate entry）。冲突时补 _2 / _3 后缀，
      * 扩展名挪到最后，解压后仍能看出类型。
+     *
+     * 1.30: 唯一性检查要在**完整条目名**（含 datePrefix 前缀）上做，
+     * 否则两个同名但不同时间的文件会撞。
      */
     private static String uniqueName(List used, String name) {
         String n = name;
         if (n == null || n.length() == 0) {
             n = "log";
         }
-        if (!used.contains(n)) {
-            used.add(n);
-            return n;
+        return uniqueNamePref(used, n, "");
+    }
+
+    private static String uniqueNamePref(List used, String name, String prefix) {
+        String full = prefix + name;
+        if (!used.contains(full)) {
+            used.add(full);
+            return full;
         }
-        String base = n;
+        String base = name;
         String ext = "";
-        int dot = n.lastIndexOf('.');
-        if (dot > 0 && dot < n.length() - 1) {
-            base = n.substring(0, dot);
-            ext = n.substring(dot);
+        int dot = name.lastIndexOf('.');
+        if (dot > 0 && dot < name.length() - 1) {
+            base = name.substring(0, dot);
+            ext = name.substring(dot);
         }
         for (int i = 2; i < 100000; i++) {
-            String cand = base + "_" + i + ext;
+            String cand = prefix + base + "_" + i + ext;
             if (!used.contains(cand)) {
                 used.add(cand);
                 return cand;
             }
         }
-        return base + "_" + System.currentTimeMillis() + ext;
+        return prefix + base + "_" + System.currentTimeMillis() + ext;
     }
 
     private static String reason(int code) {

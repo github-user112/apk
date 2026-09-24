@@ -304,6 +304,10 @@ TARGETS = [
     'com/baidu/carlifevehicle/logxfer/LogXferEntry.smali',
     'com/baidu/carlifevehicle/logxfer/LogHttpServer$1.smali',
     'com/baidu/carlifevehicle/logxfer/LogDownloadActivity$BackHandler.smali',
+    # 1.29: BtGuard 从 1.22 引入就一直是门禁盲区，而它是**手改 Java 重编**的类
+    # （1.29 又重写了一遍），必须过合并点检查。补上。
+    'com/baidu/carlifevehicle/logxfer/BtGuard.smali',
+    'com/baidu/carlifevehicle/logxfer/BtGuard$1.smali',
 ]
 
 errs = []

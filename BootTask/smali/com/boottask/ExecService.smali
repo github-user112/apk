@@ -1,8 +1,5 @@
 .class public Lcom/boottask/ExecService;
 .super Landroid/app/Service;
-.implements Ljava/lang/Runnable;
-
-.field private event:Ljava/lang/String;
 
 .field private dyn:Lcom/boottask/DynReceiver;
 
@@ -17,9 +14,13 @@
 
 
 .method public onCreate()V
-    .locals 2
+    .locals 3
 
     invoke-super {p0}, Landroid/app/Service;->onCreate()V
+
+    const-string v0, "ExecService onCreate"
+
+    invoke-static {p0, v0}, Lcom/boottask/BootDiagnostics;->log(Landroid/content/Context;Ljava/lang/String;)V
 
     :try_start_0
     new-instance v0, Lcom/boottask/DynReceiver;
@@ -51,7 +52,19 @@
     :catch_0
     move-exception v0
 
-    invoke-virtual {v0}, Ljava/lang/Exception;->printStackTrace()V
+    new-instance v1, Ljava/lang/StringBuilder;
+
+    const-string v2, "ExecService onCreate failed: "
+
+    invoke-direct {v1, v2}, Ljava/lang/StringBuilder;-><init>(Ljava/lang/String;)V
+
+    invoke-virtual {v1, v0}, Ljava/lang/StringBuilder;->append(Ljava/lang/Object;)Ljava/lang/StringBuilder;
+
+    invoke-virtual {v1}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+
+    move-result-object v1
+
+    invoke-static {p0, v1}, Lcom/boottask/BootDiagnostics;->log(Landroid/content/Context;Ljava/lang/String;)V
 
     :goto_0
     return-void
@@ -59,21 +72,39 @@
 
 
 .method public onStartCommand(Landroid/content/Intent;II)I
-    .locals 1
+    .locals 3
 
     if-eqz p1, :cond_0
 
-    const-string v0, "event"
+    const-string v2, "event"
 
-    invoke-virtual {p1, v0}, Landroid/content/Intent;->getStringExtra(Ljava/lang/String;)Ljava/lang/String;
+    invoke-virtual {p1, v2}, Landroid/content/Intent;->getStringExtra(Ljava/lang/String;)Ljava/lang/String;
 
     move-result-object v0
 
-    iput-object v0, p0, Lcom/boottask/ExecService;->event:Ljava/lang/String;
+    if-eqz v0, :cond_0
+
+    new-instance v1, Ljava/lang/StringBuilder;
+
+    const-string v2, "ExecService onStartCommand event="
+
+    invoke-direct {v1, v2}, Ljava/lang/StringBuilder;-><init>(Ljava/lang/String;)V
+
+    invoke-virtual {v1, v0}, Ljava/lang/StringBuilder;->append(Ljava/lang/Object;)Ljava/lang/StringBuilder;
+
+    invoke-virtual {v1}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+
+    move-result-object v1
+
+    invoke-static {p0, v1}, Lcom/boottask/BootDiagnostics;->log(Landroid/content/Context;Ljava/lang/String;)V
+
+    new-instance v1, Lcom/boottask/ExecService$EventTask;
+
+    invoke-direct {v1, p0, v0}, Lcom/boottask/ExecService$EventTask;-><init>(Lcom/boottask/ExecService;Ljava/lang/String;)V
 
     new-instance v0, Ljava/lang/Thread;
 
-    invoke-direct {v0, p0}, Ljava/lang/Thread;-><init>(Ljava/lang/Runnable;)V
+    invoke-direct {v0, v1}, Ljava/lang/Thread;-><init>(Ljava/lang/Runnable;)V
 
     invoke-virtual {v0}, Ljava/lang/Thread;->start()V
 
@@ -115,12 +146,16 @@
 .end method
 
 
-.method public run()V
+.method run(Ljava/lang/String;)V
     .locals 7
 
-    iget-object v1, p0, Lcom/boottask/ExecService;->event:Ljava/lang/String;
+    move-object v1, p1
 
     if-nez v1, :cond_0
+
+    const-string v0, "ExecService run skipped: event=null"
+
+    invoke-static {p0, v0}, Lcom/boottask/BootDiagnostics;->log(Landroid/content/Context;Ljava/lang/String;)V
 
     return-void
 
@@ -132,6 +167,24 @@
     invoke-static {v0}, Lcom/boottask/RuleStore;->list(Landroid/content/Context;)Lorg/json/JSONArray;
 
     move-result-object v2
+
+    invoke-virtual {v2}, Lorg/json/JSONArray;->length()I
+
+    move-result v4
+
+    new-instance v5, Ljava/lang/StringBuilder;
+
+    const-string v6, "ExecService rules="
+
+    invoke-direct {v5, v6}, Ljava/lang/StringBuilder;-><init>(Ljava/lang/String;)V
+
+    invoke-virtual {v5, v4}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
+
+    invoke-virtual {v5}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+
+    move-result-object v5
+
+    invoke-static {v0, v5}, Lcom/boottask/BootDiagnostics;->log(Landroid/content/Context;Ljava/lang/String;)V
 
     const/4 v3, 0x0
 
@@ -169,11 +222,9 @@
 
     if-eqz v5, :cond_3
 
-    const-string v5, "BootTask"
-
     const-string v6, "rule matched, executing"
 
-    invoke-static {v5, v6}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
+    invoke-static {p0, v6}, Lcom/boottask/BootDiagnostics;->log(Landroid/content/Context;Ljava/lang/String;)V
 
     const-string v5, "delay"
 
@@ -201,7 +252,19 @@
     :catch_0
     move-exception v4
 
-    invoke-virtual {v4}, Ljava/lang/Exception;->printStackTrace()V
+    new-instance v5, Ljava/lang/StringBuilder;
+
+    const-string v6, "rule execution failed: "
+
+    invoke-direct {v5, v6}, Ljava/lang/StringBuilder;-><init>(Ljava/lang/String;)V
+
+    invoke-virtual {v5, v4}, Ljava/lang/StringBuilder;->append(Ljava/lang/Object;)Ljava/lang/StringBuilder;
+
+    invoke-virtual {v5}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+
+    move-result-object v5
+
+    invoke-static {v0, v5}, Lcom/boottask/BootDiagnostics;->log(Landroid/content/Context;Ljava/lang/String;)V
 
     goto :goto_1
 
@@ -265,7 +328,7 @@
 
     move-result-object v3
 
-    invoke-static {v2, v3}, Landroid/util/Log;->e(Ljava/lang/String;Ljava/lang/String;)I
+    invoke-static {p1, v3}, Lcom/boottask/BootDiagnostics;->log(Landroid/content/Context;Ljava/lang/String;)V
 
     return-void
 
@@ -290,7 +353,7 @@
 
     move-result-object v3
 
-    invoke-static {v2, v3}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
+    invoke-static {p1, v3}, Lcom/boottask/BootDiagnostics;->log(Landroid/content/Context;Ljava/lang/String;)V
 
     return-void
 
@@ -327,7 +390,7 @@
 
     move-result-object v3
 
-    invoke-static {v2, v3}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
+    invoke-static {p1, v3}, Lcom/boottask/BootDiagnostics;->log(Landroid/content/Context;Ljava/lang/String;)V
 
     return-void
 
@@ -356,7 +419,7 @@
 
     const-string v3, "ringer -> SILENT"
 
-    invoke-static {v2, v3}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
+    invoke-static {p1, v3}, Lcom/boottask/BootDiagnostics;->log(Landroid/content/Context;Ljava/lang/String;)V
 
     return-void
 
@@ -377,7 +440,7 @@
 
     const-string v3, "ringer -> NORMAL"
 
-    invoke-static {v2, v3}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
+    invoke-static {p1, v3}, Lcom/boottask/BootDiagnostics;->log(Landroid/content/Context;Ljava/lang/String;)V
 
     :cond_4
     return-void

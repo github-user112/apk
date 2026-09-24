@@ -365,7 +365,9 @@
     invoke-virtual {v3, v1, v0}, Lorg/json/JSONObject;->put(Ljava/lang/String;Ljava/lang/Object;)Lorg/json/JSONObject;
 
     :cond_5
-    invoke-static {p0, v3}, Lcom/boottask/RuleStore;->add(Landroid/content/Context;Lorg/json/JSONObject;)V
+    invoke-static {p0, v3}, Lcom/boottask/RuleStore;->add(Landroid/content/Context;Lorg/json/JSONObject;)Z
+
+    move-result v1
     :try_end_1
     .catch Ljava/lang/Exception; {:try_start_1 .. :try_end_1} :catch_1
 
@@ -374,10 +376,32 @@
     :catch_1
     move-exception v0
 
-    invoke-virtual {v0}, Ljava/lang/Exception;->printStackTrace()V
+    new-instance v2, Ljava/lang/StringBuilder;
+
+    const-string v3, "rule add failed: "
+
+    invoke-direct {v2, v3}, Ljava/lang/StringBuilder;-><init>(Ljava/lang/String;)V
+
+    invoke-virtual {v2, v0}, Ljava/lang/StringBuilder;->append(Ljava/lang/Object;)Ljava/lang/StringBuilder;
+
+    invoke-virtual {v2}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+
+    move-result-object v2
+
+    invoke-static {p0, v2}, Lcom/boottask/BootDiagnostics;->log(Landroid/content/Context;Ljava/lang/String;)V
+
+    const/4 v1, 0x0
 
     :goto_1
-    # 确保动态事件监听服务活着
+    if-nez v1, :cond_saved
+
+    const-string v0, "保存失败，请查看日志"
+
+    invoke-static {p0, v0}, Lcom/boottask/Util;->toast(Landroid/content/Context;Ljava/lang/String;)V
+
+    return-void
+
+    :cond_saved
     new-instance v0, Landroid/content/Intent;
 
     const-class v1, Lcom/boottask/ExecService;

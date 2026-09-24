@@ -10,6 +10,8 @@
 
 .field private pending:I
 
+.field private logButton:Landroid/widget/Button;
+
 
 .method public constructor <init>()V
     .locals 0
@@ -57,6 +59,28 @@
 
     invoke-virtual {v0, v1, v2}, Landroid/widget/LinearLayout;->addView(Landroid/view/View;Landroid/view/ViewGroup$LayoutParams;)V
 
+    new-instance v1, Landroid/widget/Button;
+
+    invoke-direct {v1, p0}, Landroid/widget/Button;-><init>(Landroid/content/Context;)V
+
+    const-string v2, "下载日志"
+
+    invoke-virtual {v1, v2}, Landroid/widget/Button;->setText(Ljava/lang/CharSequence;)V
+
+    invoke-virtual {v1, p0}, Landroid/widget/Button;->setOnClickListener(Landroid/view/View$OnClickListener;)V
+
+    new-instance v2, Landroid/widget/LinearLayout$LayoutParams;
+
+    const/4 v3, -0x1
+
+    const/4 v4, -0x2
+
+    invoke-direct {v2, v3, v4}, Landroid/widget/LinearLayout$LayoutParams;-><init>(II)V
+
+    invoke-virtual {v0, v1, v2}, Landroid/widget/LinearLayout;->addView(Landroid/view/View;Landroid/view/ViewGroup$LayoutParams;)V
+
+    iput-object v1, p0, Lcom/boottask/MainActivity;->logButton:Landroid/widget/Button;
+
     new-instance v1, Landroid/widget/ListView;
 
     invoke-direct {v1, p0}, Landroid/widget/ListView;-><init>(Landroid/content/Context;)V
@@ -76,6 +100,18 @@
     invoke-virtual {v0, v1, v2}, Landroid/widget/LinearLayout;->addView(Landroid/view/View;Landroid/view/ViewGroup$LayoutParams;)V
 
     invoke-virtual {p0, v0}, Landroid/app/Activity;->setContentView(Landroid/view/View;)V
+
+    const-string v0, "MainActivity opened"
+
+    invoke-static {p0, v0}, Lcom/boottask/BootDiagnostics;->log(Landroid/content/Context;Ljava/lang/String;)V
+
+    new-instance v0, Landroid/content/Intent;
+
+    const-class v1, Lcom/boottask/ExecService;
+
+    invoke-direct {v0, p0, v1}, Landroid/content/Intent;-><init>(Landroid/content/Context;Ljava/lang/Class;)V
+
+    invoke-virtual {p0, v0}, Landroid/app/Activity;->startService(Landroid/content/Intent;)Landroid/content/ComponentName;
 
     return-void
 .end method
@@ -138,6 +174,17 @@
     goto :goto_0
 
     :cond_0
+    invoke-virtual {v0}, Lorg/json/JSONArray;->length()I
+
+    move-result v2
+
+    if-nez v2, :cond_rules
+
+    const-string v2, "尚无规则：请点击“添加规则”并保存"
+
+    invoke-virtual {v1, v2}, Ljava/util/ArrayList;->add(Ljava/lang/Object;)Z
+
+    :cond_rules
     new-instance v0, Landroid/widget/ArrayAdapter;
 
     const v2, 0x1090003
@@ -158,6 +205,23 @@
 .method public onClick(Landroid/view/View;)V
     .locals 2
 
+    iget-object v0, p0, Lcom/boottask/MainActivity;->logButton:Landroid/widget/Button;
+
+    if-ne p1, v0, :cond_add
+
+    invoke-static {p0}, Lcom/boottask/BootDiagnostics;->capture(Landroid/content/Context;)V
+
+    new-instance v0, Landroid/content/Intent;
+
+    const-class v1, Lcom/boottask/BootDiagnostics$LogActivity;
+
+    invoke-direct {v0, p0, v1}, Landroid/content/Intent;-><init>(Landroid/content/Context;Ljava/lang/Class;)V
+
+    invoke-virtual {p0, v0}, Landroid/app/Activity;->startActivity(Landroid/content/Intent;)V
+
+    return-void
+
+    :cond_add
     new-instance v0, Landroid/content/Intent;
 
     const-class v1, Lcom/boottask/EditActivity;
@@ -172,27 +236,42 @@
 
 # DialogInterface.OnClickListener —— 删除/启停/取消
 .method public onClick(Landroid/content/DialogInterface;I)V
-    .locals 1
+    .locals 2
 
     if-nez p2, :cond_0
 
     iget v0, p0, Lcom/boottask/MainActivity;->pending:I
 
-    invoke-static {p0, v0}, Lcom/boottask/RuleStore;->remove(Landroid/content/Context;I)V
+    invoke-static {p0, v0}, Lcom/boottask/RuleStore;->remove(Landroid/content/Context;I)Z
 
-    goto :goto_0
+    move-result v0
+
+    goto :result
 
     :cond_0
-    const/4 v0, 0x1
+    const/4 v1, 0x1
 
-    if-ne p2, v0, :cond_1
+    if-ne p2, v1, :cond_1
 
     iget v0, p0, Lcom/boottask/MainActivity;->pending:I
 
-    invoke-static {p0, v0}, Lcom/boottask/RuleStore;->toggle(Landroid/content/Context;I)V
+    invoke-static {p0, v0}, Lcom/boottask/RuleStore;->toggle(Landroid/content/Context;I)Z
+
+    move-result v0
+
+    goto :result
 
     :cond_1
-    :goto_0
+    const/4 v0, 0x1
+
+    :result
+    if-nez v0, :cond_ok
+
+    const-string v1, "操作失败，请查看日志"
+
+    invoke-static {p0, v1}, Lcom/boottask/Util;->toast(Landroid/content/Context;Ljava/lang/String;)V
+
+    :cond_ok
     invoke-virtual {p0}, Lcom/boottask/MainActivity;->refresh()V
 
     return-void
@@ -203,6 +282,20 @@
 .method public onItemClick(Landroid/widget/AdapterView;Landroid/view/View;IJ)V
     .locals 4
 
+    iget-object v0, p0, Lcom/boottask/MainActivity;->arr:Lorg/json/JSONArray;
+
+    if-eqz v0, :return_item
+
+    invoke-virtual {v0}, Lorg/json/JSONArray;->length()I
+
+    move-result v0
+
+    if-nez v0, :cond_item
+
+    :return_item
+    return-void
+
+    :cond_item
     iput p3, p0, Lcom/boottask/MainActivity;->pending:I
 
     :try_start_0

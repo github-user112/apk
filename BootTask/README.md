@@ -3,11 +3,31 @@
 从 CarLife 车机端「开机自启」功能反向分析而来，做成一个**独立、通用**的开机事件自动化工具。
 
 - 包名：`com.boottask`
-- 最低版本：Android 2.3（API 9，实际按 4.4 编写）—— 兼容一切 4.x，**包括 4.4.2 车机**
-- 构建方式：**纯 smali 手写 + apktool 打包**（本机无 Android SDK，不需要 Java 源码）
-- 成品：`dist/BootTask_v1.1.apk`（**纯 v1 签名**，SHA-1 摘要，无 v2/v3 签名块）
+- 最低版本：Android 2.2（API 8，实际按 4.4 编写）—— 兼容一切 4.x，**包括 4.4.2 车机**
+- 构建方式：执行主体为手写 smali；诊断与日志下载用一个小型 Java/D8 类合并进单 dex
+- 成品：`dist/BootTask_v1.3.apk`（**纯 v1 签名**，SHA-1 摘要，无 v2/v3 签名块）；v1.1/v1.2 同目录留档
 - 与 CarLife 并存：**不冲突**（包名不同、无 `sharedUserId`、双方都无 `ContentProvider`，
   签名不同只在"同包名升级"时才校验）
+
+### v1.3（车机失效诊断 + 扫码日志）
+
+- 首页新增「下载日志」，复用 CarLife 已实测的二维码与 HTTP 下载核心，独立使用 `18081`，避免与 CarLife 日志页冲突。
+- 开机广播、Service 启停、规则数量/命中、动作结果、规则保存失败均写入 `files/log/boottask.log`。
+- 打开下载页前生成 `files/log/diagnostic.txt`，含规则原文、系统信息与 256 KB 过滤 logcat。
+- 规则为空时首页明确提示；保存失败不再误报「已保存」。
+- 强制内部安装，降低车机把 APK 放到外置存储后收不到开机广播的概率。
+
+### v1.2（代码审查修复）
+
+| 项 | v1.1 | v1.2 | 为什么 |
+|---|---|---|---|
+| 打开 App 拉起 ExecService | ❌ 只有保存规则/收到开机广播才起 | ✅ `MainActivity.onCreate` 补 `startService` | README 原文「打开一次 App 服务即常驻」是假的：服务被杀后亮屏/解锁规则静止，必须重存规则才复活 |
+| versionCode / versionName | 2 / 1.1 | 3 / 1.2 | 覆盖升级 |
+
+构建环境坑（本机 aarch64）：apktool 内置 `prebuilt/linux/aapt2` 是 x86-64，直接报
+`Execution failed (exit code = 126)`。修法（已生效）：
+`podman run --privileged --rm docker.io/tonistiigi/binfmt --install x86_64` 注册 binfmt
+（qemu-x86_64 模拟），无需改 apktool。
 
 ### v1.1（针对 4.4.2 车机装不上的兼容性改造）
 
@@ -145,8 +165,11 @@ ExecService.run()（工作线程）
 
 ```
 BootTask/
-├── apktool.yml                  apktool 工程配置 (minSdk 19)
-├── AndroidManifest.xml          权限 + 4 大组件声明
+├── build.sh                     编译、合并诊断/日志下载类、签名
+├── apktool.yml                  apktool 工程配置 (minSdk 8)
+├── AndroidManifest.xml          权限 + 组件声明
+├── src/com/boottask/
+│   └── BootDiagnostics.java     持久化诊断日志 + 日志下载页入口
 ├── smali/com/boottask/
 │   ├── MainActivity.smali       首页：列表 + 添加 + 长按弹窗删除/启停
 │   ├── EditActivity.smali       添加页：事件/动作/延迟/选应用
@@ -156,36 +179,39 @@ BootTask/
 │   ├── DynReceiver.smali        SCREEN_ON / USER_PRESENT 接收器
 │   ├── RuleStore.smali          规则读写（SharedPreferences + JSON）
 │   └── Util.smali               标签映射、描述串生成、Toast、数组适配器
-└── dist/开机任务.apk             成品
+└── dist/BootTask_v1.3.apk       成品
 ```
 
-UI 全部**代码构建**（不用布局 XML），避免引入 res 依赖，也让工程保持纯 smali。
+UI 全部**代码构建**（不用布局 XML）；执行主体保持 smali，仅诊断与日志下载复用 Java/D8。
 
 ---
 
 ## 四、构建
 
 ```bash
-export JAVA_HOME="C:/PJGG/apk/tools/jdk-17.0.20.1+1"
-java -jar tools/apktool.jar b BootTask -o BootTask.apk
-java -jar tools/uber-apk-signer.jar -a BootTask.apk -o _out/bt --allowResign
-# 产物: _out/bt/BootTask-aligned-debugSigned.apk
+bash BootTask/build.sh
 ```
+
+脚本在全新临时目录编译 smali，合并 CarLife 的 `LogDownloadActivity` / `LogHttpServer` 与
+BootTask 诊断类，注入未压缩二维码资源，最后仅做 v1 签名。默认产物：
+`BootTask/dist/BootTask_v1.3.apk`。
 
 ## 五、安装与激活
 
 ```bash
-adb install -r dist/开机任务.apk
-# 首次打开 App 后，添加一条规则即可；动态事件（亮屏/解锁）由 ExecService 负责，
-# 打开一次 App 或重启后服务即常驻。
+# 注意：仓库 *.apk 走 Git LFS，没装 git-lfs 时拷出来的是 130 字节指针文本，装必失败
+git lfs pull --include="BootTask/dist/*"   # 先拉真包（file xxx.apk 应显示 Zip archive）
+adb install -r dist/BootTask_v1.3.apk
+# 首次打开 App 后，添加一条规则并确认显示「[启用]」；
+# 重启后点「下载日志」，扫码即可取回 boottask.log 与 diagnostic.txt。
 ```
 
-> Android 4.4/5.x：装完直接生效。
+> Android 4.4/5.x：安装后先打开一次，并确认至少存在一条启用的规则。
 > Android 6+：需要额外在系统设置里授予「自启动/后台运行」权限，部分 ROM 还需关闭省电限制。
 
 ---
 
-## 六、MuMu 模拟器实测记录
+## 六、v1.2 MuMu 模拟器实测记录
 
 测试机：MuMu 模拟器 Android 4.4.4（API 19），1440×810
 
@@ -197,6 +223,8 @@ adb install -r dist/开机任务.apk
 | 4 | 静音动作（延迟 2 秒） | ✅ `ringer -> SILENT`，`dumpsys audio` 中 muted streams 由 `0x0` 变 `0x1a6` |
 | 5 | 屏幕亮屏 → 取消静音 | ✅ 按电源键熄屏再亮屏，日志 `screen_on` 规则命中 → `ringer -> NORMAL`，muted streams 复位 `0x0` |
 | 6 | 规则列表显示 | ✅ `[启用] 开机完成 -> 等待3秒后打开应用 com.baidu.carlifevehicle` / `[启用] 屏幕解锁 -> 静音` |
+
+v1.3 已通过 Java 编译、apktool 打包、反编译复核、ZIP 完整性与纯 v1 签名验证；运行态待车机实测。
 
 截图见 `../../_mumutest/bt1_main.png`、`bt2_edit.png`、`bt7_rulelist.png`、`bt8_rulelist_fixed.png`、`bt6_boot_fired.png`（CarLife 被拉起）。
 

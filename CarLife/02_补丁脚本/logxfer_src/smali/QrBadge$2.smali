@@ -1,6 +1,6 @@
-.class Lcom/baidu/carlifevehicle/logxfer/QrFallback$1;
+.class Lcom/baidu/carlifevehicle/logxfer/QrBadge$2;
 .super Ljava/lang/Object;
-.source "QrFallback.java"
+.source "QrBadge.java"
 
 # interfaces
 .implements Ljava/lang/Runnable;
@@ -8,7 +8,7 @@
 
 # annotations
 .annotation system Ldalvik/annotation/EnclosingMethod;
-    value = Lcom/baidu/carlifevehicle/logxfer/QrFallback;->onLinkUp()V
+    value = Lcom/baidu/carlifevehicle/logxfer/QrBadge;->hide()V
 .end annotation
 
 .annotation system Ldalvik/annotation/InnerClass;
@@ -21,7 +21,7 @@
 .method constructor <init>()V
     .locals 0
 
-    .line 76
+    .line 81
     invoke-direct {p0}, Ljava/lang/Object;-><init>()V
 
     return-void
@@ -32,20 +32,20 @@
 .method public run()V
     .locals 1
 
-    .line 79
+    .line 84
     :try_start_0
-    invoke-static {}, Lcom/baidu/carlifevehicle/logxfer/QrFallbackActivity;->finishSelf()V
+    invoke-static {}, Lcom/baidu/carlifevehicle/logxfer/QrBadge;->access$200()V
     :try_end_0
     .catchall {:try_start_0 .. :try_end_0} :catchall_0
 
-    .line 81
+    .line 86
     goto :goto_0
 
-    .line 80
+    .line 85
     :catchall_0
     move-exception v0
 
-    .line 82
+    .line 87
     :goto_0
     return-void
 .end method

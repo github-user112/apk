@@ -5,10 +5,13 @@
 > 本文件与同目录的 `CLAUDE.md` 内容同步维护，读任意一份即可。
 >
 > 目标读者：刚接手这个仓库、不想重踩坑的 agent。
-> 最后更新：2026-09-24（**1.42 修 1.41 P0**：e/b 双毒行清理 + m/m/b Q2-B 重写；工作流改为
-> 单树 `01_工程源码/main/` 直接改 + git tag，不再新增 _w1xx 树与 patch_vNN 脚本。
-> 上一版 1.40 亿连式无蓝牙直连兜底：蓝牙判死后自动挂 UDP 7999 监听 + 显示直连组 SSID/PSK 让手机手动入组，
-> e/d.f() 加 keepP2pGroup 闸门防组被拆。1.29 定案：直连堵点=车机 Android 蓝牙起不来，热点模式实测 100% 可用）
+> 最后更新：2026-09-25（**1.45 首页角标与快速兜底**：① 二维码改首页 120dp 小角标
+> （QrBadge，不跳新页面，QrFallbackActivity 保留为兜底）② BtGuard 快速判死：
+> state 恒 10(OFF) 无迁移 6s 即死（45s 死等是 1.44 二维码 52s 才上屏的主因）
+> ③ ★修 1.25 ConnLog.hasUsableLocalIp() 极性写反（if-nez→if-eqz，恒 false 导致
+> awaitLocalIp 每次必烧满 5s，分支极性第 5 例）④ 首页连接超时 30s→120s
+> （二维码扫码入组常超 30s，30s 档误报「连接超时」。1.44 车机实机日志三会话实锤：
+> 09:04:07 建链 → 09:04:14 满 60fps，全流程首次跑通）
 >
 > ⚠️ **1.25 不可用**：装上去 App 一动就 Force Close（`VerifyError: ConnLog`）。
 > 根因是 1.25 新增的 `precheck()` / `hasUsableLocalIp()` / `awaitLocalIp()` 三个方法
@@ -87,7 +90,8 @@
 | **1.42** | **修 1.41 的 P0**（在 `main` 树直接改，git tag `v1.42`）：① `e/b.smali` a()V 删 `const/4 v14` 毒行 ② `e/b.smali` d() 计数器 v14→v8 + clear()V 后补 `const/4 v8, 0x0` ③ `m/m/b.smali` b() 的 Q2-B 重写：`if-gez`（恒真死代码）→ `if-lez`，并给裸 `check-cast e/a` 加 `instance-of` 判别——USB/直连传输也走 `j/c.b()` 虚分派进来，原版必抛 CCE（1.41 遗留第二颗雷，MuMu 无 P2P/USB 未炸出）。门禁补寄存器越界检查（对 _w141 恰好检出全部三处毒）+ m/m/b 进 TARGETS | **静态门禁+构建复核通过**（条目级 687=687、dex +8 字节、versionCode 142/mod1.42）；**MuMu 待实测**（装/启 0 崩溃、无 VFY 拒类、热点页签无异常） |
 
 | **1.43** | **修 1.40 无蓝牙兜底在车机上的「拆组」bug**（车机实机日志 2026-09-24 20:17 会话实锤）：兜底挂载 → `armTransport` 反射调 `m/m/b.b(兜底传输)` → b() 对其它传输调 `f()` → `e/d.f()` 停自举器时调 `j.b()`，而 `j.b()` 内部的「亿连三连清」(clearLocalServices+removeGroup+stopPeerDiscovery) 在 1.40 的 keepP2pGroup 闸门**之前**无条件执行 → 把刚建好的 `DIRECT-cH-CarLife-HU` 组拆掉（20:17:58 terminate → 20:17:59 groupFormed:false）→ 90s 轮询「直连组未建立」。修复：`m/m/d/j.smali` b() 的三连清加 `NoBtFallback.keepP2pGroup()` 闸门（true 时只停循环/释放组播锁，不清组，并打新日志 `disarmed: keepP2pGroup=true, P2P group kept`）。1.40 realme 测试没炸是因为测试时组本就没建起来，只有车机（P2P 组稳定建起）才暴露。versionCode 143 / mod1.43 | **静态门禁+构建复核通过**（合并点检查 201 方法 0 冲突；dex 含新日志串；签名 v1+v2+v3）；**车机实机待验** |
-| **1.44（当前）** | **扫码入组增强**（用户要求替代车机蓝牙自动下发凭据）：NoBtFallback.showCredentials() 拿到 DIRECT- 组名+口令后，除打日志外新增 `QrFallback.show(ssid,psk)` → 全屏 `QrFallbackActivity`（WebView + assets/logxfer/qr_wifi.html + 复用现有 qrcode.js）渲染标准 `WIFI:T:WPA;S:..;P:..;;` 二维码（\;\,\:\" 转义齐全）+ 组名/密码明文，手机相机/微信扫码即自动入组 → 广播走 UDP 7999 热点传输原路建链；`m/m/b.b()` 建链回调注入 `QrFallback.onLinkUp()` 自动关码页回视频；页面另有「连接成功后点此关闭」按钮（JS Bridge）+ BACK 键关闭。新类经 logxfer 管线 javac→D8 产出（android.jar 换完整版 Robolectric android-all 4.4_r1——原 Sable android-19 缺 JavascriptInterface）；Manifest 注册 QrFallbackActivity（Theme.Black.NoTitleBar + excludeFromRecents）。1.43 的 keepP2pGroup 闸门修复同时包含在本版内 | **静态门禁+构建复核通过**（versionCode 144/mod1.44；签名 v1+v2+v3；成品反编译回读确认两处 invoke 与 4 个新类全在）；**车机实机待验** |
+| **1.44（当前）** | **扫码入组增强**（用户要求替代车机蓝牙自动下发凭据）：NoBtFallback.showCredentials() 拿到 DIRECT- 组名+口令后，除打日志外新增 `QrFallback.show(ssid,psk)` → 全屏 `QrFallbackActivity`（WebView + assets/logxfer/qr_wifi.html + 复用现有 qrcode.js）渲染标准 `WIFI:T:WPA;S:..;P:..;;` 二维码（\;\,\:\" 转义齐全）+ 组名/密码明文，手机相机/微信扫码即自动入组 → 广播走 UDP 7999 热点传输原路建链；`m/m/b.b()` 建链回调注入 `QrFallback.onLinkUp()` 自动关码页回视频；页面另有「连接成功后点此关闭」按钮（JS Bridge）+ BACK 键关闭。新类经 logxfer 管线 javac→D8 产出（android.jar 换完整版 Robolectric android-all 4.4_r1——原 Sable android-19 缺 JavascriptInterface）；Manifest 注册 QrFallbackActivity（Theme.Black.NoTitleBar + excludeFromRecents）。1.43 的 keepP2pGroup 闸门修复同时包含在本版内 | **静态门禁+构建复核通过**（versionCode 144/mod1.44；签名 v1+v2+v3；成品反编译回读确认两处 invoke 与 4 个新类全在）；**车机实机 2026-09-25 首次全流程跑通**（09:04:07 建链→09:04:14 满 60fps，日志包 carlife-logs.zip 三会话） |
+| **1.45** | **首页角标与快速兜底**（用户需求：二维码别跳新页面+修等待时间）：① 新增 `QrBadge`（120dp WebView 角标叠 frag_main 根布局，页签右侧空带优先/窄屏贴右上角，点码即关，onLinkUp 自动关，LogXferEntry.bind 以 WeakReference 记根 View，根不可用退回全屏页）② BtGuard 快速判死：`sSawTransition` 未见过非 OFF 状态时 6s（FAST_WAIT）即判死，见过 TURNING_ON 回退 45s 自愈 ③ ★修 1.25 ConnLog.hasUsableLocalIp() 极性（if-nez→if-eqz，恒 false → awaitLocalIp 每次白烧 5s；修复后 GO 网卡立即可见）④ 首页连接超时 Z 30s→120s（`s.smali` const/16 0x7530→const 0x1d4c0）。versionCode 145，详见 `04_文档/1.45_首页角标与快速兜底.md` | **静态门禁+构建复核通过**（202 方法 0 冲突；条目级 688→689 仅多 qr_badge.html；dex 字符串 QrBadge/sSawTransition/快速判死/set timeout: 120000 全 OK；签名 v1+v2+v3）；**MuMu/车机实机待验** |
 
 **1.42 成品**：`CarLife/05_产物/CarLife4.0车机端个人修改版1.42_修P0校验拒绝.apk`
 （2,622,610 字节，versionCode 142，versionName `mod1.42`，签名 v1+v2+v3，未 zipalign，

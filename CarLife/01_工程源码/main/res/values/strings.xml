@@ -35,7 +35,7 @@
     <string name="alert_quit">退出</string>
     <string name="alert_quit_app_content">您确定要退出CarLife吗？</string>
     <string name="answer_call">接听</string>
-    <string name="app_name">百度CarLife 1.42</string>
+    <string name="app_name">百度CarLife 1.45</string>
     <string name="auth_tips">为确保连接成功，请允许CarLife的授权请求</string>
     <string name="auth_tips_img">点击确定</string>
     <string name="auth_tips_tv_title">允许授权</string>

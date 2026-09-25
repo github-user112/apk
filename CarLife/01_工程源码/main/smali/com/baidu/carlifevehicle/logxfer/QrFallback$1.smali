@@ -21,7 +21,7 @@
 .method constructor <init>()V
     .locals 0
 
-    .line 69
+    .line 76
     invoke-direct {p0}, Ljava/lang/Object;-><init>()V
 
     return-void
@@ -32,20 +32,20 @@
 .method public run()V
     .locals 1
 
-    .line 72
+    .line 79
     :try_start_0
     invoke-static {}, Lcom/baidu/carlifevehicle/logxfer/QrFallbackActivity;->finishSelf()V
     :try_end_0
     .catchall {:try_start_0 .. :try_end_0} :catchall_0
 
-    .line 74
+    .line 81
     goto :goto_0
 
-    .line 73
+    .line 80
     :catchall_0
     move-exception v0
 
-    .line 75
+    .line 82
     :goto_0
     return-void
 .end method

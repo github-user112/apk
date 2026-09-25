@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  html,body{background:#fff;margin:0;padding:0;overflow:hidden;
+    -webkit-user-select:none;user-select:none;text-align:center}
+  #q{padding:3px}
+  #q img{width:100%;height:auto;image-rendering:pixelated;display:block}
+  .hint{font-size:9px;color:#555;margin:0;padding:0 0 2px}
+</style>
+<script src="qrcode.js"></script>
+</head>
+<body>
+<div id="q"></div>
+<div class="hint">点此关闭</div>
+<script>
+(function () {
+  // hash 形如: #wifi=<enc>&ssid=<enc>&psk=<enc>，各段已 Uri.encode
+  var parts = {};
+  var h = location.hash.slice(1);
+  var segs = h.split('&');
+  for (var i = 0; i < segs.length; i++) {
+    var kv = segs[i].split('=');
+    if (kv.length >= 2) parts[kv[0]] = decodeURIComponent(kv.slice(1).join('='));
+  }
+  var ssid = parts['ssid'] || '';
+  var psk  = parts['psk']  || '';
+  var wifi = parts['wifi'] || ('WIFI:T:WPA;S:' + ssid + ';P:' + psk + ';;');
+  var html = '';
+  try {
+    var qr = qrcode(0, 'M');
+    qr.addData(wifi);
+    qr.make();
+    html = qr.createImgTag(4, 2);
+  } catch (e) {
+    html = '';
+  }
+  if (html) {
+    document.getElementById('q').innerHTML = html;
+  } else {
+    document.getElementById('q').textContent = '(码生成失败, 密码见日志区)';
+  }
+  // 点角标任意位置 → JS Bridge 关闭
+  document.body.addEventListener('click', function () {
+    try { App.close(); } catch (e) {}
+  });
+})();
+</script>
+</body>
+</html>

@@ -6,7 +6,10 @@
 ## ★★ 车机定案（2026-09-24，实机日志实锤）
 车机 = telechips tcc893x / Android 4.4.2 / KVT49L（eng）。P2P 组网是好的（GO 192.168.49.1，DIRECT-cH-CarLife-HU），别动自举器；**唯一堵点 = 车机 Android 蓝牙起不来**（state 恒 10，enable() 全无效 → 手机拿不到 SSID/PSK 不来 join）。热点模式 100% 可用。⚠ 车机 UI 的"蓝牙已连"是 MCU 蓝牙，≠ Android BluetoothAdapter。
 
-## 1.44（当前交付版）：扫码入组
+## 1.45（当前交付版）：首页角标+快速兜底
+versionCode 145 / mod1.45。① 二维码改首页 120dp 小角标（新类 `QrBadge`：WebView 叠 frag_main 根布局，页签 conn_mode_bar=0x7f090140 右侧空带优先，窄屏贴右上，点码即关，onLinkUp 自动关；`LogXferEntry.bind` 用 WeakReference 记根 View；根不可用退回全屏 QrFallbackActivity）② BtGuard 快速判死：`sSawTransition` 无非 OFF 迁移时 6s（FAST_WAIT）判死，见过 TURNING_ON 走老 45s ③ ★修 1.25 `ConnLog.hasUsableLocalIp()` 极性（if-nez→if-eqz，恒 false → awaitLocalIp 每次白烧 5s，分支极性第 5 例）④ 首页连接超时 30s→120s（s.smali Z=0x1d4c0，q0/r0 共用）。编译 android.jar 必须用 android-all.jar（`ANDROID_JAR` env 或 tools/android-all.jar）。验证：门禁 0 冲突、条目级 688→689 仅多 qr_badge.html、dex 字符串全 OK；**MuMu/车机实机待验**。详见 `04_文档/1.45_首页角标与快速兜底.md`。
+
+## 1.44：扫码入组（车机实机 2026-09-25 全流程跑通）
 versionCode 144 / mod1.44，含 1.43 全部修复。NoBtFallback.showCredentials() 拿到凭据后弹全屏二维码（`QrFallback.show` → `QrFallbackActivity` WebView + `assets/logxfer/qr_wifi.html` 复用 qrcode.js，`WIFI:T:WPA;S:..;P:..;;` 标准格式），手机相机/微信扫码自动入组；`m/m/b.b()` 建链回调 `onLinkUp()` 自动关码页。新类走 logxfer 管线（javac→D8→smali），android.jar 用 Robolectric android-all 4.4_r1（Sable android-19 缺 JavascriptInterface）。验证：门禁 0 冲突 + 成品反编译回读两处 invoke/4 新类全在；车机实机待验。
 
 ## 1.43：修 1.40 兜底「拆组」

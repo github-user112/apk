@@ -41,7 +41,7 @@
 .method private static ctx()Landroid/content/Context;
     .locals 6
 
-    .line 83
+    .line 90
     const/4 v0, 0x0
 
     :try_start_0
@@ -51,7 +51,7 @@
 
     move-result-object v1
 
-    .line 84
+    .line 91
     const-string v2, "currentActivityThread"
 
     const/4 v3, 0x0
@@ -68,13 +68,13 @@
 
     move-result-object v2
 
-    .line 85
+    .line 92
     if-nez v2, :cond_0
 
-    .line 86
+    .line 93
     return-object v0
 
-    .line 88
+    .line 95
     :cond_0
     const-string v4, "getApplication"
 
@@ -96,18 +96,18 @@
 
     return-object v1
 
-    .line 89
+    .line 96
     :catchall_0
     move-exception v1
 
-    .line 90
+    .line 97
     return-object v0
 .end method
 
 .method private static log(Ljava/lang/String;)V
     .locals 6
 
-    .line 97
+    .line 104
     :try_start_0
     const-string v0, "com.baidu.carlifevehicle.ConnLog"
 
@@ -115,7 +115,7 @@
 
     move-result-object v0
 
-    .line 98
+    .line 105
     const-string v1, "logLine"
 
     const/4 v2, 0x1
@@ -132,7 +132,7 @@
 
     move-result-object v0
 
-    .line 99
+    .line 106
     new-array v1, v2, [Ljava/lang/Object;
 
     aput-object p0, v1, v5
@@ -143,19 +143,19 @@
     :try_end_0
     .catchall {:try_start_0 .. :try_end_0} :catchall_0
 
-    .line 102
+    .line 109
     goto :goto_0
 
-    .line 100
+    .line 107
     :catchall_0
     move-exception v0
 
-    .line 101
+    .line 108
     const-string v0, "CarLifeNoBt"
 
     invoke-static {v0, p0}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
 
-    .line 103
+    .line 110
     :goto_0
     return-void
 .end method
@@ -163,25 +163,28 @@
 .method public static onLinkUp()V
     .locals 2
 
-    .line 64
+    .line 70
     :try_start_0
     sget-boolean v0, Lcom/baidu/carlifevehicle/logxfer/QrFallback;->sShown:Z
 
     if-nez v0, :cond_0
 
-    .line 65
+    .line 71
     return-void
 
-    .line 67
+    .line 73
     :cond_0
     const/4 v0, 0x0
 
     sput-boolean v0, Lcom/baidu/carlifevehicle/logxfer/QrFallback;->sShown:Z
 
-    .line 68
+    .line 74
     sput-boolean v0, Lcom/baidu/carlifevehicle/logxfer/QrFallback;->sArmed:Z
 
-    .line 69
+    .line 75
+    invoke-static {}, Lcom/baidu/carlifevehicle/logxfer/QrBadge;->hide()V
+
+    .line 76
     new-instance v0, Landroid/os/Handler;
 
     invoke-static {}, Landroid/os/Looper;->getMainLooper()Landroid/os/Looper;
@@ -198,14 +201,14 @@
     :try_end_0
     .catchall {:try_start_0 .. :try_end_0} :catchall_0
 
-    .line 78
+    .line 85
     goto :goto_0
 
-    .line 77
+    .line 84
     :catchall_0
     move-exception v0
 
-    .line 79
+    .line 86
     :goto_0
     return-void
 .end method
@@ -214,7 +217,7 @@
     .locals 3
 
     .line 38
-    if-eqz p0, :cond_3
+    if-eqz p0, :cond_4
 
     :try_start_0
     invoke-virtual {p0}, Ljava/lang/String;->length()I
@@ -234,51 +237,65 @@
 
     .line 44
     :cond_1
+    const/4 v0, 0x1
+
+    sput-boolean v0, Lcom/baidu/carlifevehicle/logxfer/QrFallback;->sArmed:Z
+
+    .line 45
+    sput-boolean v0, Lcom/baidu/carlifevehicle/logxfer/QrFallback;->sShown:Z
+
+    .line 48
+    invoke-static {p0, p1}, Lcom/baidu/carlifevehicle/logxfer/QrBadge;->show(Ljava/lang/String;Ljava/lang/String;)Z
+
+    move-result v0
+
+    .line 49
+    if-nez v0, :cond_3
+
+    .line 50
     invoke-static {}, Lcom/baidu/carlifevehicle/logxfer/QrFallback;->ctx()Landroid/content/Context;
 
     move-result-object v0
 
-    .line 45
+    .line 51
     if-nez v0, :cond_2
 
-    .line 46
+    .line 52
+    const/4 p0, 0x0
+
+    sput-boolean p0, Lcom/baidu/carlifevehicle/logxfer/QrFallback;->sShown:Z
+
+    .line 53
     return-void
 
-    .line 48
+    .line 55
     :cond_2
-    const/4 v1, 0x1
-
-    sput-boolean v1, Lcom/baidu/carlifevehicle/logxfer/QrFallback;->sArmed:Z
-
-    .line 49
-    sput-boolean v1, Lcom/baidu/carlifevehicle/logxfer/QrFallback;->sShown:Z
-
-    .line 50
     new-instance v1, Landroid/content/Intent;
 
     const-class v2, Lcom/baidu/carlifevehicle/logxfer/QrFallbackActivity;
 
     invoke-direct {v1, v0, v2}, Landroid/content/Intent;-><init>(Landroid/content/Context;Ljava/lang/Class;)V
 
-    .line 51
+    .line 56
     const-string v2, "ssid"
 
     invoke-virtual {v1, v2, p0}, Landroid/content/Intent;->putExtra(Ljava/lang/String;Ljava/lang/String;)Landroid/content/Intent;
 
-    .line 52
+    .line 57
     const-string v2, "pass"
 
     invoke-virtual {v1, v2, p1}, Landroid/content/Intent;->putExtra(Ljava/lang/String;Ljava/lang/String;)Landroid/content/Intent;
 
-    .line 53
+    .line 58
     const/high16 p1, 0x10000000
 
     invoke-virtual {v1, p1}, Landroid/content/Intent;->addFlags(I)Landroid/content/Intent;
 
-    .line 54
+    .line 59
     invoke-virtual {v0, v1}, Landroid/content/Context;->startActivity(Landroid/content/Intent;)V
 
-    .line 55
+    .line 61
+    :cond_3
     new-instance p1, Ljava/lang/StringBuilder;
 
     invoke-direct {p1}, Ljava/lang/StringBuilder;-><init>()V
@@ -301,14 +318,14 @@
     :try_end_0
     .catchall {:try_start_0 .. :try_end_0} :catchall_0
 
-    .line 58
+    .line 64
     goto :goto_0
 
-    .line 56
+    .line 62
     :catchall_0
     move-exception p0
 
-    .line 57
+    .line 63
     new-instance p1, Ljava/lang/StringBuilder;
 
     invoke-direct {p1}, Ljava/lang/StringBuilder;-><init>()V
@@ -329,12 +346,12 @@
 
     invoke-static {p0}, Lcom/baidu/carlifevehicle/logxfer/QrFallback;->log(Ljava/lang/String;)V
 
-    .line 59
+    .line 65
     :goto_0
     return-void
 
     .line 39
-    :cond_3
+    :cond_4
     :goto_1
     return-void
 .end method

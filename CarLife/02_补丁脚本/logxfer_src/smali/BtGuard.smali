@@ -8,6 +8,8 @@
 
 .field private static final EXEC:Ljava/util/concurrent/ScheduledExecutorService;
 
+.field private static final FAST_WAIT:I = 0x6
+
 .field private static final MAX_WAIT:I = 0x2d
 
 .field private static final TAG:Ljava/lang/String; = "CarLife_SDK"
@@ -18,6 +20,8 @@
 
 .field private static sDead:Z
 
+.field private static sSawTransition:Z
+
 .field private static sWait:I
 
 
@@ -25,52 +29,55 @@
 .method static constructor <clinit>()V
     .locals 2
 
-    .line 58
+    .line 73
     const/4 v0, 0x0
 
     sput v0, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->sWait:I
 
-    .line 61
+    .line 76
     sput-boolean v0, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->sDead:Z
 
-    .line 63
+    .line 79
+    sput-boolean v0, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->sSawTransition:Z
+
+    .line 81
     const/4 v1, 0x0
 
     sput-object v1, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->sCtx:Landroid/content/Context;
 
-    .line 64
+    .line 82
     sput-boolean v0, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->sCtxTried:Z
 
-    .line 66
+    .line 84
     new-instance v0, Lcom/baidu/carlifevehicle/logxfer/BtGuard$1;
 
     invoke-direct {v0}, Lcom/baidu/carlifevehicle/logxfer/BtGuard$1;-><init>()V
 
-    .line 67
+    .line 85
     invoke-static {v0}, Ljava/util/concurrent/Executors;->newSingleThreadScheduledExecutor(Ljava/util/concurrent/ThreadFactory;)Ljava/util/concurrent/ScheduledExecutorService;
 
     move-result-object v0
 
     sput-object v0, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->EXEC:Ljava/util/concurrent/ScheduledExecutorService;
 
-    .line 66
+    .line 84
     return-void
 .end method
 
 .method private constructor <init>()V
     .locals 0
 
-    .line 75
+    .line 93
     invoke-direct {p0}, Ljava/lang/Object;-><init>()V
 
-    .line 76
+    .line 94
     return-void
 .end method
 
 .method private static bluetoothOnSetting()I
     .locals 10
 
-    .line 145
+    .line 163
     const/16 v0, -0x9
 
     :try_start_0
@@ -78,13 +85,13 @@
 
     move-result-object v1
 
-    .line 146
+    .line 164
     if-nez v1, :cond_0
 
-    .line 147
+    .line 165
     return v0
 
-    .line 149
+    .line 167
     :cond_0
     const-string v2, "android.provider.Settings$Global"
 
@@ -92,7 +99,7 @@
 
     move-result-object v2
 
-    .line 150
+    .line 168
     const-string v3, "getInt"
 
     const/4 v4, 0x3
@@ -121,7 +128,7 @@
 
     move-result-object v2
 
-    .line 152
+    .line 170
     new-array v3, v4, [Ljava/lang/Object;
 
     invoke-virtual {v1}, Landroid/content/Context;->getContentResolver()Landroid/content/ContentResolver;
@@ -146,7 +153,7 @@
 
     move-result-object v1
 
-    .line 153
+    .line 171
     check-cast v1, Ljava/lang/Integer;
 
     invoke-virtual {v1}, Ljava/lang/Integer;->intValue()I
@@ -157,18 +164,18 @@
 
     return v0
 
-    .line 154
+    .line 172
     :catchall_0
     move-exception v1
 
-    .line 155
+    .line 173
     return v0
 .end method
 
 .method private static ctx()Landroid/content/Context;
     .locals 6
 
-    .line 91
+    .line 109
     sget-object v0, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->sCtx:Landroid/content/Context;
 
     if-nez v0, :cond_1
@@ -179,13 +186,13 @@
 
     goto :goto_1
 
-    .line 94
+    .line 112
     :cond_0
     const/4 v0, 0x1
 
     sput-boolean v0, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->sCtxTried:Z
 
-    .line 96
+    .line 114
     const/4 v0, 0x0
 
     :try_start_0
@@ -195,7 +202,7 @@
 
     move-result-object v1
 
-    .line 97
+    .line 115
     const-string v2, "currentActivityThread"
 
     const/4 v3, 0x0
@@ -206,14 +213,14 @@
 
     move-result-object v2
 
-    .line 98
+    .line 116
     new-array v4, v3, [Ljava/lang/Object;
 
     invoke-virtual {v2, v0, v4}, Ljava/lang/reflect/Method;->invoke(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;
 
     move-result-object v2
 
-    .line 99
+    .line 117
     const-string v4, "getApplication"
 
     new-array v5, v3, [Ljava/lang/Class;
@@ -222,7 +229,7 @@
 
     move-result-object v1
 
-    .line 100
+    .line 118
     new-array v3, v3, [Ljava/lang/Object;
 
     invoke-virtual {v1, v2, v3}, Ljava/lang/reflect/Method;->invoke(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;
@@ -235,23 +242,23 @@
     :try_end_0
     .catchall {:try_start_0 .. :try_end_0} :catchall_0
 
-    .line 103
+    .line 121
     goto :goto_0
 
-    .line 101
+    .line 119
     :catchall_0
     move-exception v1
 
-    .line 102
+    .line 120
     sput-object v0, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->sCtx:Landroid/content/Context;
 
-    .line 104
+    .line 122
     :goto_0
     sget-object v0, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->sCtx:Landroid/content/Context;
 
     return-object v0
 
-    .line 92
+    .line 110
     :cond_1
     :goto_1
     sget-object v0, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->sCtx:Landroid/content/Context;
@@ -262,10 +269,10 @@
 .method private static diag(ZLjava/lang/Boolean;Ljava/lang/String;)Ljava/lang/String;
     .locals 8
 
-    .line 210
+    .line 228
     const-string p0, "err"
 
-    .line 212
+    .line 230
     :try_start_0
     invoke-static {}, Landroid/bluetooth/BluetoothAdapter;->getDefaultAdapter()Landroid/bluetooth/BluetoothAdapter;
 
@@ -273,43 +280,43 @@
     :try_end_0
     .catchall {:try_start_0 .. :try_end_0} :catchall_0
 
-    .line 215
+    .line 233
     goto :goto_0
 
-    .line 213
+    .line 231
     :catchall_0
     move-exception v0
 
-    .line 214
+    .line 232
     const/4 v0, 0x0
 
-    .line 216
+    .line 234
     :goto_0
     invoke-static {}, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->managerAdapter()Landroid/bluetooth/BluetoothAdapter;
 
     move-result-object v1
 
-    .line 218
+    .line 236
     invoke-static {v0}, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->stateOf(Landroid/bluetooth/BluetoothAdapter;)I
 
     move-result v2
 
-    .line 219
+    .line 237
     invoke-static {v0}, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->enabledOf(Landroid/bluetooth/BluetoothAdapter;)Z
 
     move-result v3
 
-    .line 220
+    .line 238
     invoke-static {v1}, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->enabledOf(Landroid/bluetooth/BluetoothAdapter;)Z
 
     move-result v4
 
-    .line 222
+    .line 240
     new-instance v5, Ljava/lang/StringBuilder;
 
     invoke-direct {v5}, Ljava/lang/StringBuilder;-><init>()V
 
-    .line 223
+    .line 241
     const-string v6, "[\u84dd\u7259\u8bca\u65ad] state="
 
     invoke-virtual {v5, v6}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
@@ -338,7 +345,7 @@
 
     invoke-virtual {v2, v6}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
 
-    .line 224
+    .line 242
     const-string v2, " isEnabled="
 
     invoke-virtual {v5, v2}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
@@ -347,7 +354,7 @@
 
     invoke-virtual {v2, v3}, Ljava/lang/StringBuilder;->append(Z)Ljava/lang/StringBuilder;
 
-    .line 225
+    .line 243
     const-string v2, " \u7cfb\u7edf\u8def\u5f84(BluetoothManager)isEnabled="
 
     invoke-virtual {v5, v2}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
@@ -356,7 +363,7 @@
 
     invoke-virtual {v2, v4}, Ljava/lang/StringBuilder;->append(Z)Ljava/lang/StringBuilder;
 
-    .line 226
+    .line 244
     const-string v2, " \u540c\u4e00\u5bf9\u8c61="
 
     invoke-virtual {v5, v2}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
@@ -375,7 +382,7 @@
     :goto_1
     invoke-virtual {v2, v1}, Ljava/lang/StringBuilder;->append(Z)Ljava/lang/StringBuilder;
 
-    .line 227
+    .line 245
     const-string v1, " bluetooth_on="
 
     invoke-virtual {v5, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
@@ -388,16 +395,16 @@
 
     invoke-virtual {v1, v2}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
 
-    .line 229
+    .line 247
     if-eqz v0, :cond_2
 
-    .line 230
+    .line 248
     nop
 
-    .line 231
+    .line 249
     nop
 
-    .line 233
+    .line 251
     :try_start_1
     invoke-virtual {v0}, Landroid/bluetooth/BluetoothAdapter;->getAddress()Ljava/lang/String;
 
@@ -409,17 +416,17 @@
     :try_end_1
     .catchall {:try_start_1 .. :try_end_1} :catchall_1
 
-    .line 236
+    .line 254
     goto :goto_2
 
-    .line 234
+    .line 252
     :catchall_1
     move-exception v1
 
-    .line 235
+    .line 253
     move-object v1, p0
 
-    .line 238
+    .line 256
     :goto_2
     :try_start_2
     invoke-virtual {v0}, Landroid/bluetooth/BluetoothAdapter;->getName()Ljava/lang/String;
@@ -432,17 +439,17 @@
     :try_end_2
     .catchall {:try_start_2 .. :try_end_2} :catchall_2
 
-    .line 241
+    .line 259
     goto :goto_3
 
-    .line 239
+    .line 257
     :catchall_2
     move-exception v2
 
-    .line 240
+    .line 258
     nop
 
-    .line 242
+    .line 260
     :goto_3
     const-string v2, " addr="
 
@@ -462,16 +469,16 @@
 
     invoke-virtual {v1, p0}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
 
-    .line 244
+    .line 262
     nop
 
-    .line 246
+    .line 264
     :try_start_3
     invoke-virtual {v0}, Landroid/bluetooth/BluetoothAdapter;->getBondedDevices()Ljava/util/Set;
 
     move-result-object p0
 
-    .line 247
+    .line 265
     if-nez p0, :cond_1
 
     const/4 p0, -0x1
@@ -485,18 +492,18 @@
     :try_end_3
     .catchall {:try_start_3 .. :try_end_3} :catchall_3
 
-    .line 250
+    .line 268
     :goto_4
     goto :goto_5
 
-    .line 248
+    .line 266
     :catchall_3
     move-exception p0
 
-    .line 249
+    .line 267
     const/4 p0, -0x2
 
-    .line 251
+    .line 269
     :goto_5
     const-string v0, " \u5df2\u914d\u5bf9="
 
@@ -506,20 +513,20 @@
 
     invoke-virtual {v0, p0}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
 
-    .line 252
+    .line 270
     goto :goto_6
 
-    .line 253
+    .line 271
     :cond_2
     const-string p0, " adapter=null"
 
     invoke-virtual {v5, p0}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
 
-    .line 255
+    .line 273
     :goto_6
     if-eqz p1, :cond_3
 
-    .line 256
+    .line 274
     const-string p0, " enable()\u8fd4\u56de="
 
     invoke-virtual {v5, p0}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
@@ -532,11 +539,11 @@
 
     invoke-virtual {p0, p1}, Ljava/lang/StringBuilder;->append(Z)Ljava/lang/StringBuilder;
 
-    .line 258
+    .line 276
     :cond_3
     if-eqz p2, :cond_4
 
-    .line 259
+    .line 277
     const-string p0, " \u5f02\u5e38="
 
     invoke-virtual {v5, p0}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
@@ -545,7 +552,7 @@
 
     invoke-virtual {p0, p2}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
 
-    .line 261
+    .line 279
     :cond_4
     invoke-virtual {v5}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
 
@@ -557,15 +564,15 @@
 .method private static enabledOf(Landroid/bluetooth/BluetoothAdapter;)Z
     .locals 1
 
-    .line 132
+    .line 150
     const/4 v0, 0x0
 
     if-nez p0, :cond_0
 
-    .line 133
+    .line 151
     return v0
 
-    .line 136
+    .line 154
     :cond_0
     :try_start_0
     invoke-virtual {p0}, Landroid/bluetooth/BluetoothAdapter;->isEnabled()Z
@@ -576,18 +583,18 @@
 
     return p0
 
-    .line 137
+    .line 155
     :catchall_0
     move-exception p0
 
-    .line 138
+    .line 156
     return v0
 .end method
 
 .method private static managerAdapter()Landroid/bluetooth/BluetoothAdapter;
     .locals 6
 
-    .line 192
+    .line 210
     const/4 v0, 0x0
 
     :try_start_0
@@ -595,13 +602,13 @@
 
     move-result-object v1
 
-    .line 193
+    .line 211
     if-nez v1, :cond_0
 
-    .line 194
+    .line 212
     return-object v0
 
-    .line 196
+    .line 214
     :cond_0
     const-string v2, "bluetooth"
 
@@ -609,13 +616,13 @@
 
     move-result-object v1
 
-    .line 197
+    .line 215
     if-nez v1, :cond_1
 
-    .line 198
+    .line 216
     return-object v0
 
-    .line 200
+    .line 218
     :cond_1
     invoke-virtual {v1}, Ljava/lang/Object;->getClass()Ljava/lang/Class;
 
@@ -631,75 +638,75 @@
 
     move-result-object v2
 
-    .line 201
+    .line 219
     new-array v3, v4, [Ljava/lang/Object;
 
     invoke-virtual {v2, v1, v3}, Ljava/lang/reflect/Method;->invoke(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;
 
     move-result-object v1
 
-    .line 202
+    .line 220
     check-cast v1, Landroid/bluetooth/BluetoothAdapter;
     :try_end_0
     .catchall {:try_start_0 .. :try_end_0} :catchall_0
 
     return-object v1
 
-    .line 203
+    .line 221
     :catchall_0
     move-exception v1
 
-    .line 204
+    .line 222
     return-object v0
 .end method
 
 .method public static onSkipDecision(ZLjava/lang/Runnable;)Z
     .locals 15
 
-    .line 274
+    .line 292
     const/4 v1, 0x0
 
     if-nez p0, :cond_2
 
-    .line 275
+    .line 293
     sget-boolean v0, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->sDead:Z
 
     if-eqz v0, :cond_0
 
-    .line 276
+    .line 294
     sput-boolean v1, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->sDead:Z
 
-    .line 277
+    .line 295
     const-string v0, "\u2714 [\u84dd\u7259] \u5df2\u5f00\u542f(\u6b64\u524d\u5224\u8fc7\u4e0d\u53ef\u7528\uff0c\u73b0\u5df2\u6062\u590d), \u7ee7\u7eed\u5e26\u5916\u63e1\u624b"
 
     invoke-static {v0}, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->say(Ljava/lang/String;)V
 
     goto :goto_0
 
-    .line 278
+    .line 296
     :cond_0
     sget v0, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->sWait:I
 
     if-eqz v0, :cond_1
 
-    .line 279
+    .line 297
     const-string v0, "\u2714 [\u84dd\u7259] \u5df2\u5f00\u542f, \u7ee7\u7eed\u5e26\u5916\u63e1\u624b"
 
     invoke-static {v0}, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->say(Ljava/lang/String;)V
 
-    .line 281
+    .line 299
     :cond_1
     :goto_0
     sput v1, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->sWait:I
 
-    .line 282
+    .line 300
     return v1
 
-    .line 285
+    .line 303
     :cond_2
     nop
 
-    .line 287
+    .line 305
     const/4 v2, 0x0
 
     :try_start_0
@@ -709,78 +716,87 @@
     :try_end_0
     .catchall {:try_start_0 .. :try_end_0} :catchall_0
 
-    .line 290
+    .line 308
     move-object v3, v0
 
     goto :goto_1
 
-    .line 288
+    .line 306
     :catchall_0
     move-exception v0
 
-    .line 289
+    .line 307
     move-object v3, v2
 
-    .line 292
+    .line 310
     :goto_1
     const/4 v4, 0x1
 
     if-nez v3, :cond_3
 
-    .line 293
+    .line 311
     sput-boolean v4, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->sDead:Z
 
-    .line 294
+    .line 312
     sput v1, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->sWait:I
 
-    .line 295
+    .line 313
     const-string v0, "\u2716 [\u84dd\u7259] \u7cfb\u7edf\u65e0\u84dd\u7259\u9002\u914d\u5668(getDefaultAdapter=null), \u653e\u5f03\u84dd\u7259\u901a\u9053"
 
     invoke-static {v0}, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->say(Ljava/lang/String;)V
 
-    .line 296
+    .line 314
     const-string v0, "   \u2192 \u8fd9\u53f0\u8f66\u673a\u6ca1\u6709 Android \u84dd\u7259\u786c\u4ef6\uff0c\u5df2\u81ea\u52a8\u542f\u7528\u3010\u65e0\u84dd\u7259\u76f4\u8fde\u3011\u515c\u5e95\uff08\u89c1\u4e0b\u65b9\u6307\u5f15\uff09"
 
     invoke-static {v0}, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->say(Ljava/lang/String;)V
 
-    .line 298
+    .line 316
     invoke-static {}, Lcom/baidu/carlifevehicle/logxfer/NoBtFallback;->onBtDead()V
 
-    .line 299
+    .line 317
     return v4
 
-    .line 303
+    .line 321
     :cond_3
     sget-boolean v0, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->sDead:Z
 
     if-eqz v0, :cond_5
 
-    .line 304
+    .line 322
     sget v0, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->sWait:I
 
     if-nez v0, :cond_4
 
-    .line 305
+    .line 323
     const-string v0, "\u2026 [\u84dd\u7259] \u4ecd\u4e0d\u53ef\u7528(\u5df2\u5224\u6b7b, \u8df3\u8fc7\u7b49\u5f85) \u2192 \u65e0\u84dd\u7259\u515c\u5e95\u5df2\u542f\u7528, \u6309\u3010\u65e0\u84dd\u7259\u76f4\u8fde\u3011\u6307\u5f15\u64cd\u4f5c"
 
     invoke-static {v0}, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->say(Ljava/lang/String;)V
 
-    .line 307
+    .line 325
     :cond_4
     return v4
 
-    .line 310
+    .line 328
     :cond_5
     invoke-static {v3}, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->enabledOf(Landroid/bluetooth/BluetoothAdapter;)Z
 
     move-result v5
 
-    .line 311
+    .line 329
     invoke-static {v3}, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->stateOf(Landroid/bluetooth/BluetoothAdapter;)I
 
     move-result v6
 
-    .line 314
+    .line 333
+    const/16 v7, 0xa
+
+    if-eq v6, v7, :cond_6
+
+    .line 334
+    sput-boolean v4, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->sSawTransition:Z
+
+    .line 338
+    :cond_6
     invoke-static {}, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->managerAdapter()Landroid/bluetooth/BluetoothAdapter;
 
     move-result-object v0
@@ -789,16 +805,16 @@
 
     move-result v0
 
-    if-eq v5, v0, :cond_6
+    if-eq v5, v0, :cond_7
 
-    .line 315
+    .line 339
     new-instance v0, Ljava/lang/StringBuilder;
 
     invoke-direct {v0}, Ljava/lang/StringBuilder;-><init>()V
 
-    const-string v7, "\u26a0 [\u84dd\u7259] \u72b6\u6001\u4e0d\u4e00\u81f4: getDefaultAdapter()="
+    const-string v8, "\u26a0 [\u84dd\u7259] \u72b6\u6001\u4e0d\u4e00\u81f4: getDefaultAdapter()="
 
-    invoke-virtual {v0, v7}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    invoke-virtual {v0, v8}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
 
     move-result-object v0
 
@@ -806,22 +822,22 @@
 
     move-result-object v0
 
-    const-string v7, " / BluetoothManager.getAdapter()="
+    const-string v8, " / BluetoothManager.getAdapter()="
 
-    invoke-virtual {v0, v7}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    invoke-virtual {v0, v8}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
 
     move-result-object v0
 
-    .line 316
+    .line 340
     invoke-static {}, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->managerAdapter()Landroid/bluetooth/BluetoothAdapter;
 
-    move-result-object v7
+    move-result-object v8
 
-    invoke-static {v7}, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->enabledOf(Landroid/bluetooth/BluetoothAdapter;)Z
+    invoke-static {v8}, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->enabledOf(Landroid/bluetooth/BluetoothAdapter;)Z
 
-    move-result v7
+    move-result v8
 
-    invoke-virtual {v0, v7}, Ljava/lang/StringBuilder;->append(Z)Ljava/lang/StringBuilder;
+    invoke-virtual {v0, v8}, Ljava/lang/StringBuilder;->append(Z)Ljava/lang/StringBuilder;
 
     move-result-object v0
 
@@ -829,147 +845,74 @@
 
     move-result-object v0
 
-    .line 315
+    .line 339
     invoke-static {v0}, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->say(Ljava/lang/String;)V
 
-    .line 320
-    :cond_6
+    .line 344
+    :cond_7
+    sget-boolean v0, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->sSawTransition:Z
+
+    if-nez v0, :cond_8
+
+    if-ne v6, v7, :cond_8
+
     sget v0, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->sWait:I
 
-    const-string v7, "   "
+    const/4 v8, 0x6
 
-    const/16 v8, 0x2d
+    if-lt v0, v8, :cond_8
 
-    if-lt v0, v8, :cond_7
+    const/4 v0, 0x1
 
-    .line 321
-    sput-boolean v4, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->sDead:Z
+    goto :goto_2
 
-    .line 322
-    sput v1, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->sWait:I
+    :cond_8
+    const/4 v0, 0x0
 
-    .line 323
-    new-instance v0, Ljava/lang/StringBuilder;
+    .line 345
+    :goto_2
+    sget v8, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->sWait:I
 
-    invoke-direct {v0}, Ljava/lang/StringBuilder;-><init>()V
+    const-string v9, "   "
 
-    const-string v1, "\u2716 [\u84dd\u7259] \u5df2\u7b49\u5f85 45s \u4ecd\u672a\u5f00\u542f(state="
+    const/16 v10, 0x2d
 
-    invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    if-ge v8, v10, :cond_18
 
-    move-result-object v0
+    if-eqz v0, :cond_9
 
-    invoke-virtual {v0, v6}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
+    goto/16 :goto_d
 
-    move-result-object v0
-
-    const-string v1, "), \u653e\u5f03\u84dd\u7259\u901a\u9053"
-
-    invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
-
-    move-result-object v0
-
-    invoke-virtual {v0}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
-
-    move-result-object v0
-
-    invoke-static {v0}, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->say(Ljava/lang/String;)V
-
-    .line 324
-    new-instance v0, Ljava/lang/StringBuilder;
-
-    invoke-direct {v0}, Ljava/lang/StringBuilder;-><init>()V
-
-    invoke-virtual {v0, v7}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
-
-    move-result-object v0
-
-    invoke-static {}, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->managerAdapter()Landroid/bluetooth/BluetoothAdapter;
-
-    move-result-object v1
-
-    invoke-static {v1}, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->enabledOf(Landroid/bluetooth/BluetoothAdapter;)Z
-
-    move-result v1
-
-    invoke-static {v1, v2, v2}, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->diag(ZLjava/lang/Boolean;Ljava/lang/String;)Ljava/lang/String;
-
-    move-result-object v1
-
-    invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
-
-    move-result-object v0
-
-    invoke-virtual {v0}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
-
-    move-result-object v0
-
-    invoke-static {v0}, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->say(Ljava/lang/String;)V
-
-    .line 325
-    const-string v0, "\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550"
-
-    invoke-static {v0}, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->say(Ljava/lang/String;)V
-
-    .line 326
-    const-string v1, "\u2716 [\u84dd\u7259\u4e0d\u53ef\u7528] \u8f66\u673a Android \u84dd\u7259\u6ca1\u80fd\u5f00\u542f \u2192 \u539f\u7248\u76f4\u8fde\u7684 SSID/PSK \u6ca1\u6cd5\u8d70\u84dd\u7259\u7ed9\u624b\u673a"
-
-    invoke-static {v1}, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->say(Ljava/lang/String;)V
-
-    .line 327
-    const-string v1, "   \u8f66\u673a\u4fa7\u76f4\u8fde\u7ec4\u5176\u5b9e\u5efa\u597d\u4e86(DIRECT-\u2026/GO 192.168.49.1)\uff0c\u5b83\u672c\u8eab\u5c31\u662f\u4e2a\u5e26\u5bc6\u7801\u7684 WiFi \u70ed\u70b9"
-
-    invoke-static {v1}, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->say(Ljava/lang/String;)V
-
-    .line 328
-    const-string v1, "   \u2605 1.40 \u5df2\u81ea\u52a8\u542f\u7528\u3010\u65e0\u84dd\u7259\u76f4\u8fde\u3011(\u4ebf\u8fde\u5f0f)\uff1a\u624b\u673a WLAN \u624b\u52a8\u8fde\u4e0a\u76f4\u8fde\u7f51\u7edc\u5373\u53ef\uff0c\u89c1\u4e0b\u65b9\u6307\u5f15"
-
-    invoke-static {v1}, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->say(Ljava/lang/String;)V
-
-    .line 329
-    const-string v1, "   \u5907\u9009\uff1a\u2460 \u6539\u70b9\u3010\u70ed\u70b9\u3011\u9875\u7b7e \u2461 \u6539\u7528\u3010USB\u3011\u6709\u7ebf"
-
-    invoke-static {v1}, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->say(Ljava/lang/String;)V
-
-    .line 330
-    invoke-static {v0}, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->say(Ljava/lang/String;)V
-
-    .line 332
-    invoke-static {}, Lcom/baidu/carlifevehicle/logxfer/NoBtFallback;->onBtDead()V
-
-    .line 333
-    return v4
-
-    .line 336
-    :cond_7
+    .line 366
+    :cond_9
     sget v0, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->sWait:I
 
     add-int/2addr v0, v4
 
     sput v0, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->sWait:I
 
-    .line 339
+    .line 369
     nop
 
-    .line 340
+    .line 370
     nop
 
-    .line 341
-    const-string v9, ""
+    .line 371
+    const-string v8, ""
 
-    const-string v10, "/"
+    const-string v11, "/"
 
-    if-nez v5, :cond_a
+    if-nez v5, :cond_c
 
     const/16 v0, 0xb
 
-    if-eq v6, v0, :cond_a
+    if-eq v6, v0, :cond_c
 
     const/16 v0, 0xe
 
-    if-eq v6, v0, :cond_a
+    if-eq v6, v0, :cond_c
 
-    .line 343
+    .line 373
     :try_start_1
     invoke-virtual {v3}, Landroid/bluetooth/BluetoothAdapter;->enable()Z
 
@@ -981,16 +924,16 @@
     :try_end_1
     .catchall {:try_start_1 .. :try_end_1} :catchall_1
 
-    .line 346
-    move-object v11, v0
+    .line 376
+    move-object v12, v0
 
-    goto :goto_2
+    goto :goto_3
 
-    .line 344
+    .line 374
     :catchall_1
     move-exception v0
 
-    .line 345
+    .line 375
     invoke-virtual {v0}, Ljava/lang/Object;->getClass()Ljava/lang/Class;
 
     move-result-object v0
@@ -1003,57 +946,57 @@
 
     move-result-object v0
 
-    move-object v11, v2
+    move-object v12, v2
 
     move-object v2, v0
 
-    .line 348
-    :goto_2
+    .line 378
+    :goto_3
     invoke-static {}, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->managerAdapter()Landroid/bluetooth/BluetoothAdapter;
 
     move-result-object v0
 
-    .line 349
-    if-eqz v0, :cond_9
+    .line 379
+    if-eqz v0, :cond_b
 
-    if-eq v0, v3, :cond_9
+    if-eq v0, v3, :cond_b
 
-    .line 351
+    .line 381
     :try_start_2
     invoke-virtual {v0}, Landroid/bluetooth/BluetoothAdapter;->enable()Z
     :try_end_2
     .catchall {:try_start_2 .. :try_end_2} :catchall_2
 
-    .line 354
-    goto :goto_4
+    .line 384
+    goto :goto_5
 
-    .line 352
+    .line 382
     :catchall_2
     move-exception v0
 
     move-object v3, v0
 
-    .line 353
+    .line 383
     new-instance v0, Ljava/lang/StringBuilder;
 
     invoke-direct {v0}, Ljava/lang/StringBuilder;-><init>()V
 
-    if-nez v2, :cond_8
+    if-nez v2, :cond_a
 
-    move-object v2, v9
+    move-object v2, v8
 
-    goto :goto_3
+    goto :goto_4
 
-    :cond_8
-    new-instance v12, Ljava/lang/StringBuilder;
+    :cond_a
+    new-instance v13, Ljava/lang/StringBuilder;
 
-    invoke-direct {v12}, Ljava/lang/StringBuilder;-><init>()V
+    invoke-direct {v13}, Ljava/lang/StringBuilder;-><init>()V
 
-    invoke-virtual {v12, v2}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    invoke-virtual {v13, v2}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
 
     move-result-object v2
 
-    invoke-virtual {v2, v10}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    invoke-virtual {v2, v11}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
 
     move-result-object v2
 
@@ -1061,7 +1004,7 @@
 
     move-result-object v2
 
-    :goto_3
+    :goto_4
     invoke-virtual {v0, v2}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
 
     move-result-object v0
@@ -1088,84 +1031,90 @@
 
     move-object v2, v0
 
-    .line 356
-    :cond_9
-    :goto_4
+    .line 386
+    :cond_b
+    :goto_5
     move-object v0, v2
 
-    move-object v2, v11
+    move-object v2, v12
 
-    goto :goto_5
+    goto :goto_6
 
-    :cond_a
-    if-nez v5, :cond_b
+    :cond_c
+    if-nez v5, :cond_d
 
-    .line 357
+    .line 387
     const-string v0, "skip(TURNING_ON)"
 
-    goto :goto_5
+    goto :goto_6
 
-    .line 356
-    :cond_b
+    .line 386
+    :cond_d
     move-object v0, v2
 
-    .line 361
-    :goto_5
+    .line 392
+    :goto_6
     const/16 v3, 0x1e
 
-    if-nez v5, :cond_f
+    if-nez v5, :cond_11
 
     sget v5, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->sWait:I
 
-    const/16 v11, 0xc
+    const/4 v12, 0x4
 
-    if-eq v5, v11, :cond_c
+    if-eq v5, v12, :cond_e
 
     sget v5, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->sWait:I
 
-    if-ne v5, v3, :cond_f
+    const/16 v12, 0xc
 
-    .line 362
-    :cond_c
+    if-eq v5, v12, :cond_e
+
+    sget v5, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->sWait:I
+
+    if-ne v5, v3, :cond_11
+
+    .line 393
+    :cond_e
     invoke-static {}, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->pokeBluetoothOnSetting()Ljava/lang/Boolean;
 
     move-result-object v5
 
-    .line 363
-    new-instance v11, Ljava/lang/StringBuilder;
+    .line 394
+    new-instance v12, Ljava/lang/StringBuilder;
 
-    invoke-direct {v11}, Ljava/lang/StringBuilder;-><init>()V
+    invoke-direct {v12}, Ljava/lang/StringBuilder;-><init>()V
 
-    const-string v12, "\u2026 [\u84dd\u7259] \u5c1d\u8bd5\u6539\u5199 Settings.Global(bluetooth_on)=1 \u2192 "
+    const-string v13, "\u2026 [\u84dd\u7259] \u5c1d\u8bd5\u6539\u5199 Settings.Global(bluetooth_on)=1 \u2192 "
 
-    invoke-virtual {v11, v12}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    invoke-virtual {v12, v13}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
 
-    move-result-object v11
+    move-result-object v12
 
-    .line 364
-    if-nez v5, :cond_d
+    .line 395
+    if-nez v5, :cond_f
 
     const-string v5, "\u65e0 Context, \u8df3\u8fc7"
 
-    goto :goto_6
+    goto :goto_7
 
-    .line 365
-    :cond_d
+    .line 396
+    :cond_f
     invoke-virtual {v5}, Ljava/lang/Boolean;->booleanValue()Z
 
     move-result v5
 
-    if-eqz v5, :cond_e
+    if-eqz v5, :cond_10
 
     const-string v5, "\u5199\u5165\u6210\u529f"
 
-    goto :goto_6
+    goto :goto_7
 
-    :cond_e
+    :cond_10
     const-string v5, "\u65e0 WRITE_SECURE_SETTINGS \u6743\u9650"
 
-    :goto_6
-    invoke-virtual {v11, v5}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    :goto_7
+    invoke-virtual {v12, v5}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
 
     move-result-object v5
 
@@ -1173,71 +1122,69 @@
 
     move-result-object v5
 
-    .line 363
+    .line 394
     invoke-static {v5}, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->say(Ljava/lang/String;)V
 
-    .line 369
-    :cond_f
+    .line 400
+    :cond_11
     sget v5, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->sWait:I
 
-    const/4 v11, 0x5
+    const/4 v12, 0x5
 
-    if-eq v5, v4, :cond_11
-
-    sget v5, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->sWait:I
-
-    const/4 v12, 0x2
-
-    if-eq v5, v12, :cond_11
+    if-eq v5, v4, :cond_13
 
     sget v5, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->sWait:I
 
-    if-eq v5, v11, :cond_11
+    const/4 v13, 0x2
+
+    if-eq v5, v13, :cond_13
 
     sget v5, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->sWait:I
 
-    const/16 v12, 0xa
-
-    if-eq v5, v12, :cond_11
+    if-eq v5, v12, :cond_13
 
     sget v5, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->sWait:I
 
-    const/16 v12, 0x14
-
-    if-eq v5, v12, :cond_11
+    if-eq v5, v7, :cond_13
 
     sget v5, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->sWait:I
 
-    if-eq v5, v3, :cond_11
+    const/16 v7, 0x14
+
+    if-eq v5, v7, :cond_13
+
+    sget v5, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->sWait:I
+
+    if-eq v5, v3, :cond_13
 
     sget v3, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->sWait:I
 
-    if-lt v3, v8, :cond_10
-
-    goto :goto_7
-
-    :cond_10
-    const/4 v3, 0x0
+    if-lt v3, v10, :cond_12
 
     goto :goto_8
 
-    :cond_11
-    :goto_7
+    :cond_12
+    const/4 v3, 0x0
+
+    goto :goto_9
+
+    :cond_13
+    :goto_8
     const/4 v3, 0x1
 
-    .line 371
-    :goto_8
+    .line 402
+    :goto_9
     const-string v5, ")"
 
-    const-string v12, "("
+    const-string v7, "("
 
     const-string v13, " \u6b21\u7b49\u5f85(1s \u540e\u91cd\u8bd5) state="
 
     const-string v14, "\u2026 [\u84dd\u7259] \u672a\u5f00\u542f, \u7b2c "
 
-    if-eqz v3, :cond_14
+    if-eqz v3, :cond_16
 
-    .line 372
+    .line 403
     new-instance v3, Ljava/lang/StringBuilder;
 
     invoke-direct {v3}, Ljava/lang/StringBuilder;-><init>()V
@@ -1246,17 +1193,17 @@
 
     move-result-object v3
 
-    sget v11, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->sWait:I
+    sget v12, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->sWait:I
 
-    invoke-virtual {v3, v11}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
-
-    move-result-object v3
-
-    invoke-virtual {v3, v10}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    invoke-virtual {v3, v12}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
 
     move-result-object v3
 
-    invoke-virtual {v3, v8}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
+    invoke-virtual {v3, v11}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    move-result-object v3
+
+    invoke-virtual {v3, v10}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
 
     move-result-object v3
 
@@ -1268,11 +1215,11 @@
 
     move-result-object v3
 
-    invoke-virtual {v3, v12}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    invoke-virtual {v3, v7}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
 
     move-result-object v3
 
-    .line 373
+    .line 404
     invoke-static {v6}, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->stateName(I)Ljava/lang/String;
 
     move-result-object v6
@@ -1285,14 +1232,14 @@
 
     move-result-object v3
 
-    .line 374
-    if-nez v2, :cond_12
+    .line 405
+    if-nez v2, :cond_14
 
-    move-object v5, v9
+    move-object v5, v8
 
-    goto :goto_9
+    goto :goto_a
 
-    :cond_12
+    :cond_14
     new-instance v5, Ljava/lang/StringBuilder;
 
     invoke-direct {v5}, Ljava/lang/StringBuilder;-><init>()V
@@ -1315,17 +1262,17 @@
 
     move-result-object v5
 
-    :goto_9
+    :goto_a
     invoke-virtual {v3, v5}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
 
     move-result-object v3
 
-    .line 375
-    if-nez v0, :cond_13
+    .line 406
+    if-nez v0, :cond_15
 
-    goto :goto_a
+    goto :goto_b
 
-    :cond_13
+    :cond_15
     new-instance v5, Ljava/lang/StringBuilder;
 
     invoke-direct {v5}, Ljava/lang/StringBuilder;-><init>()V
@@ -1342,10 +1289,10 @@
 
     invoke-virtual {v5}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
 
-    move-result-object v9
+    move-result-object v8
 
-    :goto_a
-    invoke-virtual {v3, v9}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    :goto_b
+    invoke-virtual {v3, v8}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
 
     move-result-object v3
 
@@ -1353,15 +1300,15 @@
 
     move-result-object v3
 
-    .line 372
+    .line 403
     invoke-static {v3}, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->say(Ljava/lang/String;)V
 
-    .line 376
+    .line 407
     new-instance v3, Ljava/lang/StringBuilder;
 
     invoke-direct {v3}, Ljava/lang/StringBuilder;-><init>()V
 
-    invoke-virtual {v3, v7}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    invoke-virtual {v3, v9}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
 
     move-result-object v3
 
@@ -1387,17 +1334,17 @@
 
     invoke-static {v0}, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->say(Ljava/lang/String;)V
 
-    goto :goto_b
+    goto :goto_c
 
-    .line 377
-    :cond_14
+    .line 408
+    :cond_16
     sget v0, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->sWait:I
 
-    rem-int/2addr v0, v11
+    rem-int/2addr v0, v12
 
-    if-nez v0, :cond_15
+    if-nez v0, :cond_17
 
-    .line 378
+    .line 409
     new-instance v0, Ljava/lang/StringBuilder;
 
     invoke-direct {v0}, Ljava/lang/StringBuilder;-><init>()V
@@ -1412,11 +1359,11 @@
 
     move-result-object v0
 
-    invoke-virtual {v0, v10}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    invoke-virtual {v0, v11}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
 
     move-result-object v0
 
-    invoke-virtual {v0, v8}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
+    invoke-virtual {v0, v10}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
 
     move-result-object v0
 
@@ -1428,11 +1375,11 @@
 
     move-result-object v0
 
-    invoke-virtual {v0, v12}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    invoke-virtual {v0, v7}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
 
     move-result-object v0
 
-    .line 379
+    .line 410
     invoke-static {v6}, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->stateName(I)Ljava/lang/String;
 
     move-result-object v2
@@ -1449,12 +1396,12 @@
 
     move-result-object v0
 
-    .line 378
+    .line 409
     invoke-static {v0}, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->say(Ljava/lang/String;)V
 
-    .line 383
-    :cond_15
-    :goto_b
+    .line 414
+    :cond_17
+    :goto_c
     :try_start_3
     sget-object v0, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->EXEC:Ljava/util/concurrent/ScheduledExecutorService;
 
@@ -1468,41 +1415,153 @@
     :try_end_3
     .catchall {:try_start_3 .. :try_end_3} :catchall_3
 
-    .line 387
+    .line 418
     nop
 
-    .line 388
+    .line 419
     return v4
 
-    .line 384
+    .line 415
     :catchall_3
     move-exception v0
 
-    .line 385
+    .line 416
     sput v1, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->sWait:I
 
-    .line 386
+    .line 417
+    return v4
+
+    .line 346
+    :cond_18
+    :goto_d
+    sput-boolean v4, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->sDead:Z
+
+    .line 347
+    sput v1, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->sWait:I
+
+    .line 348
+    if-eqz v0, :cond_19
+
+    .line 349
+    const-string v0, "\u2716 [\u84dd\u7259] \u8fde\u7eed 6s state=10(OFF) \u4e14\u4ece\u672a\u8fdb\u5165 TURNING_ON \u2192 \u5feb\u901f\u5224\u6b7b(1.45), \u653e\u5f03\u84dd\u7259\u901a\u9053"
+
+    invoke-static {v0}, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->say(Ljava/lang/String;)V
+
+    goto :goto_e
+
+    .line 352
+    :cond_19
+    new-instance v0, Ljava/lang/StringBuilder;
+
+    invoke-direct {v0}, Ljava/lang/StringBuilder;-><init>()V
+
+    const-string v1, "\u2716 [\u84dd\u7259] \u5df2\u7b49\u5f85 45s \u4ecd\u672a\u5f00\u542f(state="
+
+    invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    move-result-object v0
+
+    invoke-virtual {v0, v6}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
+
+    move-result-object v0
+
+    const-string v1, "), \u653e\u5f03\u84dd\u7259\u901a\u9053"
+
+    invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    move-result-object v0
+
+    invoke-virtual {v0}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+
+    move-result-object v0
+
+    invoke-static {v0}, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->say(Ljava/lang/String;)V
+
+    .line 354
+    :goto_e
+    new-instance v0, Ljava/lang/StringBuilder;
+
+    invoke-direct {v0}, Ljava/lang/StringBuilder;-><init>()V
+
+    invoke-virtual {v0, v9}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    move-result-object v0
+
+    invoke-static {}, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->managerAdapter()Landroid/bluetooth/BluetoothAdapter;
+
+    move-result-object v1
+
+    invoke-static {v1}, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->enabledOf(Landroid/bluetooth/BluetoothAdapter;)Z
+
+    move-result v1
+
+    invoke-static {v1, v2, v2}, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->diag(ZLjava/lang/Boolean;Ljava/lang/String;)Ljava/lang/String;
+
+    move-result-object v1
+
+    invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    move-result-object v0
+
+    invoke-virtual {v0}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+
+    move-result-object v0
+
+    invoke-static {v0}, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->say(Ljava/lang/String;)V
+
+    .line 355
+    const-string v0, "\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550"
+
+    invoke-static {v0}, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->say(Ljava/lang/String;)V
+
+    .line 356
+    const-string v1, "\u2716 [\u84dd\u7259\u4e0d\u53ef\u7528] \u8f66\u673a Android \u84dd\u7259\u6ca1\u80fd\u5f00\u542f \u2192 \u539f\u7248\u76f4\u8fde\u7684 SSID/PSK \u6ca1\u6cd5\u8d70\u84dd\u7259\u7ed9\u624b\u673a"
+
+    invoke-static {v1}, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->say(Ljava/lang/String;)V
+
+    .line 357
+    const-string v1, "   \u8f66\u673a\u4fa7\u76f4\u8fde\u7ec4\u5176\u5b9e\u5efa\u597d\u4e86(DIRECT-\u2026/GO 192.168.49.1)\uff0c\u5b83\u672c\u8eab\u5c31\u662f\u4e2a\u5e26\u5bc6\u7801\u7684 WiFi \u70ed\u70b9"
+
+    invoke-static {v1}, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->say(Ljava/lang/String;)V
+
+    .line 358
+    const-string v1, "   \u2605 1.40 \u5df2\u81ea\u52a8\u542f\u7528\u3010\u65e0\u84dd\u7259\u76f4\u8fde\u3011(\u4ebf\u8fde\u5f0f)\uff1a\u624b\u673a WLAN \u624b\u52a8\u8fde\u4e0a\u76f4\u8fde\u7f51\u7edc\u5373\u53ef\uff0c\u89c1\u4e0b\u65b9\u6307\u5f15"
+
+    invoke-static {v1}, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->say(Ljava/lang/String;)V
+
+    .line 359
+    const-string v1, "   \u5907\u9009\uff1a\u2460 \u6539\u70b9\u3010\u70ed\u70b9\u3011\u9875\u7b7e \u2461 \u6539\u7528\u3010USB\u3011\u6709\u7ebf"
+
+    invoke-static {v1}, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->say(Ljava/lang/String;)V
+
+    .line 360
+    invoke-static {v0}, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->say(Ljava/lang/String;)V
+
+    .line 362
+    invoke-static {}, Lcom/baidu/carlifevehicle/logxfer/NoBtFallback;->onBtDead()V
+
+    .line 363
     return v4
 .end method
 
 .method private static pokeBluetoothOnSetting()Ljava/lang/Boolean;
     .locals 10
 
-    .line 172
+    .line 190
     :try_start_0
     invoke-static {}, Lcom/baidu/carlifevehicle/logxfer/BtGuard;->ctx()Landroid/content/Context;
 
     move-result-object v0
 
-    .line 173
+    .line 191
     const/4 v1, 0x0
 
     if-nez v0, :cond_0
 
-    .line 174
+    .line 192
     return-object v1
 
-    .line 176
+    .line 194
     :cond_0
     const-string v2, "android.provider.Settings$Global"
 
@@ -1510,7 +1569,7 @@
 
     move-result-object v2
 
-    .line 177
+    .line 195
     const-string v3, "putInt"
 
     const/4 v4, 0x3
@@ -1539,7 +1598,7 @@
 
     move-result-object v2
 
-    .line 179
+    .line 197
     new-array v3, v4, [Ljava/lang/Object;
 
     invoke-virtual {v0}, Landroid/content/Context;->getContentResolver()Landroid/content/ContentResolver;
@@ -1560,18 +1619,18 @@
 
     invoke-virtual {v2, v1, v3}, Ljava/lang/reflect/Method;->invoke(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;
 
-    .line 180
+    .line 198
     sget-object v0, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;
     :try_end_0
     .catchall {:try_start_0 .. :try_end_0} :catchall_0
 
     return-object v0
 
-    .line 181
+    .line 199
     :catchall_0
     move-exception v0
 
-    .line 182
+    .line 200
     sget-object v0, Ljava/lang/Boolean;->FALSE:Ljava/lang/Boolean;
 
     return-object v0
@@ -1580,7 +1639,7 @@
 .method private static say(Ljava/lang/String;)V
     .locals 6
 
-    .line 81
+    .line 99
     :try_start_0
     const-string v0, "com.baidu.carlifevehicle.ConnLog"
 
@@ -1588,7 +1647,7 @@
 
     move-result-object v0
 
-    .line 82
+    .line 100
     const-string v1, "logLine"
 
     const/4 v2, 0x1
@@ -1605,7 +1664,7 @@
 
     move-result-object v0
 
-    .line 83
+    .line 101
     new-array v1, v2, [Ljava/lang/Object;
 
     aput-object p0, v1, v5
@@ -1616,19 +1675,19 @@
     :try_end_0
     .catchall {:try_start_0 .. :try_end_0} :catchall_0
 
-    .line 86
+    .line 104
     goto :goto_0
 
-    .line 84
+    .line 102
     :catchall_0
     move-exception v0
 
-    .line 85
+    .line 103
     const-string v0, "CarLife_SDK"
 
     invoke-static {v0, p0}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
 
-    .line 87
+    .line 105
     :goto_0
     return-void
 .end method
@@ -1636,45 +1695,45 @@
 .method private static stateName(I)Ljava/lang/String;
     .locals 0
 
-    .line 109
+    .line 127
     packed-switch p0, :pswitch_data_0
 
-    .line 116
+    .line 134
     const-string p0, "?"
 
     return-object p0
 
-    .line 115
+    .line 133
     :pswitch_0
     const-string p0, "BLE_ON"
 
     return-object p0
 
-    .line 114
+    .line 132
     :pswitch_1
     const-string p0, "BLE_TURNING_ON"
 
     return-object p0
 
-    .line 113
+    .line 131
     :pswitch_2
     const-string p0, "TURNING_OFF"
 
     return-object p0
 
-    .line 112
+    .line 130
     :pswitch_3
     const-string p0, "ON"
 
     return-object p0
 
-    .line 111
+    .line 129
     :pswitch_4
     const-string p0, "TURNING_ON"
 
     return-object p0
 
-    .line 110
+    .line 128
     :pswitch_5
     const-string p0, "OFF"
 
@@ -1694,15 +1753,15 @@
 .method private static stateOf(Landroid/bluetooth/BluetoothAdapter;)I
     .locals 0
 
-    .line 121
+    .line 139
     if-nez p0, :cond_0
 
-    .line 122
+    .line 140
     const/4 p0, -0x1
 
     return p0
 
-    .line 125
+    .line 143
     :cond_0
     :try_start_0
     invoke-virtual {p0}, Landroid/bluetooth/BluetoothAdapter;->getState()I
@@ -1713,11 +1772,11 @@
 
     return p0
 
-    .line 126
+    .line 144
     :catchall_0
     move-exception p0
 
-    .line 127
+    .line 145
     const/4 p0, -0x2
 
     return p0

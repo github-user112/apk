@@ -863,9 +863,6 @@
 
     .line 258
     :goto_1
-    # --- 1.44: 扫码入组增强。此处 v0=组名(SSID), v3=口令(可能 null) ---
-    invoke-static {v0, v3}, Lcom/baidu/carlifevehicle/logxfer/QrFallback;->show(Ljava/lang/String;Ljava/lang/String;)V
-
     const-string v1, "\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550"
 
     invoke-static {v1}, Lcom/baidu/carlifevehicle/logxfer/NoBtFallback;->say(Ljava/lang/String;)V

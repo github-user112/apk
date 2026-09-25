@@ -34,6 +34,18 @@ public final class LogXferEntry {
 
     private static ClickHandler sClick;
 
+    /** 1.45: 记住最近的 frag_main 根 View，QrBadge 角标要叠在它上面（弱引用防泄漏）。 */
+    private static java.lang.ref.WeakReference<View> sMainRoot;
+
+    /** 最近一次 bind() 的 frag_main 根 View；未 bind 或已被回收时为 null。 */
+    public static View mainRoot() {
+        try {
+            return sMainRoot == null ? null : sMainRoot.get();
+        } catch (Throwable t) {
+            return null;
+        }
+    }
+
     private LogXferEntry() {
     }
 
@@ -63,6 +75,7 @@ public final class LogXferEntry {
             return;
         }
         try {
+            sMainRoot = new java.lang.ref.WeakReference<View>(root);
             View v = root.findViewById(ID_MAIN_BTN_LOGXFER);
             if (v == null) {
                 Log.w(TAG, "main_btn_logxfer not in layout (布局未打补丁?), skip");

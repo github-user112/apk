@@ -44,6 +44,15 @@ import java.util.concurrent.TimeUnit;
  *   4. 判死一次就记住（sDead），后续调用只打一行，不再空转；蓝牙一旦真的开起来立即恢复
  *   5. 放弃时给出**确定性结论 + 可操作步骤**（直连必需蓝牙 → 改走热点）
  *
+ * 1.45 快速判死（2026-09-25 车机 1.44 实机日志定论）：
+ *   车机三次会话每次都白等满 45s（09:02:20→09:03:05）才进兜底，二维码 52s 才上屏。
+ *   实际上第 1 秒的诊断就已实锤 state=10(OFF) 且 enable() 无效。本版起：
+ *   state 恒为 10(OFF) 且**从未见过其它状态**（TURNING_ON/ON/...）时，
+ *   连续 FAST_WAIT 轮（约 6s）即快速判死进兜底；
+ *   一旦见过任何非 OFF 状态（蓝牙确实在动），立即退回老的 45s 自愈等待 ——
+ *   手机上"svc bluetooth disable 后 binder 慢"的场景（realme）state 会经历
+ *   TURNING_ON，仍然走 45s，行为不变。
+ *
  * 线程安全：只在 SDK 的线程池里被调用，重跑也走同一个线程池（不能挪到主线程，
  *           后面的 SPP connect 是阻塞调用，上主线程会 ANR）。
  */
@@ -55,10 +64,19 @@ public final class BtGuard {
     /** 最多等待的次数（每次 1 秒），超过就判死。1.22 是 30，1.29 放宽到 45。 */
     private static final int MAX_WAIT = 45;
 
+    /**
+     * 1.45: 快速判死门槛（轮数 ≈ 秒数）。仅当 state 恒为 10(OFF) 且从未见过
+     * 其它状态（TURNING_ON 等）时生效 —— 即蓝牙状态机压根没动的死法。
+     */
+    private static final int FAST_WAIT = 6;
+
     private static int sWait = 0;
 
     /** 1.29: 已判死一次就不再重复等 45s（避免 d$c 重试造成的"等-弃-再等"空转）。 */
     private static boolean sDead = false;
+
+    /** 1.45: 等待期间是否见过非 OFF 状态（见过 = 蓝牙状态机在动 → 用老的 45s 自愈）。 */
+    private static boolean sSawTransition = false;
 
     private static Context sCtx = null;
     private static boolean sCtxTried = false;
@@ -310,17 +328,29 @@ public final class BtGuard {
         boolean enabled = enabledOf(a);
         int st = stateOf(a);
 
+        // 1.45: 见过任何非 OFF 状态 → 蓝牙状态机在动（TURNING_ON/ON/OFF 循环），
+        // 退回老的 45s 自愈等待，不再走快速判死。
+        if (st != 10) {
+            sSawTransition = true;
+        }
+
         // 状态不一致（情况 C）：CarLife 走的系统路径判 off，标准路径判 on → 以「开」为准
         if (enabled != enabledOf(managerAdapter())) {
             say("⚠ [蓝牙] 状态不一致: getDefaultAdapter()=" + enabled
                     + " / BluetoothManager.getAdapter()=" + enabledOf(managerAdapter()));
         }
 
-        // ---- 判死 ----
-        if (sWait >= MAX_WAIT) {
+        // ---- 判死：老门槛(45s) 或 1.45 快速判死(恒 OFF 无迁移, 6s) ----
+        boolean fastDead = (!sSawTransition && st == 10 && sWait >= FAST_WAIT);
+        if (sWait >= MAX_WAIT || fastDead) {
             sDead = true;
             sWait = 0;
-            say("✖ [蓝牙] 已等待 " + MAX_WAIT + "s 仍未开启(state=" + st + "), 放弃蓝牙通道");
+            if (fastDead) {
+                say("✖ [蓝牙] 连续 " + FAST_WAIT + "s state=10(OFF) 且从未进入 TURNING_ON"
+                        + " → 快速判死(1.45), 放弃蓝牙通道");
+            } else {
+                say("✖ [蓝牙] 已等待 " + MAX_WAIT + "s 仍未开启(state=" + st + "), 放弃蓝牙通道");
+            }
             say("   " + diag(enabledOf(managerAdapter()), null, null));
             say("════════════════════════════════════════");
             say("✖ [蓝牙不可用] 车机 Android 蓝牙没能开启 → 原版直连的 SSID/PSK 没法走蓝牙给手机");
@@ -357,8 +387,9 @@ public final class BtGuard {
             err = "skip(TURNING_ON)";
         }
 
-        // ---- 最后一招：等了 12s / 30s 还不开，试着把全局开关掰到 1 ----
-        if (!enabled && (sWait == 12 || sWait == 30)) {
+        // ---- 最后一招：等了 4s / 12s / 30s 还不开，试着把全局开关掰到 1 ----
+        // （1.45: 快速判死前补一轮 sWait==4 的尝试，6s 快速判死后这轮仍会到达）
+        if (!enabled && (sWait == 4 || sWait == 12 || sWait == 30)) {
             Boolean poke = pokeBluetoothOnSetting();
             say("… [蓝牙] 尝试改写 Settings.Global(bluetooth_on)=1 → "
                     + (poke == null ? "无 Context, 跳过"

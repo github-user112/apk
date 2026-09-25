@@ -32,7 +32,7 @@ public final class QrFallback {
     private QrFallback() {
     }
 
-    /** 拿到直连组凭据后弹出二维码页。ssid 为空时不弹。 */
+    /** 拿到直连组凭据后显示二维码。ssid 为空时不弹。 */
     public static void show(String ssid, String pass) {
         try {
             if (ssid == null || ssid.length() == 0) {
@@ -41,24 +41,30 @@ public final class QrFallback {
             if (pass == null) {
                 pass = "";
             }
-            Context ctx = ctx();
-            if (ctx == null) {
-                return;
-            }
             sArmed = true;
             sShown = true;
-            Intent it = new Intent(ctx, QrFallbackActivity.class);
-            it.putExtra("ssid", ssid);
-            it.putExtra("pass", pass);
-            it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            ctx.startActivity(it);
+            // 1.45: 优先在首页显示小角标（用户要求：不要跳新页面）；
+            // 首页根 View 不可用（页面未建/已销毁）才退回 1.44 的全屏页。
+            boolean badgeOk = QrBadge.show(ssid, pass);
+            if (!badgeOk) {
+                Context ctx = ctx();
+                if (ctx == null) {
+                    sShown = false;
+                    return;
+                }
+                Intent it = new Intent(ctx, QrFallbackActivity.class);
+                it.putExtra("ssid", ssid);
+                it.putExtra("pass", pass);
+                it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                ctx.startActivity(it);
+            }
             log("[无蓝牙直连] 二维码已上屏: 请用手机相机/微信扫码加入 " + ssid);
         } catch (Throwable t) {
             log("[无蓝牙直连] 二维码上屏失败(不影响手动入组): " + t);
         }
     }
 
-    /** 任一传输建链成功后自动关闭二维码页（m/m/b.b() 回调）。 */
+    /** 任一传输建链成功后自动关闭二维码（m/m/b.b() 回调）。 */
     public static void onLinkUp() {
         try {
             if (!sShown) {
@@ -66,6 +72,7 @@ public final class QrFallback {
             }
             sShown = false;
             sArmed = false;
+            QrBadge.hide();
             new Handler(Looper.getMainLooper()).post(new Runnable() {
                 public void run() {
                     try {

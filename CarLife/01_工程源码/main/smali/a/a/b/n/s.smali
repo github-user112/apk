@@ -369,7 +369,9 @@
 
     invoke-virtual {p2, p0}, Landroid/widget/TextView;->setOnClickListener(Landroid/view/View$OnClickListener;)V
 
-    const/16 p2, 0x7530
+    # 1.45: 连接超时 30s → 120s。1.44 车机实测: 无蓝牙兜底 ~7s 上二维码,
+    # 手机扫码入组+建链往往超过 30s, 30s 档位在二维码还在屏上时就误报"连接超时"。
+    const p2, 0x1d4c0
 
     sput p2, La/a/b/n/s;->Z:I
 
@@ -379,7 +381,7 @@
 
     new-array p1, p1, [Ljava/lang/Object;
 
-    const-string p2, "set timeout: 30000"
+    const-string p2, "set timeout: 120000"
 
     aput-object p2, p1, v0
 

@@ -26,6 +26,11 @@
 # direct methods
 .method constructor <init>([Landroid/net/wifi/p2p/WifiP2pGroup;Ljava/util/concurrent/CountDownLatch;)V
     .locals 0
+    .annotation system Ldalvik/annotation/Signature;
+        value = {
+            "()V"
+        }
+    .end annotation
 
     .line 228
     iput-object p1, p0, Lcom/baidu/carlifevehicle/logxfer/NoBtFallback$2;->val$box:[Landroid/net/wifi/p2p/WifiP2pGroup;

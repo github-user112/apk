@@ -1405,7 +1405,10 @@
 
     check-cast v3, Ljava/net/NetworkInterface;
 
-    if-nez v3, :goto_0
+    # 1.45 修 1.25 极性写反：原 if-nez 是"非空网卡跳回外层循环"= 任何网卡都没被检查过,
+    # hasUsableLocalIp() 恒 false → awaitLocalIp 每次必烧满 5s(车机 2026-09-25 日志实锤)。
+    # 改回正确语义: 空才跳过。
+    if-eqz v3, :goto_0
 
     invoke-virtual {v3}, Ljava/net/NetworkInterface;->isUp()Z
 

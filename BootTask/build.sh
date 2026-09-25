@@ -8,7 +8,7 @@ ANDROID_JAR="$LOGXFER/tools/android.jar"
 R8_JAR="$LOGXFER/tools/r8.jar"
 APKTOOL_JAR="$ROOT/tools/apktool.jar"
 APKSIGNER_JAR="$ROOT/tools/apksigner/apksigner.jar"
-OUT=${1:-"$PROJECT/dist/BootTask_v1.3.apk"}
+OUT=${1:-"$PROJECT/dist/BootTask_v1.5.apk"}
 
 for path in "$ANDROID_JAR" "$R8_JAR" "$APKTOOL_JAR" "$APKSIGNER_JAR" "$PROJECT/keys/boottask.p12"; do
     if [[ ! -e "$path" ]]; then
@@ -28,10 +28,35 @@ shutil.copytree(sys.argv[1], sys.argv[2], ignore=shutil.ignore_patterns(
     "build", "dist", "keys", "screenshots", "src", "README.md", "build.sh"))
 PY
 
+# 桌面图标名带版本号: 从 AndroidManifest 的 versionName 推导 app_name,
+# 避免改了版本忘改名字(与 CarLife patch_v24 同思路)。
+python3 - "$WORK/project" <<'PY'
+import pathlib
+import re
+import sys
+
+project = pathlib.Path(sys.argv[1])
+manifest = (project / "AndroidManifest.xml").read_text(encoding="utf-8")
+match = re.search(r'android:versionName="([^"]+)"', manifest)
+if match is None:
+    raise SystemExit("AndroidManifest.xml 缺少 android:versionName")
+values = project / "res" / "values"
+values.mkdir(parents=True, exist_ok=True)
+(values / "strings.xml").write_text(
+    '<?xml version="1.0" encoding="utf-8"?>\n'
+    '<resources>\n'
+    '    <string name="app_name">\u5f00\u673a\u4efb\u52a1 %s</string>\n'
+    '</resources>\n' % match.group(1),
+    encoding="utf-8",
+)
+print("app_name -> \u5f00\u673a\u4efb\u52a1 %s" % match.group(1))
+PY
+
 mkdir -p \
     "$WORK/classes" "$WORK/new" "$WORK/merged" "$WORK/assets/logxfer" \
     "$WORK/java/com/boottask" "$WORK/java/com/baidu/carlifevehicle/logxfer"
 cp "$PROJECT/src/com/boottask/BootDiagnostics.java" "$WORK/java/com/boottask/BootDiagnostics.java"
+cp "$PROJECT/src/com/boottask/MuteGuard.java" "$WORK/java/com/boottask/MuteGuard.java"
 cp "$LOGXFER/java/com/baidu/carlifevehicle/logxfer/LogDownloadActivity.java" \
     "$WORK/java/com/baidu/carlifevehicle/logxfer/LogDownloadActivity.java"
 cp "$LOGXFER/java/com/baidu/carlifevehicle/logxfer/LogHttpServer.java" \
@@ -67,6 +92,7 @@ javac -encoding UTF-8 -source 8 -target 8 \
     -classpath "$ANDROID_JAR" \
     -d "$WORK/classes" \
     "$WORK/java/com/boottask/BootDiagnostics.java" \
+    "$WORK/java/com/boottask/MuteGuard.java" \
     "$WORK/java/com/baidu/carlifevehicle/logxfer/LogDownloadActivity.java" \
     "$WORK/java/com/baidu/carlifevehicle/logxfer/LogHttpServer.java" \
     "$WORK/java/com/baidu/carlifevehicle/logxfer/NetWatch.java"

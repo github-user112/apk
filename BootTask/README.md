@@ -255,3 +255,61 @@ v1.3 已通过 Java 编译、apktool 打包、反编译复核、ZIP 完整性与
 5. **规则用 JSON 存 SharedPreferences** 是最省事的做法（`org.json` 是 Android 内置，无第三方依赖）。
 
 6. 若有 GUI 脚本改 `shared_prefs/*.xml`，务必 `chown <app uid>:root`（MuMu 的 `chown` 不支持 `-R`，一次只能一个文件），否则 App 读不到 prefs（详见 CarLife 那边的同类坑）。
+
+7. **apktool 打包时 `versionCode` / `versionName` 以 `AndroidManifest.xml` 的属性为准**
+   只改 `apktool.yml` 的 `versionInfo` **不生效**（manifest 里写了就覆盖它）。
+   v1.4 就是这个坑：yml 已改 5/1.4，manifest 还停在 4/1.3，车机诊断报 `version=1.3 (4)`，
+   一度误判成「没装上新版」。**改版本要两边一起改**，且 `dist/BootTask_vX.Y.apk` 的文件名
+   只给人看、不代表包内版本 —— 以诊断里的 `version=` 为准。
+
+8. **`AudioManager.setStreamMute()` 是「按调用方 Binder 计数」的**
+   同一个进程重复 `setStreamMute(s, true)` N 次，就要 `setStreamMute(s, false)` N 次才解除；
+   只解除一次会**永远解不掉**。（`mICallBack` 是 AudioManager 单例持有的 Binder，
+   同一进程内是同一个 DeathHandler。）所以重施静音只能重设音量，**不要重复 setStreamMute**。
+
+---
+
+## 八、v1.5 开机静音守卫（修 v1.4 车机「日志显示已静音但声音照放」）
+
+### 1. 车机日志说了什么
+
+`boottask.log`（2026-09-25，telechips TCC893X / Android 4.4.2）：
+
+```
+09-25 17:08:16.090 boot broadcast received: android.intent.action.BOOT_COMPLETED
+09-25 17:08:16.410 ExecService rules=2
+09-25 17:08:16.410 rule matched, executing
+09-25 17:08:16.470 muted: ringer SILENT + STREAM_MUSIC vol=0 + streamMute   ← 打出来了
+09-25 17:08:16.480 rule matched, executing
+09-25 17:08:16.740 launched com.desay_svautomotive.carlife
+```
+
+静音三连**确实执行了、没抛异常**，但耳朵听到的没静。三种可能，原日志无法区分：
+
+| # | 假设 | 特征 |
+|---|---|---|
+| 1 | **太早**：BOOT_COMPLETED 时音频策略/MCU 音频还没就绪，随后被系统恢复 | 回读显示音量被改回非 0 |
+| 2 | **被抢回**：随后拉起的 CarLife / 媒体管理 App 把音量设回去 | 看门狗会打出 `saw volume change` |
+| 3 | **压错流**：开机音/电台不走 `STREAM_MUSIC` | 只压 MUSIC 不够，需全流 |
+
+### 2. v1.5 三招一起上
+
+- **全流静音**：`MUSIC / RING / NOTIFICATION / SYSTEM / ALARM / DTMF` 六条流 `vol=0` + 一次性 `setStreamMute(true)`，`ringer=SILENT`。
+- **延时重施**：`MuteGuard` 起守护线程，在 t+0.8/1.5/3/6/12/25/50/100/175s 各重压一次（只清音量，不重复 streamMute）。
+- **音量变化看门狗**：注册 `android.media.VOLUME_CHANGED_ACTION`，3 分钟窗口内只要有人把音量改回非 0，250ms 后立刻压回去（带 1.5s 自触发抑制，防自己打自己）。
+- **状态回读**：每次施加/重施都打一行 `MuteGuard applied [t+Xs] music=0/15 ring=0/7 notif=0/7 system=0/7 alarm=0/7 dtmf=0/15 ringer=0 mute=true guarded=true`。诊断快照也多一行 `audio=...`。
+
+**下次开机只要看日志就能定性**：`t=0` 是全 0 但 `t+3s` 变成 `music=7/15` → 是 1 或 2；全程全 0 还是响 → 是 3（声音不经过 Android，得从 MCU/功放侧下手）。
+
+### 3. 顺带修的
+
+- `AndroidManifest.xml` 的 `versionCode/versionName` → `6 / 1.5`（见踩坑 7），`apktool.yml` 同步。
+- 补 `android.permission.MODIFY_AUDIO_SETTINGS`（原来根本没声明，某些 ROM 上会直接 SecurityException）。
+- `unmute` 对称恢复：先记下静音前各流音量，恢复时**还原原值**（原来一律回 max/2，会把用户原来 3 档的音量顶到 7 档）。
+- 桌面图标名带版本号：`app_name` = `开机任务 1.5`，由 `build.sh` 从 manifest 的 `versionName` 自动推导，不会再漏改。
+
+### 4. 待车机实测
+
+装 `dist/BootTask_v1.5.apk` → 重启 → 开机后立刻听是否静音 → 打开「下载日志」取回 `boottask.log`，
+看 `MuteGuard applied` 那几行的回读值。3 分钟窗口是针对「开机后被抢回」设计的；
+如果实际是想**开机后一直保持静音**，把 `MuteGuard.WATCHDOG_WINDOW_MS` 调大即可。

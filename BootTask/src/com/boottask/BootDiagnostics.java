@@ -76,6 +76,11 @@ public final class BootDiagnostics {
             writer.write("enabled=" + applicationInfo.enabled + "\n");
             writer.write("filesDir=" + context.getFilesDir().getAbsolutePath() + "\n");
             writer.write("rules=" + context.getSharedPreferences("rules", 0).getString("list", "[]") + "\n");
+            try {
+                writer.write("audio=" + MuteGuard.describe(context) + "\n");
+            } catch (Throwable t) {
+                writer.write("audio=error: " + t + "\n");
+            }
             writer.write("\n--- filtered logcat ---\n");
             writer.flush();
             dumpLogcat(writer);

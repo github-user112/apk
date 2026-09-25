@@ -7,8 +7,8 @@ sdkInfo:
   minSdkVersion: 16
   targetSdkVersion: 30
 versionInfo:
-  versionCode: 145
-  versionName: mod1.45
+  versionCode: 146
+  versionName: mod1.46
 resourcesInfo:
   packageId: 127
 doNotCompress:

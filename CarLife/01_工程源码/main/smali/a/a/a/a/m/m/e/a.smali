@@ -124,8 +124,19 @@
     :goto_0
     iget-object v6, p0, La/a/a/a/m/m/e/a;->e:Ljava/net/DatagramSocket;
 
-    if-nez v6, :cond_1
+    # --- 1.46: terminate 只 close 不置 null, e 非空但已关闭 → 必须重建,
+    #     否则新线程在死 socket 上 receive 立抛 SocketException, 每秒死循环且永收不到广播 ---
+    if-eqz v6, :cond_rebind
 
+    invoke-virtual {v6}, Ljava/net/DatagramSocket;->isClosed()Z
+
+    move-result v6
+
+    if-eqz v6, :cond_1
+
+    invoke-static {}, Lcom/baidu/carlifevehicle/ConnLog;->logHotspotRebind()V
+
+    :cond_rebind
     new-instance v6, Ljava/net/DatagramSocket;
 
     const/16 v7, 0x1f3f

@@ -1158,6 +1158,16 @@
     return-void
 .end method
 
+.method public static logHotspotRebind()V
+    .locals 1
+
+    const-string v0, "♻ UDP 7999 旧socket已关闭, 重建监听(1.46)"
+
+    invoke-static {v0}, Lcom/baidu/carlifevehicle/ConnLog;->logLine(Ljava/lang/String;)V
+
+    return-void
+.end method
+
 .method public static logP2pUnsupported()V
     .locals 1
 

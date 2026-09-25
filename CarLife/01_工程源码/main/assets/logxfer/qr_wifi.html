@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  html,body{background:#fff;color:#000;font-family:sans-serif;margin:0;padding:0;
+    text-align:center;-webkit-user-select:none;user-select:none}
+  .wrap{padding:18px 10px}
+  h2{font-size:30px;margin:6px 0 14px}
+  #q img{image-rendering:pixelated;display:inline-block}
+  .row{font-size:24px;margin:10px 0;word-break:break-all}
+  .val{font-size:28px;font-weight:bold}
+  #close{font-size:26px;padding:14px 46px;margin-top:18px;background:#e8e8e8;
+    border:2px solid #999;border-radius:8px}
+  .hint{font-size:18px;color:#555;margin-top:14px}
+</style>
+<script src="qrcode.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <h2>手机扫码 · 直连车机（全程无需蓝牙）</h2>
+  <div id="q"></div>
+  <div class="row">网络: <span class="val" id="ssid"></span></div>
+  <div class="row">密码: <span class="val" id="psk"></span></div>
+  <button id="close" onclick="App.close()">连接成功后点此关闭</button>
+  <div class="hint">用手机「相机」或「微信-扫一扫」扫描上方二维码即可自动加入该网络</div>
+</div>
+<script>
+(function () {
+  // hash 形如: #wifi=<enc>&ssid=<enc>&psk=<enc>，各段已 Uri.encode
+  var parts = {};
+  var h = location.hash.slice(1);
+  var segs = h.split('&');
+  for (var i = 0; i < segs.length; i++) {
+    var kv = segs[i].split('=');
+    if (kv.length >= 2) parts[kv[0]] = decodeURIComponent(kv.slice(1).join('='));
+  }
+  var ssid = parts['ssid'] || '';
+  var psk  = parts['psk']  || '';
+  var wifi = parts['wifi'] || ('WIFI:T:WPA;S:' + ssid + ';P:' + psk + ';;');
+  document.getElementById('ssid').textContent = ssid;
+  document.getElementById('psk').textContent = psk ? psk : '(无)';
+  var html = '';
+  try {
+    var qr = qrcode(0, 'M');
+    qr.addData(wifi);
+    qr.make();
+    try { html = qr.createImgTag(12, 2); } catch (e1) { html = ''; }
+    if (!html) { html = qr.createSvgTag({ cellSize: 12, margin: 2, scalable: true }); }
+  } catch (e) {
+    html = '';
+  }
+  document.getElementById('q').innerHTML = html;
+  if (!html) { document.getElementById('q').textContent = '(二维码生成失败，请按下方网络名/密码手动连接)'; }
+})();
+</script>
+</body>
+</html>

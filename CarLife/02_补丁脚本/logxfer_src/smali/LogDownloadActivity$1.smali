@@ -26,6 +26,11 @@
 # direct methods
 .method constructor <init>(Lcom/baidu/carlifevehicle/logxfer/LogDownloadActivity;[Ljava/lang/String;)V
     .locals 0
+    .annotation system Ldalvik/annotation/Signature;
+        value = {
+            "()V"
+        }
+    .end annotation
 
     .line 242
     iput-object p1, p0, Lcom/baidu/carlifevehicle/logxfer/LogDownloadActivity$1;->this$0:Lcom/baidu/carlifevehicle/logxfer/LogDownloadActivity;

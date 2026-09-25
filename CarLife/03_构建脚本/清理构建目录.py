@@ -20,7 +20,7 @@ import os
 import sys
 import shutil
 
-ROOT = r"C:\PJGG\apk"
+ROOT = os.environ.get("APK_ROOT") or os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # <repo>/apk
 
 # 构建中间目录前缀（build.sh / 验证步骤产生的）
 JUNK_PREFIXES = (

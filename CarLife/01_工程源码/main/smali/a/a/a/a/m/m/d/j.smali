@@ -280,6 +280,18 @@
     invoke-virtual {v0}, Landroid/net/wifi/WifiManager$MulticastLock;->release()V
 
     :clr_svc
+    # --- 1.43: keepP2pGroup 闸门扩展到本方法的三连清 ---
+    # 1.40 的闸门只挡了 e/d.f() 里的 p2pCleanup, 但 f() 停自举器时调用的本方法
+    # 内部的 removeGroup 三连清仍会无条件执行。车机实测(2026-09-24 20:17 会话):
+    # 兜底挂载 → m/m/b.b() terminate 直连传输 → e/d.f() → 本方法 removeGroup 把
+    # 刚建好的 DIRECT-cH-CarLife-HU 组拆掉 → 90s 轮询"直连组未建立"。
+    # keepP2pGroup()==true 时只停循环/释放组播锁, 不清组。
+    invoke-static {}, Lcom/baidu/carlifevehicle/logxfer/NoBtFallback;->keepP2pGroup()Z
+
+    move-result v0
+
+    if-nez v0, :keep_group_skip_clean
+
     # 亿连 closeWifiDirect 里三连清: clearLocalServices + stopPeerDiscovery + removeGroup
     iget-object v0, p0, La/a/a/a/m/m/d/j;->b:Landroid/net/wifi/p2p/WifiP2pManager;
 
@@ -302,6 +314,17 @@
     const-string v1, "disarmed: lock+service+group cleaned"
 
     invoke-static {v0, v1}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
+
+    goto :disarmed_done
+
+    :keep_group_skip_clean
+    const-string v0, "CarLifeP2PBoot"
+
+    const-string v1, "disarmed: keepP2pGroup=true, P2P group kept (no-bt fallback armed)"
+
+    invoke-static {v0, v1}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
+
+    :disarmed_done
     :try_end_0
     .catch Ljava/lang/Throwable; {:try_start_0 .. :try_end_0} :catch_0
 

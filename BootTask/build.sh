@@ -36,6 +36,8 @@ cp "$LOGXFER/java/com/baidu/carlifevehicle/logxfer/LogDownloadActivity.java" \
     "$WORK/java/com/baidu/carlifevehicle/logxfer/LogDownloadActivity.java"
 cp "$LOGXFER/java/com/baidu/carlifevehicle/logxfer/LogHttpServer.java" \
     "$WORK/java/com/baidu/carlifevehicle/logxfer/LogHttpServer.java"
+cp "$LOGXFER/java/com/baidu/carlifevehicle/logxfer/NetWatch.java" \
+    "$WORK/java/com/baidu/carlifevehicle/logxfer/NetWatch.java"
 
 python3 - "$WORK/java" <<'PY'
 import pathlib
@@ -66,7 +68,8 @@ javac -encoding UTF-8 -source 8 -target 8 \
     -d "$WORK/classes" \
     "$WORK/java/com/boottask/BootDiagnostics.java" \
     "$WORK/java/com/baidu/carlifevehicle/logxfer/LogDownloadActivity.java" \
-    "$WORK/java/com/baidu/carlifevehicle/logxfer/LogHttpServer.java"
+    "$WORK/java/com/baidu/carlifevehicle/logxfer/LogHttpServer.java" \
+    "$WORK/java/com/baidu/carlifevehicle/logxfer/NetWatch.java"
 
 CLASS_FILES=("$WORK"/classes/com/boottask/*.class "$WORK"/classes/com/baidu/carlifevehicle/logxfer/*.class)
 java -cp "$R8_JAR" com.android.tools.r8.D8 \

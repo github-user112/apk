@@ -5,9 +5,18 @@
 - 包名：`com.boottask`
 - 最低版本：Android 2.2（API 8，实际按 4.4 编写）—— 兼容一切 4.x，**包括 4.4.2 车机**
 - 构建方式：执行主体为手写 smali；诊断与日志下载用一个小型 Java/D8 类合并进单 dex
-- 成品：`dist/BootTask_v1.3.apk`（**纯 v1 签名**，SHA-1 摘要，无 v2/v3 签名块）；v1.1/v1.2 同目录留档
+- 成品：`dist/BootTask_v1.4.apk`（**纯 v1 签名**）；v1.1~v1.3 同目录留档
 - 与 CarLife 并存：**不冲突**（包名不同、无 `sharedUserId`、双方都无 `ContentProvider`，
   签名不同只在"同包名升级"时才校验）
+
+### v1.4（静音真正压住车机媒体声道）
+
+| 项 | v1.3 | v1.4 | 为什么 |
+|---|---|---|---|
+| mute 动作 | 只 `setRingerMode(SILENT)` | 追加 `setStreamVolume(STREAM_MUSIC,0)` + `setStreamMute(STREAM_MUSIC,true)` | 车机媒体输出走 STREAM_MUSIC，不吃铃音模式（4.4.2 车机实测：铃音静音后媒体照放） |
+| unmute 动作 | 只 `setRingerMode(NORMAL)` | 追加 `setStreamMute(STREAM_MUSIC,false)` + 音量恢复到最大值一半 | 对称恢复 |
+| versionCode | 4 (1.3) | 5 (1.4) | 覆盖升级 |
+| build.sh | — | 补拷 `NetWatch.java`（1.30 起共享的 LogDownloadActivity 引用它，不补会 javac 失败） | 源码漂移 |
 
 ### v1.3（车机失效诊断 + 扫码日志）
 

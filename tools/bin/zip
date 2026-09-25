@@ -1,0 +1,5 @@
+#!/bin/bash
+# 最小 zip 仿真: 支持 build.sh 用到的两种用法
+#   zip -q -d archive.zip entry...   (删除条目)
+#   zip -q -0 archive.zip files...   (以 STORED 方式追加/更新条目)
+python "D:/PJGG/apk/tools/bin/zip.py" "$@"

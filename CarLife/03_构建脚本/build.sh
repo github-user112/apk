@@ -12,7 +12,7 @@ export PATH="/usr/bin:/bin:/usr/local/bin:$PATH"
 export MSYS_NO_PATHCONV=1
 export MSYS2_ARG_CONV_EXCL='*'
 
-ROOT="C:/PJGG/apk"
+ROOT="${ROOT:-D:/PJGG/apk}"
 PRJ="${PRJ:-$ROOT/CarLife/01_工程源码/_w112}"
 OUT="$ROOT/CarLife/05_产物"
 JAVA_HOME="$ROOT/tools/jdk-17.0.20.1+1"

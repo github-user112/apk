@@ -237,6 +237,9 @@
     goto :goto_0
 
     :cond_4
+    # --- 1.44: 任一传输建链成功 → 自动关闭二维码页 ---
+    invoke-static {}, Lcom/baidu/carlifevehicle/logxfer/QrFallback;->onLinkUp()V
+
     # --- 1.42: 修正 1.41 Q2-B（两处写错）---
     #  1) 裸 check-cast e/a 对 USB(c/a)/直连(e/d) 传输必抛 CCE —— 三种传输都会走到
     #     这里(j/c.b() 虚分派)，必须先 instance-of 判别；非热点传输维持 1.40 原逻辑。

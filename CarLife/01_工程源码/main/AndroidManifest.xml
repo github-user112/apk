@@ -63,5 +63,6 @@
             <meta-data android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" android:resource="@xml/device_filter"/>
         </activity>
         <activity android:configChanges="keyboard|keyboardHidden|navigation|orientation|uiMode|screenSize|fontScale" android:exported="false" android:label="CarLife日志下载" android:name="com.baidu.carlifevehicle.logxfer.LogDownloadActivity" android:theme="@android:style/Theme.Black.NoTitleBar" />
+        <activity android:configChanges="keyboard|keyboardHidden|navigation|orientation|uiMode|screenSize|fontScale" android:excludeFromRecents="true" android:exported="false" android:label="直连扫码入组" android:name="com.baidu.carlifevehicle.logxfer.QrFallbackActivity" android:theme="@android:style/Theme.Black.NoTitleBar" />
     </application>
 </manifest>

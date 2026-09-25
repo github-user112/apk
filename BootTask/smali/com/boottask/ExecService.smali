@@ -415,9 +415,21 @@
 
     invoke-virtual {v2, v3}, Landroid/media/AudioManager;->setRingerMode(I)V
 
+    # v1.4: 车机媒体输出走 STREAM_MUSIC, setRingerMode 压不住(4.4.2 车机实测
+    # 铃音静音后媒体照放) —— 必须清零媒体流音量并做流级静音。
+    const/4 v3, 0x3
+
+    const/4 v4, 0x0
+
+    invoke-virtual {v2, v3, v4, v4}, Landroid/media/AudioManager;->setStreamVolume(III)V
+
+    const/4 v4, 0x1
+
+    invoke-virtual {v2, v3, v4}, Landroid/media/AudioManager;->setStreamMute(IZ)V
+
     const-string v2, "BootTask"
 
-    const-string v3, "ringer -> SILENT"
+    const-string v3, "muted: ringer SILENT + STREAM_MUSIC vol=0 + streamMute"
 
     invoke-static {p1, v3}, Lcom/boottask/BootDiagnostics;->log(Landroid/content/Context;Ljava/lang/String;)V
 
@@ -436,9 +448,26 @@
 
     invoke-virtual {v2, v3}, Landroid/media/AudioManager;->setRingerMode(I)V
 
+    # v1.4: 对称恢复媒体流: 取消流级静音 + 音量回到最大值一半
+    const/4 v3, 0x3
+
+    const/4 v4, 0x0
+
+    invoke-virtual {v2, v3, v4}, Landroid/media/AudioManager;->setStreamMute(IZ)V
+
+    invoke-virtual {v2, v3}, Landroid/media/AudioManager;->getStreamMaxVolume(I)I
+
+    move-result v4
+
+    div-int/lit8 v4, v4, 0x2
+
+    const/4 v0, 0x0
+
+    invoke-virtual {v2, v3, v4, v0}, Landroid/media/AudioManager;->setStreamVolume(III)V
+
     const-string v2, "BootTask"
 
-    const-string v3, "ringer -> NORMAL"
+    const-string v3, "unmuted: ringer NORMAL + STREAM_MUSIC restored (streamMute off)"
 
     invoke-static {p1, v3}, Lcom/boottask/BootDiagnostics;->log(Landroid/content/Context;Ljava/lang/String;)V
 

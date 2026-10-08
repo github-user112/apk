@@ -109,7 +109,12 @@ public final class FileOps {
      * @return 原始输出（已去掉 run() 追加的 (exit=N) 尾巴）；null = 没执行成功
      */
     public static String su(String cmd) {
-        return stripExit(AdvActions.run(new String[]{"su", "-c", cmd}, 12000L, 300000));
+        return su(cmd, 300000);
+    }
+
+    /** 自定义输出上限的 su（读大文本用，避免被 300KB 默认裁掉却无提示） */
+    public static String su(String cmd, int maxBytes) {
+        return stripExit(AdvActions.run(new String[]{"su", "-c", cmd}, 12000L, maxBytes));
     }
 
     private static String stripExit(String s) {
@@ -378,7 +383,9 @@ public final class FileOps {
      */
     public static String readText(String path, boolean rootMode, int max) {
         if (rootMode) {
-            String out = su("cat " + q(path));
+            // 输出上限必须 ≥ max：老版 su 走默认 300KB 裁剪，而调用方按 512KB 判
+            // truncated，300KB~512KB 的文件不显示截断警告、一保存就丢尾部（v1.6.18 修）
+            String out = su("cat " + q(path), max + 8192);
             if (out == null) {
                 return null;
             }
@@ -524,7 +531,8 @@ public final class FileOps {
 
     /** 删除（目录递归） */
     public static String delete(String path) {
-        boolean rootMode = suOk() && !canDirectDelete(path);
+        // 先判能不能直删再探测 su：能直删的路径不值得为 su 探测等 12 秒（suOk 结果缓存 30s）
+        boolean rootMode = !canDirectDelete(path) && suOk();
         if (!rootMode) {
             boolean ok = rmRecursive(new File(path));
             return ok ? null : "删除失败（无权限？）";

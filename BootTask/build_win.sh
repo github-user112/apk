@@ -12,11 +12,20 @@ ANDROID_JAR="$LOGXFER/tools/android.jar"
 R8_JAR="$LOGXFER/tools/r8.jar"
 APKTOOL_JAR="$ROOT/tools/apktool.jar"
 APKSIGNER_JAR="$ROOT/tools/apksigner/apksigner.jar"
-OUT=${1:-"$PROJECT/dist/BootTask_v1.6.17.apk"}
+OUT=${1:-"$PROJECT/dist/BootTask_v1.6.21.apk"}
 
 for path in "$ANDROID_JAR" "$R8_JAR" "$APKTOOL_JAR" "$APKSIGNER_JAR" "$PROJECT/keys/boottask.p12"; do
     if [[ ! -e "$path" ]]; then
         printf '缺少文件: %s\n' "$path" >&2
+        exit 1
+    fi
+done
+
+# logxfer 是两个工程共享的外部源码（ShareServer 靠 localIps() 跨包引用），
+# 这里被移动/改名会让编译静默断掉 —— 提前断言（v1.6.18 加）
+for lf in LogHttpServer.java NetWatch.java LogDownloadActivity.java; do
+    if [[ ! -e "$LOGXFER/java/com/baidu/carlifevehicle/logxfer/$lf" ]]; then
+        printf 'logxfer 共享源码缺失: %s（检查 02_补丁脚本/logxfer_src 是否被移动）\n' "$lf" >&2
         exit 1
     fi
 done
@@ -47,9 +56,13 @@ cp "$PROJECT/src/com/boottask/BootDiagnostics.java" "$WORK/java/com/boottask/Boo
 cp "$PROJECT/src/com/boottask/AdvActions.java" "$WORK/java/com/boottask/AdvActions.java"
 cp "$PROJECT/src/com/boottask/MainActivity.java" "$WORK/java/com/boottask/MainActivity.java"
 cp "$PROJECT/src/com/boottask/MediaMute.java" "$WORK/java/com/boottask/MediaMute.java"
+cp "$PROJECT/src/com/boottask/MuteGuard.java" "$WORK/java/com/boottask/MuteGuard.java"
 cp "$PROJECT/src/com/boottask/QuickRepair.java" "$WORK/java/com/boottask/QuickRepair.java"
 cp "$PROJECT/src/com/boottask/NoRootFixes.java" "$WORK/java/com/boottask/NoRootFixes.java"
 cp "$PROJECT/src/com/boottask/P2pGuard.java" "$WORK/java/com/boottask/P2pGuard.java"
+cp "$PROJECT/src/com/boottask/HotspotProbe.java" "$WORK/java/com/boottask/HotspotProbe.java"
+cp "$PROJECT/src/com/boottask/AudioMonitor.java" "$WORK/java/com/boottask/AudioMonitor.java"
+cp "$PROJECT/src/com/boottask/BootAudioReceiver.java" "$WORK/java/com/boottask/BootAudioReceiver.java"
 cp "$PROJECT/src/com/boottask/UploadServer.java" "$WORK/java/com/boottask/UploadServer.java"
 cp "$PROJECT/src/com/boottask/ApkInstaller.java" "$WORK/java/com/boottask/ApkInstaller.java"
 cp "$PROJECT/src/com/boottask/ReceiveActivity.java" "$WORK/java/com/boottask/ReceiveActivity.java"
@@ -96,9 +109,13 @@ javac -encoding UTF-8 -source 8 -target 8 \
     "$WORK/java/com/boottask/AdvActions.java" \
     "$WORK/java/com/boottask/MainActivity.java" \
     "$WORK/java/com/boottask/MediaMute.java" \
+    "$WORK/java/com/boottask/MuteGuard.java" \
     "$WORK/java/com/boottask/QuickRepair.java" \
     "$WORK/java/com/boottask/NoRootFixes.java" \
     "$WORK/java/com/boottask/P2pGuard.java" \
+    "$WORK/java/com/boottask/HotspotProbe.java" \
+    "$WORK/java/com/boottask/AudioMonitor.java" \
+    "$WORK/java/com/boottask/BootAudioReceiver.java" \
     "$WORK/java/com/boottask/UploadServer.java" \
     "$WORK/java/com/boottask/ApkInstaller.java" \
     "$WORK/java/com/boottask/ReceiveActivity.java" \

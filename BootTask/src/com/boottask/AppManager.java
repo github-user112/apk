@@ -57,8 +57,10 @@ public final class AppManager {
         boolean root = FileOps.suOk();
         if (root) {
             String flags = keepData ? "-k " : "";
+            // 纵深防御：pkg 已由 installed() 白名单式校验过，仍走 q() 转义保持与
+            // ApkInstaller 同一纪律（v1.6.18）
             String out = AdvActions.run(new String[]{"su", "-c",
-                    "pm uninstall " + flags + pkg}, 30000L, 8192);
+                    "pm uninstall " + flags + FileOps.q(pkg)}, 30000L, 8192);
             BootDiagnostics.log(ctx, "AppManager: pm uninstall -> " + out);
             if (out != null && (out.indexOf("Success") >= 0 || out.indexOf("DELETE_SUCCEEDED") >= 0)) {
                 // 再确认一次：pm 偶发「成功」但包还在（多用户/延迟）

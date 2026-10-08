@@ -56,6 +56,13 @@ public class MainActivity extends Activity implements View.OnClickListener,
     private Button guardNowButton;
     private Button guardRestoreButton;
     private TextView guardStatusText;
+    private Button hsToggleButton;
+    private Button hsApButton;
+    private TextView hsStatusText;
+    private Button amToggleButton;
+    private Button amPickButton;
+    private Button amClearButton;
+    private TextView amStatusText;
     private TextView countText;
     private TextView rootText;
 
@@ -302,6 +309,83 @@ public class MainActivity extends Activity implements View.OnClickListener,
         ghLp.topMargin = dip(4);
         root.addView(guardHint, ghLp);
 
+        // ---- 分区四点七：热点探测蹲守（v1.6.20）----
+        TextView hsLabel = new TextView(this);
+        hsLabel.setText("热点探测（SoftAP 诊断蹲守）");
+        hsLabel.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
+        hsLabel.setTypeface(Typeface.DEFAULT_BOLD);
+        hsLabel.setTextColor(Color.rgb(51, 51, 51));
+        LinearLayout.LayoutParams hsLp = matchWrap();
+        hsLp.topMargin = dip(16);
+        root.addView(hsLabel, hsLp);
+
+        hsToggleButton = new Button(this);
+        hsToggleButton.setOnClickListener(this);
+        root.addView(hsToggleButton, matchWrap());
+
+        hsApButton = new Button(this);
+        hsApButton.setText("尝试直接打开车机热点（免 root）");
+        hsApButton.setOnClickListener(this);
+        root.addView(hsApButton, matchWrap());
+
+        hsStatusText = new TextView(this);
+        hsStatusText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+        hsStatusText.setTextColor(Color.rgb(90, 90, 90));
+        LinearLayout.LayoutParams hssLp = matchWrap();
+        hssLp.topMargin = dip(4);
+        root.addView(hsStatusText, hssLp);
+
+        TextView hsHint = new TextView(this);
+        hsHint.setText("用法：先开蹲守，再去车机设置里打开热点（或点上面按钮）——状态每变一次，"
+                + "自动抓 getprop/netcfg/logcat 落日志。日志在 /sdcard/boottask/hotspot_probe.log，"
+                + "也可从手机文件管理页直接取走发我分析。");
+        hsHint.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+        hsHint.setTextColor(Color.rgb(120, 120, 120));
+        LinearLayout.LayoutParams hshLp = matchWrap();
+        hshLp.topMargin = dip(4);
+        root.addView(hsHint, hshLp);
+
+        // ---- 分区四点八：启动与声音监控（v1.6.21）----
+        TextView amLabel = new TextView(this);
+        amLabel.setText("启动与声音监控（抓自启收音机）");
+        amLabel.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
+        amLabel.setTypeface(Typeface.DEFAULT_BOLD);
+        amLabel.setTextColor(Color.rgb(51, 51, 51));
+        LinearLayout.LayoutParams amLp = matchWrap();
+        amLp.topMargin = dip(16);
+        root.addView(amLabel, amLp);
+
+        amToggleButton = new Button(this);
+        amToggleButton.setOnClickListener(this);
+        root.addView(amToggleButton, matchWrap());
+
+        amPickButton = new Button(this);
+        amPickButton.setText("选择拦截目标（选多媒体/收音机）");
+        amPickButton.setOnClickListener(this);
+        root.addView(amPickButton, matchWrap());
+
+        amClearButton = new Button(this);
+        amClearButton.setText("清空拦截目标");
+        amClearButton.setOnClickListener(this);
+        root.addView(amClearButton, matchWrap());
+
+        amStatusText = new TextView(this);
+        amStatusText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+        amStatusText.setTextColor(Color.rgb(90, 90, 90));
+        LinearLayout.LayoutParams amsLp = matchWrap();
+        amsLp.topMargin = dip(4);
+        root.addView(amStatusText, amsLp);
+
+        TextView amHint = new TextView(this);
+        amHint.setText("监控开机后每个新启动的进程 + 音频焦点/音量变化（谁在抢声音），"
+                + "落日志 /sdcard/boottask/audio_monitor.log。设拦截目标后目标进程一冒头就杀"
+                + "（免 root 只能杀非前台进程；若杀不掉会用静音兜底）。开机自动开始监控。");
+        amHint.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+        amHint.setTextColor(Color.rgb(120, 120, 120));
+        LinearLayout.LayoutParams amhLp = matchWrap();
+        amhLp.topMargin = dip(4);
+        root.addView(amHint, amhLp);
+
         // ---- 分区五：诊断与日志 ----
         View divider = new View(this);
         divider.setBackgroundColor(Color.rgb(224, 224, 224));
@@ -372,6 +456,8 @@ public class MainActivity extends Activity implements View.OnClickListener,
         super.onResume();
         refresh();
         updateGuardUi();
+        updateHsUi();
+        updateAmUi();
         // v1.6.13：每次回到前台都重新探测 root —— 用户在 SuperSU 里授权后回来能自动变绿，
         // 不用杀 App 重开（探测在后台线程，不卡 UI）
         probeRootAsync();
@@ -418,8 +504,68 @@ public class MainActivity extends Activity implements View.OnClickListener,
         }
     }
 
-    // View.OnClickListener —— 添加按钮 / 下载日志按钮 / 一键修复按钮
+    /** v1.6.20：热点探测分区状态 */
+    private void updateHsUi() {
+        try {
+            hsToggleButton.setText(HotspotProbe.isRunning()
+                    ? "停止热点探测蹲守" : "开启热点探测蹲守（自动记录热点状态变化）");
+            String log = HotspotProbe.readLog(this);
+            String[] lines = log.split("\n");
+            StringBuilder tail = new StringBuilder();
+            int from = Math.max(0, lines.length - 4);
+            for (int i = from; i < lines.length; i++) {
+                if (tail.length() > 0) {
+                    tail.append('\n');
+                }
+                tail.append(lines[i]);
+            }
+            hsStatusText.setText("状态：" + HotspotProbe.lastAction()
+                    + "\n最近记录：\n" + tail);
+        } catch (Throwable ignored) {
+        }
+    }
+
+    /** v1.6.21：启动与声音监控分区状态 */
+    private void updateAmUi() {
+        try {
+            amToggleButton.setText(AudioMonitor.isRunning()
+                    ? "停止启动与声音监控" : "开启启动与声音监控（也可等开机自动开始）");
+            String tgt = AudioMonitor.blockTarget(this);
+            String log = AudioMonitor.readLog(this);
+            String[] lines = log.split("\n");
+            StringBuilder tail = new StringBuilder();
+            int from = Math.max(0, lines.length - 4);
+            for (int i = from; i < lines.length; i++) {
+                if (tail.length() > 0) {
+                    tail.append('\n');
+                }
+                tail.append(lines[i]);
+            }
+            amStatusText.setText("拦截目标：" + (tgt == null ? "未设置" : tgt)
+                    + "\n状态：" + AudioMonitor.lastAction() + "\n最近记录：\n" + tail);
+        } catch (Throwable ignored) {
+        }
+    }
+
+    /** v1.6.21：接收 AppPickActivity 选中的拦截目标 */
     @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 77 && resultCode == RESULT_OK && data != null) {
+            String pkg = data.getStringExtra("pkg");
+            if (pkg != null && pkg.length() > 0) {
+                AudioMonitor.setBlockTarget(this, pkg);
+                Toast.makeText(this, "拦截目标已设为 " + pkg
+                        + "（开机后也会自动拦截）", Toast.LENGTH_LONG).show();
+                if (!AudioMonitor.isRunning()) {
+                    startService(new Intent(this, AudioMonitor.class));
+                }
+                updateAmUi();
+            }
+        }
+    }
+
+    // View.OnClickListener —— 添加按钮 / 下载日志按钮 / 一键修复按钮    @Override
     public void onClick(View v) {
         if (v == logButton) {
             // 快照抓取（su 探测 + logcat 可达 30s）由 LogActivity.onCreate 的后台线程执行，
@@ -553,6 +699,73 @@ public class MainActivity extends Activity implements View.OnClickListener,
             updateGuardUi();
             return;
         }
+        if (v == amToggleButton) {
+            if (AudioMonitor.isRunning()) {
+                stopService(new Intent(this, AudioMonitor.class));
+                Toast.makeText(this, "声音监控已停止", Toast.LENGTH_SHORT).show();
+            } else {
+                startService(new Intent(this, AudioMonitor.class));
+                Toast.makeText(this, "声音监控已开启（每 5 秒记录新进程与音频焦点）",
+                        Toast.LENGTH_LONG).show();
+            }
+            updateAmUi();
+            amStatusText.postDelayed(new Runnable() {
+                public void run() {
+                    updateAmUi();
+                }
+            }, 1200L);
+            return;
+        }
+        if (v == amPickButton) {
+            // AppPickActivity 是 smali 类（javac 不可见），用 setClassName 拉起
+            Intent it = new Intent();
+            it.setClassName(getPackageName(), "com.boottask.AppPickActivity");
+            startActivityForResult(it, 77);   // 结果 extra "pkg"
+            return;
+        }
+        if (v == amClearButton) {
+            AudioMonitor.clearBlockTarget(this);
+            Toast.makeText(this, "已清空拦截目标", Toast.LENGTH_SHORT).show();
+            updateAmUi();
+            return;
+        }
+        if (v == hsToggleButton) {
+            if (HotspotProbe.isRunning()) {
+                stopService(new Intent(this, HotspotProbe.class));
+                Toast.makeText(this, "热点探测已停止", Toast.LENGTH_SHORT).show();
+            } else {
+                startService(new Intent(this, HotspotProbe.class));
+                Toast.makeText(this, "热点探测已开启（每 5 秒蹲守，状态变化自动抓日志）",
+                        Toast.LENGTH_LONG).show();
+            }
+            updateHsUi();
+            hsStatusText.postDelayed(new Runnable() {
+                public void run() {
+                    updateHsUi();
+                }
+            }, 1200L);
+            return;
+        }
+        if (v == hsApButton) {
+            Toast.makeText(this, "正在尝试开热点…", Toast.LENGTH_SHORT).show();
+            new Thread(new Runnable() {
+                public void run() {
+                    final String r = HotspotProbe.ensureOn(MainActivity.this);
+                    runOnUiThread(new Runnable() {
+                        public void run() {
+                            Toast.makeText(MainActivity.this, r, Toast.LENGTH_LONG).show();
+                            updateHsUi();
+                            hsStatusText.postDelayed(new Runnable() {
+                                public void run() {
+                                    updateHsUi();
+                                }
+                            }, 6000L);
+                        }
+                    });
+                }
+            }).start();
+            return;
+        }
         if (v == recvButton) {            // ReceiveActivity 是 Java 类，编译期可见 —— 直接引用
             UploadServer.init(this);
             startActivity(new Intent(this, ReceiveActivity.class));
@@ -566,7 +779,13 @@ public class MainActivity extends Activity implements View.OnClickListener,
                 Toast.makeText(this, "端口 18083 起不来（可能被占用）", Toast.LENGTH_LONG).show();
                 return;
             }
-            startActivity(new Intent(this, FileShareActivity.class));
+            try {
+                startActivity(new Intent(this, FileShareActivity.class));
+            } catch (Throwable t) {
+                // Activity 拉不起来时别让服务带着 WakeLock 常驻
+                ShareServer.get().stop();
+                Toast.makeText(this, "打不开文件共享页：" + t, Toast.LENGTH_LONG).show();
+            }
             return;
         }
         if (v == fileMgrButton) {

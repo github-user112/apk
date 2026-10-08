@@ -13,10 +13,10 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URLDecoder;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Random;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -39,8 +39,10 @@ import java.util.zip.ZipOutputStream;
  *   GET  /api/install?path=  -> 安装 APK（root 走 pm，无 root 拉起系统安装界面）
  *   GET  /api/info           -> 能力信息（root 是否可用等）
  *
- * 鉴权：服务每次启动生成随机 4 位访问码，二维码 URL 里带 k=xxxx，API 校验。
- * 这样同网段的其他人就算扫到端口也动不了文件（码只在车机屏幕上出现）。
+ * 鉴权：服务每次启动生成随机 8 位小写字母数字访问码（SecureRandom），二维码 URL 里带
+ * k=xxxx，API 校验。鉴权失败强制延迟 300ms（防同网段恶意页面拿 4 位老码盲喷爆破——
+ * 老 4 位码 + 无限速 + op=shell 曾构成完整攻击链，v1.6.18 全部收紧）。
+ * 另：操作类接口里 op=shell 只收 POST 且校验 Origin；删除拒绝根目录/一级目录。
  *
  * root 模式：请求带 rm=1 强制走 su（看 /system /etc 必需）；不带时我们有 su 就默认用
  * ——车是自己的，功能可用性优先；写操作仍走 FileOps 的「能直写就直写，否则借 su」。
@@ -137,7 +139,7 @@ public final class ShareServer {
         if (mRunning) {
             return;
         }
-        sKey = String.valueOf(new Random().nextInt(9000) + 1000);
+        sKey = newKey();
         acquireWake();
         try {
             mServer = new ServerSocket();
@@ -179,6 +181,21 @@ public final class ShareServer {
     }
 
     /**
+     * 8 位小写字母数字访问码。老版 4 位数字（空间 9000）配合鉴权失败零限速，
+     * 恶意网页在直连/热点网内可以 fire-and-forget 盲喷全空间；8 位 36 进制约
+     * 28 亿空间，再叠加鉴权失败的 300ms 强制延迟，爆破不再现实。
+     */
+    private static String newKey() {
+        char[] cs = new char[8];
+        SecureRandom r = new SecureRandom();
+        for (int i = 0; i < cs.length; i++) {
+            int v = r.nextInt(36);
+            cs[i] = (char) (v < 10 ? '0' + v : 'a' + v - 10);
+        }
+        return new String(cs);
+    }
+
+    /**
      * 持 PARTIAL_WAKE_LOCK：车机息屏后 CPU 一旦睡死，socket 虽然还 LISTEN 但不再接受连接
      * （实测表现：本来好好的端口，过一会儿 curl 直接 connection refused）。
      * 手机遥控期间用户往往不看车机屏，这个锁是必需的。
@@ -214,7 +231,7 @@ public final class ShareServer {
 
     private void loop() {
         while (mRunning) {
-            Socket s = null;
+            final Socket s;
             try {
                 s = mServer.accept();
             } catch (Throwable t) {
@@ -223,16 +240,24 @@ public final class ShareServer {
                 }
                 continue;
             }
-            try {
-                handle(s);
-            } catch (Throwable t) {
-                Log.w(TAG, "handle: " + t);
-            } finally {
-                try {
-                    s.close();
-                } catch (Throwable ignored) {
+            // 每连接一线程：一个 200MB 上传 / 大目录 zip 期间其它请求照常服务，
+            // 也避免恶意连接把整个服务占死（v1.6.17 及之前是同步 handle，一个慢请求全堵）
+            Thread t = new Thread(new Runnable() {
+                public void run() {
+                    try {
+                        handle(s);
+                    } catch (Throwable e) {
+                        Log.w(TAG, "handle: " + e);
+                    } finally {
+                        try {
+                            s.close();
+                        } catch (Throwable ignored) {
+                        }
+                    }
                 }
-            }
+            }, "BootTaskShare-conn");
+            t.setDaemon(true);
+            t.start();
         }
     }
 
@@ -249,6 +274,7 @@ public final class ShareServer {
         }
         contentLen = 0;
         boolean expect100 = false;
+        String origin = null;
         for (int i = 0; i < 64; i++) {
             String h = readLine(in);
             if (h == null || h.length() == 0) {
@@ -262,12 +288,9 @@ public final class ShareServer {
                 }
             } else if (low.startsWith("expect:") && low.indexOf("100-continue") >= 0) {
                 expect100 = true;
+            } else if (low.startsWith("origin:")) {
+                origin = h.substring(h.indexOf(':') + 1).trim();
             }
-        }
-        if (expect100) {
-            OutputStream os = s.getOutputStream();
-            os.write("HTTP/1.1 100 Continue\r\n\r\n".getBytes("US-ASCII"));
-            os.flush();
         }
 
         String[] parts = req.split(" ");
@@ -277,8 +300,20 @@ public final class ShareServer {
 
         String p = target.startsWith("/api/") ? param(target, "k") : null;
         if (target.startsWith("/api/") && (p == null || !p.equals(sKey))) {
+            // 鉴权失败先罚 300ms 再应答：同网段恶意页面盲喷时每次尝试都要付时间成本
+            try {
+                Thread.sleep(300L);
+            } catch (InterruptedException ie) {
+            }
             json(s, "{\"ok\":false,\"error\":\"访问码不对，请重新扫车机屏幕上的二维码\"}");
             return;
+        }
+
+        // 100-continue 放到鉴权之后再回：未授权请求不该先拿到 continue
+        if (expect100) {
+            OutputStream os = s.getOutputStream();
+            os.write("HTTP/1.1 100 Continue\r\n\r\n".getBytes("US-ASCII"));
+            os.flush();
         }
 
         if ("POST".equals(method) && target.startsWith("/api/up")) {
@@ -320,7 +355,7 @@ public final class ShareServer {
         }
         if (target.startsWith("/api/op")) {
             apiOp(s, param(target, "op"), param(target, "src"), param(target, "dst"),
-                    rootMode(param(target, "rm")));
+                    rootMode(param(target, "rm")), method, origin);
             return;
         }
         if (target.startsWith("/api/install")) {
@@ -353,7 +388,7 @@ public final class ShareServer {
         boolean root = FileOps.suOk();
         StringBuilder b = new StringBuilder(256);
         b.append("{\"ok\":true,\"root\":").append(root)
-                .append(",\"version\":\"1.6.15\"")
+                .append(",\"version\":").append(jq(appVersion()))
                 .append(",\"home\":").append(jq(defaultHome()))
                 .append(",\"roots\":[");
         String[] cand = roots();
@@ -365,6 +400,18 @@ public final class ShareServer {
         }
         b.append("]}");
         json(s, b.toString());
+    }
+
+    /** 版本号从 PackageManager 读，不再硬编码（老版写死 1.6.15，App 都到 1.6.17 了） */
+    private static String appVersion() {
+        try {
+            if (sCtx != null) {
+                return sCtx.getPackageManager()
+                        .getPackageInfo(sCtx.getPackageName(), 0).versionName;
+            }
+        } catch (Throwable ignored) {
+        }
+        return "unknown";
     }
 
     private static String defaultHome() {
@@ -664,9 +711,23 @@ public final class ShareServer {
         json(s, b.toString());
     }
 
-    private void apiOp(Socket s, String op, String src, String dst, boolean rm) throws Exception {
+    private void apiOp(Socket s, String op, String src, String dst, boolean rm,
+                       String method, String origin) throws Exception {
         if (op == null || src == null) {
             json(s, "{\"ok\":false,\"error\":\"参数不全\"}");
+            return;
+        }
+        // op=shell 是 root 命令执行口，纵深防御收紧（v1.6.18）：
+        // 只收 POST + 浏览器跨域 POST 一定带 Origin，带且非本机即拒（防恶意页面 CSRF）
+        if ("shell".equals(op)) {
+            if (!"POST".equals(method) || isCrossOrigin(origin)) {
+                json(s, "{\"ok\":false,\"error\":\"shell 仅限诊断 POST，且拒绝跨源调用\"}");
+                return;
+            }
+        }
+        // 删除的服务端护栏：手机 UI 的 confirm 只是前端摆设，API 层必须自己兜底
+        if ("delete".equals(op) && isTopLevelPath(src)) {
+            json(s, "{\"ok\":false,\"error\":\"拒绝删除根目录/一级目录（" + je(src) + "）\"}");
             return;
         }
         String err;
@@ -742,6 +803,26 @@ public final class ShareServer {
         }
     }
 
+    /** 浏览器发的 Origin 是否指向别的站点（跨源 CSRF 特征）。curl 等不带 Origin 视为同源 */
+    private static boolean isCrossOrigin(String origin) {
+        if (origin == null || origin.length() == 0) {
+            return false;
+        }
+        String o = origin.toLowerCase(Locale.US);
+        // 形如 http://192.168.49.1:18083 —— 只要是本服务地址就放行
+        return !(o.startsWith("http://") && o.indexOf(":18083") > 0);
+    }
+
+    /** "/" 或 "/xxx"（一级目录）——删这些几乎必然是灾难，直接拒 */
+    private static boolean isTopLevelPath(String path) {
+        if (path == null || path.length() == 0) {
+            return true;
+        }
+        String p = path.endsWith("/") && path.length() > 1
+                ? path.substring(0, path.length() - 1) : path;
+        return p.equals("/") || p.indexOf('/', 1) < 0;
+    }
+
     private static String clip(String s, int n) {
         String one = s.replace('\n', ' ').trim();
         return one.length() <= n ? one : one.substring(0, n) + "…";
@@ -779,6 +860,11 @@ public final class ShareServer {
         }
         String base = safeName(filename);
         File dst = new File(outDir, base);
+        // 同名不静默覆盖（FileOutputStream 是 truncate 语义，覆盖了用户找不回原文件）
+        if (dst.exists()) {
+            dst = new File(outDir, uniqueName(outDir, base));
+            base = dst.getName();
+        }
 
         boolean viaRoot = !FileOps.canDirectWrite(dst.getAbsolutePath());
         File realDst = dst;
@@ -831,6 +917,20 @@ public final class ShareServer {
                 + ",\"path\":" + jq(dst.getAbsolutePath()) + "}");
     }
 
+    /** 找一个不冲突的名字：照片.jpg → 照片(1).jpg、照片(2).jpg … */
+    private static String uniqueName(File dir, String base) {
+        int dot = base.lastIndexOf('.');
+        String stem = dot > 0 ? base.substring(0, dot) : base;
+        String ext = dot > 0 ? base.substring(dot) : "";
+        for (int i = 1; i < 1000; i++) {
+            String cand = stem + "(" + i + ")" + ext;
+            if (!new File(dir, cand).exists()) {
+                return cand;
+            }
+        }
+        return System.currentTimeMillis() + ext;
+    }
+
     /**
      * 把一个 part 流式写到 dst，直到 "\r\n--boundary"。
      *
@@ -848,13 +948,14 @@ public final class ShareServer {
             int keep = 0;
             while (true) {
                 int n = in.read(buf, 0, buf.length);
-                if (n <= 0) {
-                    if (keep > 0) {
-                        fos.write(tail, 0, keep);
-                        total += keep;
-                    }
-                    finished = true;
-                    break;
+                if (n < 0) {
+                    // EOF 还没见到 boundary = 客户端中途断网/超时。
+                    // 老版把这种当成功返回字节数，半截文件留在车机上还提示「已上传」，
+                    // 之后装 APK 必失败且难排查（v1.6.18 修：按失败处理并删除残件）
+                    return -1;
+                }
+                if (n == 0) {
+                    continue;
                 }
                 byte[] win = new byte[keep + n];
                 if (keep > 0) {
@@ -944,8 +1045,10 @@ public final class ShareServer {
 
     private static void respondHead(Socket s, int code, String ctype, long len, String extra)
             throws Exception {
+        // 状态短语不再写死 OK（404 返回 "404 Not Found" 而不是不规范的 "404 OK"）
+        String reason = code == 404 ? "Not Found" : "OK";
         StringBuilder h = new StringBuilder(256);
-        h.append("HTTP/1.1 ").append(code).append(" OK\r\n");
+        h.append("HTTP/1.1 ").append(code).append(' ').append(reason).append("\r\n");
         h.append("Content-Type: ").append(ctype).append("\r\n");
         if (len >= 0) {
             h.append("Content-Length: ").append(len).append("\r\n");
@@ -992,7 +1095,11 @@ public final class ShareServer {
             }
             if (pairs[i].substring(0, eq).equals(name)) {
                 try {
-                    return URLDecoder.decode(pairs[i].substring(eq + 1), "UTF-8");
+                    // 前端用 encodeURIComponent（空格→%20，+ 是字面加号），
+                    // URLDecoder 的表单语义会把 + 解成空格，含 + 的文件名全部对不上
+                    // （v1.6.18 修）：先把 + 保护成 %2B 再解码
+                    String v = pairs[i].substring(eq + 1).replace("+", "%2B");
+                    return URLDecoder.decode(v, "UTF-8");
                 } catch (Throwable t) {
                     return pairs[i].substring(eq + 1);
                 }
@@ -1047,11 +1154,15 @@ public final class ShareServer {
         return b.length() > 0 ? b.toString() : "file.bin";
     }
 
+    /**
+     * 上传文件名安全化。v1.6.18 起保留中文等非 ASCII 字符（老版全变下划线，
+     * 两个中文名还会碰撞覆盖——面向中文用户的硬伤）；只滤路径分隔符和控制字符。
+     */
     private static String safeName(String n) {
         StringBuilder b = new StringBuilder(n.length());
         for (int i = 0; i < n.length(); i++) {
             char c = n.charAt(i);
-            if (c == '/' || c == '\\' || c == ':' || c < 32 || c > 126) {
+            if (c == '/' || c == '\\' || c == ':' || c < 32 || c == 0x7F) {
                 b.append('_');
             } else {
                 b.append(c);

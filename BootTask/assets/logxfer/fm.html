@@ -101,6 +101,10 @@ function esc(s) {
   return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
     .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
+// 拼 onclick="fn('...')" 用的字符串转义：先反斜杠再引号（只转义 ' 会放过 x\');alert(1)// 这类二阶 XSS）
+function jsq(s) {
+  return esc(String(s == null ? '' : s).replace(/\\/g, '\\\\').replace(/'/g, "\\'"));
+}
 function toast(msg) {
   var t = document.getElementById('toast');
   document.getElementById('toastText').textContent = msg;
@@ -130,6 +134,7 @@ function load(path) {
   S.path = path || S.path;
   xhr('/api/list?path=' + encodeURIComponent(S.path) + '&' + Q(''), function (j) {
     if (!j.ok) {
+      S.items = []; S.sel = {};   // 列目录失败：清掉旧条目，防止多选/粘贴作用在旧目录上
       document.getElementById('crumb').textContent = S.path;
       document.getElementById('list').innerHTML = '';
       var e = document.getElementById('empty');
@@ -216,7 +221,7 @@ function pickRoot() {
     if (!j.ok) { toast(j.error || '取不到'); return; }
     var html = '<h3>快捷位置</h3>';
     for (var i = 0; i < j.roots.length; i++) {
-      html += '<button onclick="load(\'' + esc(j.roots[i].replace(/'/g, "\\'")) + '\')">'
+      html += '<button onclick="load(\'' + jsq(j.roots[i]) + '\')">'
         + esc(j.roots[i]) + '</button>';
     }
     html += '<button class="danger" onclick="closeSheet()">取消</button>';
@@ -252,7 +257,8 @@ function closeSheet() {
   document.getElementById('mask').style.display = 'none';
 }
 function menu(it) {
-  var p = esc(it.path.replace(/'/g, "\\'"));
+  S.propsItem = it;   // 「属性」直接用列表里已有的 size/时间/权限，不再整读一遍文件
+  var p = jsq(it.path);
   var html = '<h3>' + esc(it.name) + '</h3>';
   if (it.dir) {
     html += '<button onclick="load(\'' + p + '\')">进入</button>';
@@ -266,9 +272,9 @@ function menu(it) {
   }
   html += '<button onclick="askCopy(\'' + p + '\',0)">复制</button>';
   html += '<button onclick="askCopy(\'' + p + '\',1)">剪切</button>';
-  html += '<button onclick="askRename(\'' + p + '\',\'' + esc(it.name.replace(/'/g, "\\'")) + '\')">重命名</button>';
-  html += '<button onclick="askProps(\'' + p + '\')">属性</button>';
-  html += '<button class="danger" onclick="askDelete(\'' + p + '\',\'' + esc(it.name.replace(/'/g, "\\'")) + '\','
+  html += '<button onclick="askRename(\'' + p + '\',\'' + jsq(it.name) + '\')">重命名</button>';
+  html += '<button onclick="askProps()">属性</button>';
+  html += '<button class="danger" onclick="askDelete(\'' + p + '\',\'' + jsq(it.name) + '\','
     + (it.dir ? 1 : 0) + ')">删除</button>';
   html += '<button onclick="closeSheet()">取消</button>';
   sheet(html);
@@ -316,11 +322,15 @@ function askDelete(p, name, isDir) {
     closeSheet(); load();
   });
 }
-function askProps(p) {
-  xhr('/api/text?path=' + encodeURIComponent(p) + '&' + Q(''), function (j) {
-    var lines = ['路径：' + p];
-    alert(lines.join('\n'));
-  });
+function askProps() {
+  var it = S.propsItem;
+  if (!it) { toast('没有可显示的条目'); return; }
+  var lines = ['名称：' + it.name, '路径：' + it.path,
+    '类型：' + (it.dir ? '目录' : '文件'),
+    '大小：' + (it.dir ? '-' : (it.sizeText || '?')),
+    '时间：' + (it.timeText || '?')];
+  if (it.perms) { lines.push('权限：' + it.perms); }
+  alert(lines.join('\n'));
 }
 function newDir() {
   var n = prompt('新建目录名', '');
@@ -345,7 +355,7 @@ function doSearch() {
       var html = '<h3>搜索结果 ' + j.items.length + ' 项</h3>';
       for (var i = 0; i < j.items.length && i < 100; i++) {
         var it = j.items[i];
-        html += '<button onclick="load(\'' + esc(it.parent.replace(/'/g, "\\'"))
+        html += '<button onclick="load(\'' + jsq(it.parent)
           + '\')">' + esc(it.name) + '<br><span style="color:#9B98A8;font-size:11px">'
           + esc(it.path) + '</span></button>';
       }
@@ -362,7 +372,7 @@ function edit(p) {
     var html = '<div id="editor"><h3>' + esc(p.split('/').pop()) + '</h3>'
       + '<textarea id="ta" spellcheck="false"></textarea>'
       + '<div class="bar" style="margin-top:8px">'
-      + '<button class="pri" onclick="save(\'' + esc(p.replace(/'/g, "\\'")) + '\')">保存到车机</button>'
+      + '<button class="pri" onclick="save(\'' + jsq(p) + '\')">保存到车机</button>'
       + '<button onclick="closeSheet()">关闭</button></div>'
       + '<div style="color:#9B98A8;font-size:11px;margin-top:6px">'
       + (j.truncated ? '（文件过大，只显示前 512KB，保存会截断，慎用）' : '')
@@ -390,7 +400,10 @@ function upload(input) {
     var fd = new FormData();
     fd.append('file', f, f.name);
     var x = new XMLHttpRequest();
-    x.open('POST', '/api/up?path=' + encodeURIComponent(S.path) + '&' + Q(''), true);
+    // 手写 XHR 而不是走 xhr() 包装：FormData 要自己 send。k 必须带上，
+    // 否则服务端鉴权直接拒（v1.6.18 修：之前漏了导致上传 100% 失败）
+    x.open('POST', '/api/up?path=' + encodeURIComponent(S.path) + '&' + Q('')
+      + '&k=' + encodeURIComponent(KEY), true);
     x.onreadystatechange = function () {
       if (x.readyState !== 4) { return; }
       var j = null;
@@ -474,12 +487,12 @@ function fmtTime(ms) {
   return (d.getMonth() + 1) + '-' + pad(d.getDate()) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
 }
 function appMenu(a) {
-  var p = esc(a.pkg.replace(/'/g, "\\'"));
+  var p = jsq(a.pkg);
   var html = '<h3>' + esc(a.name) + '</h3>';
   html += '<button onclick="launchApp(\'' + p + '\')">打开这个应用</button>';
-  html += '<button onclick="askUninstall(\'' + p + '\',\'' + esc(a.name.replace(/'/g, "\\'")) + '\',0,'
+  html += '<button onclick="askUninstall(\'' + p + '\',\'' + jsq(a.name) + '\',0,'
     + (a.system ? 1 : 0) + ')">卸载</button>';
-  html += '<button onclick="askUninstall(\'' + p + '\',\'' + esc(a.name.replace(/'/g, "\\'")) + '\',1,'
+  html += '<button onclick="askUninstall(\'' + p + '\',\'' + jsq(a.name) + '\',1,'
     + (a.system ? 1 : 0) + ')">卸载但保留数据</button>';
   html += '<button class="danger" onclick="closeSheet()">取消</button>';
   sheet(html);

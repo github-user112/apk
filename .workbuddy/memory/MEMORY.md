@@ -54,3 +54,12 @@ adb=`D:/PJGG/platform-tools-latest-windows/platform-tools/adb.exe`。realme X7 P
 - MainActivity 已 Java 化（D8 合并通道），smali 版已删；UI 分层=头部/我的规则/诊断与日志。
 - adb 本地路径铁律：MSYS_NO_PATHCONV=1 时本地参数写 C:/ 形式；install 后必 dumpsys 复核 versionCode（tail 吞失败行）；中文 APK 名先 cp 成 ASCII。
 
+## BootTask v1.6.19（vc26，2026-10-08）：v1.6.18 修 19 项 + SoftAP 热点探测
+产物 `BootTask/dist/BootTask_v1.6.19.apk`。**v1.6.18**：按外部代码审查修复 19 项——P0 fm.html 上传漏 k；P1 访问码 4 位数字→8 位 SecureRandom+鉴权失败延迟 300ms+op=shell 只收 POST 且拒跨源 Origin+删除拒根/一级目录+pm install/uninstall 走 FileOps.q()；P2 writePart EOF 判失败、safeName 保留中文、上传同名 (n) 后缀、param() 保护 `+`、每连接一线程、fm.html jsq() 修二阶 XSS、load 失败清状态、属性用列表数据；P3 404 短语/100-continue 移鉴权后/版本动态读/WAKE_LOCK 去重/build 脚本 logxfer 断言/README 纠偏；顺手修 FileOps.delete 先判直删再探 su、readText root 裁剪对齐 512KB 截断标志。MuMu 实测通过。**v1.6.19**：车机有热点菜单但搜不到热点 → BootDiagnostics 新增 softapProbe 段（服务/组件/接口三层探测+四分支判读，免 root；**抓日志时车机热点开关保持打开**）。热点模式定论：亿连热点模式=手机开热点车机连（9-24 实测 100% 通），车机当 AP 无日志证据且无 root 手动起 hostapd。**验证技巧**：MuMu su 弹窗让触发 suOk() 的请求挂 12~15s（curl 要 --max-time）；adb forward 每条命令后回收，连接+转发+请求必须同一命令；MSYS `--noproxy *` 不加引号会通配展开打到外网。git 未提交。
+
+## BootTask v1.6.20（vc27，2026-10-08）：热点探测蹲守 HotspotProbe
+产物 `BootTask/dist/BootTask_v1.6.20.apk`。背景：车机热点菜单是摆设（打开后手机搜不到）。服务每 5s 轮询 AP 状态（反射 getWifiApState）+接口+hostapd 进程，任一变化→全量快照（getprop/netcfg/wireless/hostapd 组件/logcat -t 600）追加到 /sdcard/boottask/hotspot_probe.log（超 1MB 清零）。「尝试开热点」= 反射 setWifiApEnabled(null,true)，ENABLED 后读 getWifiApConfiguration 出 SSID/PSK 给手机连。MuMu uiautomator dump 当前输出 0 字节（emoji d83d 系统进程崩溃），UI 级验证改用 am startservice + 读日志文件。MuMu uiautomator dump 输出 0 字节（emoji d83d）时改用 am startservice + 读日志验证。
+
+## BootTask v1.6.21（vc28，2026-10-08）：启动与声音监控 AudioMonitor + MuteGuard 缺类修复
+新增 AudioMonitor 服务：ps diff 记录开机后新进程（首轮只建档）、dumpsys audio 焦点/音量变化全落 /sdcard/boottask/audio_monitor.log；拦截目标（SharedPreferences audiomon/blockPkg，UI 复用 smali AppPickActivity：setClassName + startActivityForResult(77) 取 extra "pkg"）存活即 killBackgroundProcesses，连续 2 轮杀不掉→MuteGuard.mute 静音兜底；BootAudioReceiver（独立 Java BOOT_COMPLETED receiver）开机自动拉起。★修复 rebase 遗留真 bug：MuteGuard.java 不在 build_win.sh 编译清单，ExecService(smali) 引用悬空，执行静音规则必 NoSuchMethodError——已补 cp+javac。★判据：查类在 dex 用 `Lpkg/Class;` 分号结尾类型描述符，裸类名会被字符串引用误判为存在。git 未提交。
+

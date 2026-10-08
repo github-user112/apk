@@ -98,8 +98,10 @@ public final class ApkInstaller {
 
     /** su pm install，失败返回 null（4.4 上 -d 可能不被识别，故与 -r 分两次试） */
     private static String pmInstall(Context ctx, File f, String flags) {
+        // 路径必须转义：文件名带空格会让 pm 拆成多个参数（静默装失败又莫名回落界面）；
+        // 带 ; $ ` 则经 su -c 构成命令注入（v1.6.18 修）
         String out = AdvActions.run(new String[]{"su", "-c",
-                "pm install " + flags + " " + f.getAbsolutePath()}, 60000L, 8192);
+                "pm install " + flags + " " + FileOps.q(f.getAbsolutePath())}, 60000L, 8192);
         if (out == null) {
             return null;
         }

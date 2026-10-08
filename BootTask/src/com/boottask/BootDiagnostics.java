@@ -190,6 +190,9 @@ public final class BootDiagnostics {
         // ---- v1.6.16: P2P 角色 + 单射频双连检测（10-01 车机日志实锤的断联机制）----
         p2pRoleAndDualLink(writer, ipAddr);
 
+        // ---- v1.6.19: SoftAP 热点能力探测（车机有热点菜单但手机搜不到 → 定位挂在哪一层）----
+        softapProbe(writer, ipAddr);
+
         // ---- v1.6.2 计数器双采样：与上次快照 diff 增量，复现断连前后各开一次日志页即可看丢包速度 ----
         counterDiff(writer, prevCountersFile, wireless, netdev);
         // ---- v1.6.3: ARP 邻居表（对端可达性状态 STALE/REACHABLE/FAILED）——免 root ----
@@ -513,6 +516,80 @@ public final class BootDiagnostics {
             b.append("(判读异常: ").append(t).append(")\n");
         }
         section(writer, "P2P 角色 + 双连判读 (v1.6.16, 依据 10-01 断联实锤自动分析)", b.toString());
+    }
+
+    /**
+     * v1.6.19: SoftAP（车机开热点）能力探测。
+     * 背景：车机设置里有「网络共享与便携式热点」菜单，但打开后手机搜不到热点。
+     * 三层定位（全部免 root）：
+     *   ① 服务层 —— init.svc.softap / hostapd 属性是否出现且 running；
+     *   ② 组件层 —— /system/bin/hostapd 二进制与配置文件是否存在；
+     *   ③ 接口层 —— netcfg / ip addr 里有没有 AP 接口（wl0.1/swlan0/ap0）拿到 192.168.43.x。
+     * 抓日志时请把车机热点开关保持在「开」的状态，判读才有效。
+     */
+    private static void softapProbe(Writer writer, String ipAddr) {
+        StringBuilder b = new StringBuilder(2048);
+        try {
+            // ① 服务/属性层
+            String props = AdvActions.run(new String[]{"getprop"}, 8000L, 16384);
+            StringBuilder apProps = new StringBuilder();
+            boolean svcRunning = false;
+            if (props != null) {
+                String[] lines = props.split("\n");
+                for (int i = 0; i < lines.length; i++) {
+                    String low = lines[i].toLowerCase(Locale.US);
+                    if (low.indexOf("softap") >= 0 || low.indexOf("hostapd") >= 0
+                            || low.indexOf("tether") >= 0 || low.indexOf("wifi.ap") >= 0) {
+                        apProps.append(lines[i]).append('\n');
+                        if (low.indexOf("init.svc.") >= 0 && low.indexOf("]: [running") >= 0) {
+                            svcRunning = true;
+                        }
+                    }
+                }
+            }
+            b.append("① AP 相关系统属性:\n")
+                    .append(apProps.length() > 0 ? apProps
+                            : "(一条都没有 —— 热点服务从未被启动过，菜单八成是空壳)\n");
+
+            // ② 组件层：hostapd 二进制与配置（/system 免 root 可读）
+            b.append("\n② hostapd 二进制与配置:\n")
+                    .append(AdvActions.run(new String[]{"ls", "-l",
+                            "/system/bin/hostapd", "/system/bin/hostapd_cli",
+                            "/system/etc/hostapd.conf", "/data/misc/wifi/hostapd.conf",
+                            "/data/misc/dhcp"}, 8000L, 4096)).append('\n');
+
+            // ③ 接口层
+            String netcfg = AdvActions.run(new String[]{"netcfg"}, 8000L, 8192);
+            b.append("\n③ netcfg (找 wl0.1/swlan0/ap0 等 AP 接口; 192.168.43.x = Android 热点默认网段):\n")
+                    .append(netcfg == null ? "(null)" : netcfg).append('\n');
+            String all = (netcfg == null ? "" : netcfg) + "\n"
+                    + (ipAddr == null ? "" : ipAddr);
+            String lowAll = all.toLowerCase(Locale.US);
+            boolean apIface = lowAll.indexOf("wl0.1") >= 0 || lowAll.indexOf("swlan0") >= 0
+                    || lowAll.indexOf("ap0") >= 0 || all.indexOf("192.168.43.") >= 0;
+
+            // ---- 自动判读 ----
+            b.append("\n判读:\n");
+            if (svcRunning && apIface) {
+                b.append("热点服务在跑、AP 接口已拿到地址 → 车机侧其实是好的，手机搜不到是射频侧问题：\n")
+                        .append("  - 热点在 5GHz 或 13 信道而手机只扫 2.4G 1-11 信道 → 改热点频段设置为 2.4G 再试\n")
+                        .append("  - 或 SSID 是隐藏的 → 手动添加网络输 SSID/密码\n");
+            } else if (svcRunning && !apIface) {
+                b.append("⚠ 热点服务启动了，但没有任何 AP 接口拿到地址 → 驱动 AP 模式起失败\n")
+                        .append("  （bcmdhd 的 softap 需要 wl0.1 虚接口，起不来=驱动/固件不含 AP 功能），菜单点了也白点。\n");
+            } else if (!svcRunning && apIface) {
+                b.append("AP 接口存在但服务属性没看到 running → 看上面①的属性原文再定（少见）。\n");
+            } else {
+                b.append("⚠ 系统里没有任何 softap/hostapd 服务在跑、也没有 AP 接口 →\n")
+                        .append("  这台 ROM 的「便携式热点」菜单是摆设（没编译配套服务），起不来属正常，不是操作问题。\n")
+                        .append("  → 热点模式请走已验证的路：手机开热点(2.4G) → 车机连（9-24 实测 100% 通）。\n");
+            }
+            b.append("（注意: 此段要在车机热点开关保持打开时抓才有判读价值）\n");
+        } catch (Throwable t) {
+            b.append("(探测异常: ").append(t).append(")\n");
+        }
+        section(writer, "SoftAP 热点能力探测 (v1.6.19, 车机热点菜单打开后抓此日志定位搜不到的原因)",
+                b.toString());
     }
 
     private static void counterDiff(Writer writer, java.io.File prevFile, String wireless, String netdev) {        String prev = null;

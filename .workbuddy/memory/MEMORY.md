@@ -47,3 +47,10 @@ adb=`D:/PJGG/platform-tools-latest-windows/platform-tools/adb.exe`。realme X7 P
 2. 手机端连不上 `DIRECT-` SSID 的机型 → 提示退回热点/USB。
 3. 车机端完整 logcat（ConnLog 环形缓冲会滚掉）。
 4. BootTask v1.4（versionCode 5）静音已改 STREAM_MUSIC 清零+流级静音，车机实机待验。
+
+## BootTask（开机任务）构建铁律（2026-09-30 起）
+- stub android.jar（logxfer_src/tools）无 org.json：Java 类禁 import org.json。
+- smali 类对 javac 不可见：Java 侧访问 RuleStore/Util 走反射；拉起 smali 组件用 setClassName(getPackageName()+".Xxx")。
+- MainActivity 已 Java 化（D8 合并通道），smali 版已删；UI 分层=头部/我的规则/诊断与日志。
+- adb 本地路径铁律：MSYS_NO_PATHCONV=1 时本地参数写 C:/ 形式；install 后必 dumpsys 复核 versionCode（tail 吞失败行）；中文 APK 名先 cp 成 ASCII。
+

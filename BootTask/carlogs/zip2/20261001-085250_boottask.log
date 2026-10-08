@@ -1,0 +1,193 @@
+09-24 20:23:43.764 MainActivity opened
+09-24 20:23:43.885 ExecService onCreate
+09-25 08:49:10.701 boot broadcast received: android.intent.action.BOOT_COMPLETED
+09-25 08:49:10.718 startService returned ComponentInfo{com.boottask/com.boottask.ExecService}
+09-25 08:49:10.741 ExecService onCreate
+09-25 08:49:10.749 ExecService onStartCommand event=boot
+09-25 08:49:10.785 ExecService rules=2
+09-25 08:49:10.790 rule matched, executing
+09-25 08:49:10.845 ringer -> SILENT
+09-25 08:49:10.866 rule matched, executing
+09-25 08:49:13.123 launched com.desay_svautomotive.carlife
+09-25 08:54:26.665 MainActivity opened
+09-25 08:54:26.802 ExecService onCreate
+09-25 08:54:38.851 rule save committed
+09-25 08:55:01.468 rule save committed
+09-25 10:09:27.884 boot broadcast received: android.intent.action.BOOT_COMPLETED
+09-25 10:09:27.894 startService returned ComponentInfo{com.boottask/com.boottask.ExecService}
+09-25 10:09:27.899 ExecService onCreate
+09-25 10:09:27.916 ExecService onStartCommand event=boot
+09-25 10:09:28.145 ExecService rules=2
+09-25 10:09:28.156 rule matched, executing
+09-25 10:09:28.217 muted: ringer SILENT + STREAM_MUSIC vol=0 + streamMute
+09-25 10:09:28.231 rule matched, executing
+09-25 10:09:28.407 launched com.desay_svautomotive.carlife
+09-25 14:21:17.174 boot broadcast received: android.intent.action.BOOT_COMPLETED
+09-25 14:21:17.580 startService returned ComponentInfo{com.boottask/com.boottask.ExecService}
+09-25 14:21:17.613 ExecService onCreate
+09-25 14:21:17.675 ExecService onStartCommand event=boot
+09-25 14:21:17.786 ExecService rules=2
+09-25 14:21:17.790 rule matched, executing
+09-25 14:21:17.933 muted: ringer SILENT + STREAM_MUSIC vol=0 + streamMute
+09-25 14:21:17.935 rule matched, executing
+09-25 14:21:18.103 launched com.desay_svautomotive.carlife
+09-25 16:33:25.916 boot broadcast received: android.intent.action.BOOT_COMPLETED
+09-25 16:33:25.945 startService returned ComponentInfo{com.boottask/com.boottask.ExecService}
+09-25 16:33:25.959 ExecService onCreate
+09-25 16:33:25.963 ExecService onStartCommand event=boot
+09-25 16:33:26.099 ExecService rules=2
+09-25 16:33:26.104 rule matched, executing
+09-25 16:33:26.122 muted: ringer SILENT + STREAM_MUSIC vol=0 + streamMute
+09-25 16:33:26.124 rule matched, executing
+09-25 16:33:26.244 launched com.desay_svautomotive.carlife
+09-25 17:08:16.139 boot broadcast received: android.intent.action.BOOT_COMPLETED
+09-25 17:08:16.258 startService returned ComponentInfo{com.boottask/com.boottask.ExecService}
+09-25 17:08:16.298 ExecService onCreate
+09-25 17:08:16.303 ExecService onStartCommand event=boot
+09-25 17:08:16.420 ExecService rules=2
+09-25 17:08:16.423 rule matched, executing
+09-25 17:08:16.483 muted: ringer SILENT + STREAM_MUSIC vol=0 + streamMute
+09-25 17:08:16.491 rule matched, executing
+09-25 17:08:16.746 launched com.desay_svautomotive.carlife
+09-25 17:14:50.359 MainActivity opened
+09-25 17:15:23.112 rule save committed
+09-25 17:17:17.055 diagnostic snapshot requested
+09-25 17:17:17.650 diagnostic snapshot requested
+09-25 17:18:45.380 diagnostic snapshot requested
+09-25 17:18:45.539 diagnostic snapshot requested
+09-25 20:43:21.260 boot broadcast received: android.intent.action.BOOT_COMPLETED
+09-25 20:43:21.288 startService returned ComponentInfo{com.boottask/com.boottask.ExecService}
+09-25 20:43:21.318 ExecService onCreate
+09-25 20:43:21.330 ExecService onStartCommand event=boot
+09-25 20:43:21.359 ExecService rules=3
+09-25 20:43:21.362 rule matched, executing
+09-25 20:43:21.385 muted: ringer SILENT + STREAM_MUSIC vol=0 + streamMute
+09-25 20:43:21.393 rule matched, executing
+09-25 20:43:21.484 launched com.desay_svautomotive.carlife
+09-25 20:43:21.487 rule matched, executing
+09-25 20:43:21.654 killed background of com.desaysv_automotive.geelymediamanager
+09-25 20:49:23.785 MainActivity opened
+09-25 20:49:23.923 ExecService onCreate
+09-25 20:49:28.389 rule save committed
+09-25 20:49:36.460 rule save committed
+09-25 20:50:08.064 rule save committed
+09-25 20:50:17.573 rule save committed
+09-26 08:51:20.998 boot broadcast received: android.intent.action.BOOT_COMPLETED
+09-26 08:51:21.006 startService returned ComponentInfo{com.boottask/com.boottask.ExecService}
+09-26 08:51:21.020 ExecService onCreate
+09-26 08:51:21.025 ExecService onStartCommand event=boot
+09-26 08:51:21.052 ExecService rules=2
+09-26 08:51:21.060 rule matched, executing
+09-26 08:51:21.116 launched com.desay_svautomotive.carlife
+09-26 08:51:21.121 rule matched, executing
+09-26 08:51:22.177 killed background of com.desaysv_automotive.geelymediamanager
+09-26 21:26:27.418 boot broadcast received: android.intent.action.BOOT_COMPLETED
+09-26 21:26:27.447 startService returned ComponentInfo{com.boottask/com.boottask.ExecService}
+09-26 21:26:27.488 ExecService onCreate
+09-26 21:26:27.523 ExecService onStartCommand event=boot
+09-26 21:26:27.704 ExecService rules=2
+09-26 21:26:27.817 rule matched, executing
+09-26 21:26:28.107 launched com.desay_svautomotive.carlife
+09-26 21:26:28.109 rule matched, executing
+09-26 21:26:29.179 killed background of com.desaysv_automotive.geelymediamanager
+09-26 22:19:50.795 boot broadcast received: android.intent.action.BOOT_COMPLETED
+09-26 22:19:50.804 startService returned ComponentInfo{com.boottask/com.boottask.ExecService}
+09-26 22:19:50.810 ExecService onCreate
+09-26 22:19:50.826 ExecService onStartCommand event=boot
+09-26 22:19:50.846 ExecService rules=2
+09-26 22:19:50.848 rule matched, executing
+09-26 22:19:50.888 launched com.desay_svautomotive.carlife
+09-26 22:19:50.905 rule matched, executing
+09-26 22:19:51.943 killed background of com.desaysv_automotive.geelymediamanager
+09-26 22:46:15.780 boot broadcast received: android.intent.action.BOOT_COMPLETED
+09-26 22:46:16.033 startService returned ComponentInfo{com.boottask/com.boottask.ExecService}
+09-26 22:46:16.110 ExecService onCreate
+09-26 22:46:16.173 ExecService onStartCommand event=boot
+09-26 22:46:16.205 ExecService rules=2
+09-26 22:46:16.208 rule matched, executing
+09-26 22:46:16.350 launched com.desay_svautomotive.carlife
+09-26 22:46:16.351 rule matched, executing
+09-26 22:46:17.477 killed background of com.desaysv_automotive.geelymediamanager
+09-28 07:06:53.436 boot broadcast received: android.intent.action.BOOT_COMPLETED
+09-28 07:06:53.445 startService returned ComponentInfo{com.boottask/com.boottask.ExecService}
+09-28 07:06:53.456 ExecService onCreate
+09-28 07:06:53.467 ExecService onStartCommand event=boot
+09-28 07:06:53.499 ExecService rules=2
+09-28 07:06:53.504 rule matched, executing
+09-28 07:06:53.714 launched com.desay_svautomotive.carlife
+09-28 07:06:53.769 rule matched, executing
+09-28 07:06:54.773 killed background of com.desaysv_automotive.geelymediamanager
+09-28 07:13:26.424 MainActivity opened
+09-28 07:13:41.270 diagnostic snapshot requested
+09-28 07:13:41.803 diagnostic snapshot requested
+09-28 07:14:09.889 diagnostic snapshot requested
+09-28 07:14:10.104 diagnostic snapshot requested
+09-28 19:06:27.135 boot broadcast received: android.intent.action.BOOT_COMPLETED
+09-28 19:06:27.157 startService returned ComponentInfo{com.boottask/com.boottask.ExecService}
+09-28 19:06:27.176 ExecService onCreate
+09-28 19:06:27.217 ExecService onStartCommand event=boot
+09-28 19:06:27.293 ExecService rules=2
+09-28 19:06:27.534 rule matched, executing
+09-28 19:06:27.902 launched com.desay_svautomotive.carlife
+09-28 19:06:27.956 rule matched, executing
+09-28 19:06:29.020 killed background of com.desaysv_automotive.geelymediamanager
+10-01 07:29:03.948 boot broadcast received: android.intent.action.BOOT_COMPLETED
+10-01 07:29:03.957 startService returned ComponentInfo{com.boottask/com.boottask.ExecService}
+10-01 07:29:03.970 ExecService onCreate
+10-01 07:29:03.979 ExecService onStartCommand event=boot
+10-01 07:29:04.000 ExecService rules=2
+10-01 07:29:04.002 rule matched, executing
+10-01 07:29:04.159 launched com.desay_svautomotive.carlife
+10-01 07:29:04.161 rule matched, executing
+10-01 07:29:05.198 killed background of com.desaysv_automotive.geelymediamanager
+10-01 07:43:30.351 boot broadcast received: android.intent.action.BOOT_COMPLETED
+10-01 07:43:30.359 startService returned ComponentInfo{com.boottask/com.boottask.ExecService}
+10-01 07:43:30.362 ExecService onCreate
+10-01 07:43:30.379 ExecService onStartCommand event=boot
+10-01 07:43:30.427 ExecService rules=2
+10-01 07:43:30.429 rule matched, executing
+10-01 07:43:30.576 launched com.desay_svautomotive.carlife
+10-01 07:43:30.581 rule matched, executing
+10-01 07:43:31.603 killed background of com.desaysv_automotive.geelymediamanager
+10-01 08:13:39.286 boot broadcast received: android.intent.action.BOOT_COMPLETED
+10-01 08:13:39.294 startService returned ComponentInfo{com.boottask/com.boottask.ExecService}
+10-01 08:13:39.312 ExecService onCreate
+10-01 08:13:39.332 ExecService onStartCommand event=boot
+10-01 08:13:39.556 ExecService rules=2
+10-01 08:13:39.559 rule matched, executing
+10-01 08:13:39.735 launched com.desay_svautomotive.carlife
+10-01 08:13:39.738 rule matched, executing
+10-01 08:13:40.749 killed background of com.desaysv_automotive.geelymediamanager
+10-01 08:23:40.617 boot broadcast received: android.intent.action.BOOT_COMPLETED
+10-01 08:23:40.654 startService returned ComponentInfo{com.boottask/com.boottask.ExecService}
+10-01 08:23:40.660 ExecService onCreate
+10-01 08:23:40.669 ExecService onStartCommand event=boot
+10-01 08:23:40.693 ExecService rules=2
+10-01 08:23:40.695 rule matched, executing
+10-01 08:23:40.928 launched com.desay_svautomotive.carlife
+10-01 08:23:41.000 rule matched, executing
+10-01 08:23:41.849 killed background of com.desaysv_automotive.geelymediamanager
+10-01 08:24:44.501 MainActivity opened
+10-01 08:29:00.848 boot broadcast received: android.intent.action.BOOT_COMPLETED
+10-01 08:29:00.858 startService returned ComponentInfo{com.boottask/com.boottask.ExecService}
+10-01 08:29:00.870 ExecService onCreate
+10-01 08:29:00.875 ExecService onStartCommand event=boot
+10-01 08:29:00.912 ExecService rules=2
+10-01 08:29:00.915 rule matched, executing
+10-01 08:29:00.927 launched com.desay_svautomotive.carlife
+10-01 08:29:00.930 rule matched, executing
+10-01 08:29:01.378 killed background of com.desaysv_automotive.geelymediamanager
+10-01 08:41:49.643 MainActivity opened
+10-01 08:41:59.567 NoRootFixes [高性能WiFi锁] WiFi锁(高性能)=已持有; 组播锁不可用(SecurityException); CPU唤醒锁10分钟=已持有; wifi_state=3(3=已开)
+说明：framework 层已禁止 wlan 省电。车机是 P2P GO(AP 侧)，驱动不一定响应此锁 —— 投屏 15 分钟看还弹不弹速率低。
+App 进程被杀即自动释放，不会留残留。
+10-01 08:47:26.987 NoRootFixes [释放WiFi锁] 已释放高性能锁与组播锁
+10-01 08:48:21.914 diagnostic snapshot requested
+10-01 08:49:41.045 diagnostic snapshot requested
+10-01 08:49:56.334 QuickRepair [WiFi省电] 无 root：ROM 里没有 su（App 无法提权）。电脑 adb 仍可能是 root（eng 版 adbd 常为 root），走「root 命令清单」 → 本次修复未执行（未改动任何东西）。可用「免 root 也能做」分区，或用电脑 adb 执行 root 命令清单
+10-01 08:50:05.699 QuickRepair [亿连降码率] 无 root：ROM 里没有 su（App 无法提权）。电脑 adb 仍可能是 root（eng 版 adbd 常为 root），走「root 命令清单」 → 本次修复未执行（未改动任何东西）。可用「免 root 也能做」分区，或用电脑 adb 执行 root 命令清单
+10-01 08:50:09.099 diagnostic snapshot requested
+10-01 08:50:17.930 diagnostic snapshot requested
+10-01 08:50:31.195 diagnostic snapshot requested
+10-01 08:50:49.493 diagnostic snapshot requested
+10-01 08:52:50.089 diagnostic snapshot requested

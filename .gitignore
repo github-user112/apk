@@ -57,3 +57,7 @@ desktop.ini
 *.apk.idsig.bak
 *.tmp
 *.bak
+
+# BootTask 构建日志（临时产物）
+BootTask/_build_*.log
+BootTask/build_*.log

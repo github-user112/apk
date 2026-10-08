@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>扫码</title>
+<style>
+  /* 左右排版 + 按高度自适应：车机 1024x600 分给 WebView 的高度只有 ~300px，
+     二维码若按宽度 38% 算（~380px 高）必然溢出滚动。
+     二维码是正方形，直接用 JS 取 min(可用高度, 宽度上限) 作为边长，
+     页面锁死 overflow:hidden，任何屏幕都不出滚动条。 */
+  html,body{margin:0;padding:0;height:100%;overflow:hidden;
+    background:#101014;color:#E8E6F0;
+    font-family:-apple-system,'PingFang SC','Microsoft YaHei',Arial,sans-serif;
+    -webkit-text-size-adjust:100%}
+  #wrap{height:100%;box-sizing:border-box;padding:8px 10px}
+  #wrap:after{content:"";display:block;clear:both}
+  #qrbox{float:left;background:#fff;padding:4px;border-radius:6px;
+    line-height:0;box-sizing:border-box;overflow:hidden}
+  #qrbox img,#qrbox svg{display:block;width:100%;height:100%}
+  #side{margin-left:0;padding-left:8px;overflow:hidden}
+  .u{font-size:12px;color:#8FB2FF;word-break:break-all;line-height:1.5}
+  .lab{font-size:11px;color:#6E6B7A;margin-bottom:2px}
+  #alts{font-size:11px;color:#9B98A8;margin-top:4px;word-break:break-all;
+    line-height:1.45;max-height:44px;overflow:hidden}
+  .tip{font-size:11px;color:#9B98A8;margin-top:6px;line-height:1.45}
+  .none{font-size:14px;color:#E0A0A0;padding:14px}
+</style>
+</head>
+<body>
+  <div id="wrap">
+    <div id="qrbox"></div>
+    <div id="side">
+      <div class="lab">手机浏览器打开：</div>
+      <div class="u" id="main"></div>
+      <div id="alts"></div>
+      <div class="tip" id="tip">手机扫左二维码或手输上面地址</div>
+    </div>
+  </div>
+<script src="qrcode.js"></script>
+<script>
+(function () {
+  var raw = location.hash ? location.hash.substring(1) : '';
+  try { raw = decodeURIComponent(raw); } catch (e) { }
+  var urls = [];
+  if (raw) {
+    var parts = raw.split(',');
+    for (var i = 0; i < parts.length; i++) {
+      if (parts[i]) { urls.push(parts[i]); }
+    }
+  }
+  var box = document.getElementById('qrbox');
+  if (!urls.length) {
+    box.style.display = 'none';
+    document.getElementById('side').style.paddingLeft = '0';
+    document.getElementById('main').innerHTML =
+      '<span class="none">未检测到可用网络地址，请连接 WiFi / 热点 / 直连后重进本页</span>';
+    return;
+  }
+
+  // 二维码边长 = min(容器高度的 96%, 容器宽度的 46%)，保证一屏放下
+  function fit() {
+    var h = document.documentElement.clientHeight;
+    var w = document.documentElement.clientWidth;
+    var s = Math.floor(Math.min(h * 0.96 - 8, w * 0.46));
+    if (s < 96) { s = 96; }
+    box.style.width = s + 'px';
+    box.style.height = s + 'px';
+    document.getElementById('side').style.marginLeft = (s + 12) + 'px';
+  }
+  fit();
+  window.addEventListener('resize', fit);
+
+  // 只给首选地址画码（Java 侧已按 直连 > WiFi > 热点 > 有线 排过序）
+  var url = urls[0];
+  document.getElementById('main').appendChild(document.createTextNode(url));
+
+  var html = '';
+  try {
+    var qr = qrcode(0, 'M');
+    qr.addData(url);
+    qr.make();
+    try { html = qr.createImgTag(4, 2); } catch (e1) { html = ''; }
+    if (!html) { html = qr.createSvgTag({ cellSize: 4, margin: 2, scalable: true }); }
+  } catch (e) {
+    document.getElementById('tip').appendChild(document.createTextNode('  (二维码生成失败，请手输地址)'));
+  }
+  if (html) { box.innerHTML = html; }
+
+  if (urls.length > 1) {
+    var s = '备选：';
+    for (var k = 1; k < urls.length; k++) { s += (k > 1 ? '  ' : '') + urls[k]; }
+    document.getElementById('alts').appendChild(document.createTextNode(s));
+  }
+})();
+</script>
+</body>
+</html>

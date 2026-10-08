@@ -8,11 +8,15 @@
 
 .field private etDelay:Landroid/widget/EditText;
 
+.field private etArg:Landroid/widget/EditText;
+
 .field private tvPkg:Landroid/widget/TextView;
 
 .field private btnPick:Landroid/widget/Button;
 
 .field private pkg:Ljava/lang/String;
+
+.field private argCache:Ljava/lang/String;
 
 
 .method public constructor <init>()V
@@ -111,6 +115,27 @@
     invoke-virtual {v3, v4}, Landroid/widget/ArrayAdapter;->setDropDownViewResource(I)V
 
     invoke-virtual {v2, v3}, Landroid/widget/Spinner;->setAdapter(Landroid/widget/SpinnerAdapter;)V
+
+    invoke-virtual {v0, v2}, Landroid/widget/LinearLayout;->addView(Landroid/view/View;)V
+
+    # ---- 参数（发送广播/Root 命令用）----
+    const-string v2, "参数（广播填 action；Root 填命令）"
+
+    invoke-direct {p0, v0, v2}, Lcom/boottask/EditActivity;->addLabel(Landroid/widget/LinearLayout;Ljava/lang/String;)V
+
+    new-instance v2, Landroid/widget/EditText;
+
+    invoke-direct {v2, p0}, Landroid/widget/EditText;-><init>(Landroid/content/Context;)V
+
+    iput-object v2, p0, Lcom/boottask/EditActivity;->etArg:Landroid/widget/EditText;
+
+    const/4 v3, 0x1
+
+    invoke-virtual {v2, v3}, Landroid/widget/EditText;->setInputType(I)V
+
+    const-string v3, ""
+
+    invoke-virtual {v2, v3}, Landroid/widget/EditText;->setText(Ljava/lang/CharSequence;)V
 
     invoke-virtual {v0, v2}, Landroid/widget/LinearLayout;->addView(Landroid/view/View;)V
 
@@ -327,6 +352,22 @@
     return-void
 
     :cond_4
+    # 广播/Root 命令必须填参数（validateArg 顺带把参数缓存进 argCache）
+    move-object v3, v1
+
+    invoke-direct {p0, v3}, Lcom/boottask/EditActivity;->validateArg(Ljava/lang/String;)Z
+
+    move-result v3
+
+    if-nez v3, :cond_4b
+
+    const-string v0, "\u8bf7\u586b\u5199\u53c2\u6570\uff08\u5e7f\u64ad action \u6216 Root \u547d\u4ee4\uff09"
+
+    invoke-static {p0, v0}, Lcom/boottask/Util;->toast(Landroid/content/Context;Ljava/lang/String;)V
+
+    return-void
+
+    :cond_4b
     :try_start_1
     new-instance v3, Lorg/json/JSONObject;
 
@@ -365,6 +406,22 @@
     invoke-virtual {v3, v1, v0}, Lorg/json/JSONObject;->put(Ljava/lang/String;Ljava/lang/Object;)Lorg/json/JSONObject;
 
     :cond_5
+    # argCache 放在 pkg 分支汇合点之后：广播/Root 规则不选应用，pkg 为空也要能写入 arg
+    iget-object v0, p0, Lcom/boottask/EditActivity;->argCache:Ljava/lang/String;
+
+    if-eqz v0, :cond_5b
+
+    invoke-virtual {v0}, Ljava/lang/String;->length()I
+
+    move-result v1
+
+    if-lez v1, :cond_5b
+
+    const-string v1, "arg"
+
+    invoke-virtual {v3, v1, v0}, Lorg/json/JSONObject;->put(Ljava/lang/String;Ljava/lang/Object;)Lorg/json/JSONObject;
+
+    :cond_5b
     invoke-static {p0, v3}, Lcom/boottask/RuleStore;->add(Landroid/content/Context;Lorg/json/JSONObject;)Z
 
     move-result v1
@@ -417,4 +474,66 @@
     invoke-virtual {p0}, Landroid/app/Activity;->finish()V
 
     return-void
+.end method
+
+
+# 校验参数：broadcast/rootcmd 必填 arg，通过时缓存到 argCache 并返回 true
+.method private validateArg(Ljava/lang/String;)Z
+    .locals 3
+
+    const-string v0, "broadcast"
+
+    invoke-virtual {p1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v0
+
+    if-nez v0, :cond_need
+
+    const-string v0, "rootcmd"
+
+    invoke-virtual {p1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v0
+
+    if-nez v0, :cond_need
+
+    const-string v0, ""
+
+    iput-object v0, p0, Lcom/boottask/EditActivity;->argCache:Ljava/lang/String;
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_need
+    iget-object v1, p0, Lcom/boottask/EditActivity;->etArg:Landroid/widget/EditText;
+
+    invoke-virtual {v1}, Landroid/widget/EditText;->getText()Landroid/text/Editable;
+
+    move-result-object v1
+
+    invoke-virtual {v1}, Ljava/lang/Object;->toString()Ljava/lang/String;
+
+    move-result-object v1
+
+    invoke-virtual {v1}, Ljava/lang/String;->trim()Ljava/lang/String;
+
+    move-result-object v1
+
+    invoke-virtual {v1}, Ljava/lang/String;->length()I
+
+    move-result v2
+
+    if-lez v2, :cond_bad
+
+    iput-object v1, p0, Lcom/boottask/EditActivity;->argCache:Ljava/lang/String;
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_bad
+    const/4 v0, 0x0
+
+    return v0
 .end method

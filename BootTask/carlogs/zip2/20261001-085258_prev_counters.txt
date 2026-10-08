@@ -1,0 +1,15 @@
+=== wireless ===
+Inter-| sta-|   Quality        |   Discarded packets               | Missed | WE
+ face | tus | link level noise |  nwid  crypt   frag  retry   misc | beacon | 22
+  p2p0: 0000    0     0     0        0      0      0      0      0        0
+ wlan0: 0000   70.  -39.  -256        0      0      0    788     39        0
+
+=== dev ===
+Inter-|   Receive                                                |  Transmit
+ face |bytes    packets errs drop fifo frame compressed multicast|bytes    packets errs drop fifo colls carrier compressed
+    lo:   22008      71    0    0    0     0          0         0    22008      71    0    0    0     0       0          0
+ tunl0:       0       0    0    0    0     0          0         0        0       0    0    0    0     0       0          0
+  sit0:       0       0    0    0    0     0          0         0        0       0    0    0    0     0       0          0
+ wlan0:  392297     444    0    3    0     0          0        14    44980     458    0    0    0     0       0          0
+ip6tnl0:       0       0    0    0    0     0          0         0        0       0    0    0    0     0       0          0
+  p2p0:       0       0    0    0    0     0          0         0        0       0    0    0    0     0       0          0

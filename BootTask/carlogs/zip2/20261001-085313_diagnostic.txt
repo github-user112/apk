@@ -1,0 +1,1284 @@
+BootTask diagnostic snapshot
+time=2026-10-01 08:52:50.095
+package=com.boottask
+sdk=19
+android=4.4.2
+device=telechips TCC893X_EVM
+version=1.6.15 (22)
+enabled=true
+filesDir=/data/data/com.boottask/files
+rules=[{"action":"open","enabled":true,"pkg":"com.desay_svautomotive.carlife","delay":0,"event":"boot"},{"action":"close","enabled":true,"pkg":"com.desaysv_automotive.geelymediamanager","delay":1,"event":"boot"}]
+
+--- env recon (v1.4) ---
+
+=== getprop ===
+[dalvik.vm.dexopt-flags]: [m=y]
+[dalvik.vm.heapgrowthlimit]: [128m]
+[dalvik.vm.heapmaxfree]: [2m]
+[dalvik.vm.heapminfree]: [512k]
+[dalvik.vm.heapsize]: [256m]
+[dalvik.vm.heapstartsize]: [16m]
+[dalvik.vm.heaptargetutilization]: [0.75]
+[dalvik.vm.stack-trace-file]: [/data/anr/traces.txt]
+[debug.force_rtl]: [0]
+[dev.bootcomplete]: [1]
+[dhcp.wlan0.dns1]: [172.29.200.143]
+[dhcp.wlan0.dns2]: []
+[dhcp.wlan0.dns3]: []
+[dhcp.wlan0.dns4]: []
+[dhcp.wlan0.domain]: []
+[dhcp.wlan0.gateway]: [172.29.200.143]
+[dhcp.wlan0.ipaddress]: [172.29.200.190]
+[dhcp.wlan0.leasetime]: [3599]
+[dhcp.wlan0.mask]: [255.255.255.0]
+[dhcp.wlan0.mtu]: []
+[dhcp.wlan0.pid]: [6061]
+[dhcp.wlan0.reason]: [BOUND]
+[dhcp.wlan0.result]: [ok]
+[dhcp.wlan0.server]: [172.29.200.143]
+[dhcp.wlan0.vendorInfo]: [ANDROID_METERED]
+[gsm.current.phone-type]: [2]
+[gsm.network.type]: [Unknown]
+[gsm.operator.alpha]: []
+[gsm.operator.iso-country]: []
+[gsm.operator.isroaming]: [false]
+[gsm.operator.numeric]: []
+[gsm.sim.operator.iso-country]: []
+[gsm.sim.state]: [NOT_READY]
+[gsm.version.ril-impl]: [SIMCOM_RIL44_20160812_3]
+[hw.sensor.ak8975]: [0]
+[init.svc.accept_localhost]: [stopped]
+[init.svc.adbd]: [running]
+[init.svc.autotrace]: [running]
+[init.svc.bdcl]: [stopped]
+[init.svc.carconfig]: [running]
+[init.svc.componentservice]: [running]
+[init.svc.console]: [running]
+[init.svc.debuggerd]: [running]
+[init.svc.dhcpcd_wlan0]: [running]
+[init.svc.drm]: [running]
+[init.svc.eeprom]: [running]
+[init.svc.healthd]: [running]
+[init.svc.heartbeat]: [running]
+[init.svc.iapserver]: [running]
+[init.svc.installd]: [running]
+[init.svc.keystore]: [running]
+[init.svc.media]: [running]
+[init.svc.netd]: [running]
+[init.svc.p2p_supplicant]: [running]
+[init.svc.qsrvc]: [stopped]
+[init.svc.quickboot]: [running]
+[init.svc.ril-daemon]: [running]
+[init.svc.sdcard]: [running]
+[init.svc.servicemanager]: [running]
+[init.svc.setup_fs]: [stopped]
+[init.svc.surfaceflinger]: [running]
+[init.svc.ueventd]: [running]
+[init.svc.userapp]: [stopped]
+[init.svc.videoflinger]: [running]
+[init.svc.vold]: [running]
+[init.svc.zygote]: [running]
+[net.bt.name]: [Android]
+[net.change]: [net.dns1]
+[net.dns1]: [172.29.200.143]
+[net.hostname]: [android-13a85a20fbea46e3]
+[net.qtaguid_enabled]: [1]
+[net.tcp.buffersize.default]: [4096,87380,110208,4096,16384,110208]
+[net.tcp.buffersize.edge]: [4093,26280,35040,4096,16384,35040]
+[net.tcp.buffersize.evdo]: [4094,87380,262144,4096,16384,262144]
+[net.tcp.buffersize.gprs]: [4092,8760,11680,4096,8760,11680]
+[net.tcp.buffersize.hsdpa]: [4094,87380,262144,4096,16384,262144]
+[net.tcp.buffersize.hspa]: [4094,87380,262144,4096,16384,262144]
+[net.tcp.buffersize.hspap]: [4094,87380,1220608,4096,16384,1220608]
+[net.tcp.buffersize.hsupa]: [4094,87380,262144,4096,16384,262144]
+[net.tcp.buffersize.lte]: [524288,1048576,2097152,262144,524288,1048576]
+[net.tcp.buffersize.umts]: [4094,87380,110208,4096,16384,110208]
+[net.tcp.buffersize.wifi]: [524288,1048576,2097152,262144,524288,1048576]
+[persist.demo.hdmirotationlock]: [true]
+[persist.ium.support]: [carplay]
+[persist.sys.QB.aging.count]: [333]
+[persist.sys.QB.home.timeout]: [stop]
+[persist.sys.QB.updated]: [no]
+[persist.sys.QB.user.allow]: []
+[persist.sys.app_rotation]: [0]
+[persist.sys.boot.audio.allow]: [true]
+[persist.sys.component_mode]: [0]
+[persist.sys.composite_mode]: [0]
+[persist.sys.composite_resize_x]: [3]
+[persist.sys.composite_resize_y]: [3]
+[persist.sys.country]: [CN]
+[persist.sys.cvbs_mode]: [0]
+[persist.sys.cvbs_power_mode]: [0]
+[persist.sys.dalvik.vm.lib]: [libdvm.so]
+[persist.sys.display_orientation]: [0]
+[persist.sys.duck.enable]: [1]
+[persist.sys.extenddisplay_reset]: [0]
+[persist.sys.hdmi_auto_select]: [0]
+[persist.sys.hdmi_cec]: [0]
+[persist.sys.hdmi_color_space]: [1]
+[persist.sys.hdmi_detected]: [0]
+[persist.sys.hdmi_mode]: [0]
+[persist.sys.hdmi_resize_x]: [0]
+[persist.sys.hdmi_resize_y]: [0]
+[persist.sys.hdmi_resolution]: [125]
+[persist.sys.keypress.effect.vol]: [6]
+[persist.sys.language]: [zh]
+[persist.sys.log.level]: [full]
+[persist.sys.middle_mouse]: [0]
+[persist.sys.output_mode]: [1]
+[persist.sys.profiler_ms]: [0]
+[persist.sys.renderer_onthefly]: [true]
+[persist.sys.right_mouse]: [0]
+[persist.sys.spdif_setting]: [0]
+[persist.sys.strictmode.disable]: [true]
+[persist.sys.strictmode.visual]: [false]
+[persist.sys.timezone]: [Asia/Shanghai]
+[persist.sys.usb.config]: [device,adb]
+[persist.sys.wifi.mac]: [bc:82:5d:65:11:ad]
+[qemu.hw.mainkeys]: [0]
+[rild.simcom.clvl]: [4]
+[rild.simcom.netclose]: [1]
+[ro.QB.builtin.systemui]: [2]
+[ro.QB.builtin.widget]: [1]
+[ro.QB.builtin.windowManager]: [2]
+[ro.QB.enable]: [1]
+[ro.allow.mock.location]: [1]
+[ro.baseband]: [unknown]
+[ro.board.platform]: [tcc893x]
+[ro.boot.btaddr]: [005056C00008]
+[ro.boot.console]: [ttyTCC0]
+[ro.boot.dignostic]: []
+[ro.boot.memtype]: [2]
+[ro.boot.mode]: [emmc]
+[ro.boot.qb_prebuilt_mode]: [disable]
+[ro.boot.serialno]: [000018030809054701DC]
+[ro.boot.wifimac]: []
+[ro.bootloader]: [unknown]
+[ro.bootmode]: [emmc]
+[ro.btaddr]: [005056C00008]
+[ro.build.characteristics]: [tablet,sdcard]
+[ro.build.date.utc]: [1520469918]
+[ro.build.date]: [Thu Mar  8 08:45:18 CST 2018]
+[ro.build.description]: [full_tcc893x-eng 4.4.2 KVT49L eng.uidq0219.20180308.084400 test-keys]
+[ro.build.display.id]: [FE-4KA_N2297_03_41.35_180308_R]
+[ro.build.fingerprint]: [Android/full_tcc893x/tcc893x:4.4.2/KVT49L/eng.uidq0219.20180308.084400:eng/test-keys]
+[ro.build.host]: [hzhe165x]
+[ro.build.id]: [KVT49L]
+[ro.build.product]: [tcc893x]
+[ro.build.tags]: [test-keys]
+[ro.build.type]: [eng]
+[ro.build.user]: [uidq0219]
+[ro.build.version.codename]: [REL]
+[ro.build.version.incremental]: [eng.uidq0219.20180308.084400]
+[ro.build.version.release]: [4.4.2]
+[ro.build.version.sdk]: [19]
+[ro.carrier]: [wifi-only]
+[ro.com.android.dateformat]: [MM-dd-yyyy]
+[ro.config.alarm_alert]: [Cesium.ogg]
+[ro.config.max_starting_bg]: [20]
+[ro.config.notification_sound]: [pixiedust.ogg]
+[ro.config.ringtone]: [Ring_Synth_04.ogg]
+[ro.crypto.fuse_sdcard]: [true]
+[ro.crypto.state]: [unencrypted]
+[ro.debuggable]: [1]
+[ro.dignostic]: [unknown]
+[ro.factorytest]: [0]
+[ro.fota.enable]: [1]
+[ro.fota.url]: [http://172.27.35.1:10086/testOTA.xml]
+[ro.hardware.nfc]: [false]
+[ro.hardware]: [tcc893x]
+[ro.kernel.android.checkjni]: [1]
+[ro.kernel.android.gps]: [ttyTCC3]
+[ro.lockscreen.disable.default]: [1]
+[ro.opengles.version]: [131072]
+[ro.product.board]: [tcc893x_evm]
+[ro.product.brand]: [Android]
+[ro.product.cpu.abi2]: [armeabi]
+[ro.product.cpu.abi]: [armeabi-v7a]
+[ro.product.device]: [tcc893x]
+[ro.product.locale.language]: [en]
+[ro.product.locale.region]: [US]
+[ro.product.manufacturer]: [telechips]
+[ro.product.model]: [TCC893X_EVM]
+[ro.product.name]: [full_tcc893x]
+[ro.qb_prebuilt_mode]: [disable]
+[ro.radio.noril]: [no]
+[ro.revision]: [4096]
+[ro.ril.debug]: [0]
+[ro.rotation.block180]: [false]
+[ro.runtime.firstboot]: [1790814541088]
+[ro.secure]: [0]
+[ro.serialno]: [000018030809054701DC]
+[ro.sf.lcd_density]: [160]
+[ro.sys.car.module]: [FE-3AC]
+[ro.sys.rvc.handover]: [true]
+[ro.system.audio_active]: [false]
+[ro.system.component_active]: [false]
+[ro.system.composite_active]: [false]
+[ro.system.cvbs_active]: [false]
+[ro.system.hdmi_active]: [true]
+[ro.system.hdmi_max_resolution]: [fullhd]
+[ro.system.hdmi_portable]: [true]
+[ro.system.osd_active]: [true]
+[ro.tcc.qb_prebuilt_mode]: [0]
+[ro.telephony.default_network]: [4]
+[ro.usb.switch]: [otg]
+[ro.wifi.channels]: []
+[runtime.power.first]: [completed]
+[runtime.warningpage.dismiss]: [true]
+[service.bootanim.exit]: [0]
+[sys.boot_completed]: [1]
+[sys.settings_global_version]: [2]
+[sys.settings_secure_version]: [3]
+[sys.settings_system_version]: [3]
+[sys.sysctl.extra_free_kbytes]: [7200]
+[sys.usb.config]: [host]
+[sys.usb.connected]: [0]
+[sys.usb.control]: [reset]
+[sys.usb.state]: [host]
+[tcc.QB.boot.with]: [snapshot]
+[tcc.QB.profile.dlog]: [0]
+[tcc.QB.profile.dtime]: [10]
+[tcc.QB.start.framework]: [1395912602704]
+[tcc.QB.timezone]: [Asia/Shanghai]
+[tcc.all.camera.no.display]: [0]
+[tcc.all.hdmi.720p.fixed]: [0]
+[tcc.all.output.support.camera]: [0]
+[tcc.all.video.call.enable]: [0]
+[tcc.all.web.full.video]: [0]
+[tcc.audio.channels]: [2]
+[tcc.audio.sampling_rate]: [4]
+[tcc.audio.support.aac]: [1]
+[tcc.audio.support.ac3]: [0]
+[tcc.audio.support.amr]: [1]
+[tcc.audio.support.amrwbp]: [1]
+[tcc.audio.support.ape]: [1]
+[tcc.audio.support.bsac]: [0]
+[tcc.audio.support.ddp]: [0]
+[tcc.audio.support.dra]: [0]
+[tcc.audio.support.dts]: [0]
+[tcc.audio.support.evrc]: [0]
+[tcc.audio.support.flac]: [1]
+[tcc.audio.support.mp1]: [1]
+[tcc.audio.support.mp2]: [1]
+[tcc.audio.support.mp3]: [1]
+[tcc.audio.support.qcelp]: [0]
+[tcc.audio.support.ra]: [0]
+[tcc.audio.support.vorbis]: [1]
+[tcc.audio.support.wav]: [1]
+[tcc.audio.support.wma]: [1]
+[tcc.bootanim.exit]: [1]
+[tcc.container.support.asf]: [1]
+[tcc.default.timezone]: [Asia/Shanghai]
+[tcc.dhcpclient.ipaddress]: [192.168.49.20]
+[tcc.dmx.opt.seek.over.lastkey]: [1]
+[tcc.dxb.dvbt.baseband]: [1]
+[tcc.dxb.linuxtv.enable]: [1]
+[tcc.dxb.ringbuffer.enable]: [0]
+[tcc.extenddisplay.detected]: [0]
+[tcc.hdmi.audio_type]: [0]
+[tcc.hibernate.property]: [reloaded]
+[tcc.http.disconn.at.full]: [0]
+[tcc.hwc.dynamic.disable]: [0]
+[tcc.hwc.fb.update.async]: [1]
+[tcc.hwc.lcd.disable]: [0]
+[tcc.hwc.no.use.external]: [0]
+[tcc.hwc.use.fence.sync]: [1]
+[tcc.iap.start]: [1]
+[tcc.iap.surpport.only]: [t]
+[tcc.iap2.surpport]: [f]
+[tcc.internal.storage.fat.number]: [11]
+[tcc.media.rtsp.autimeout]: [10]
+[tcc.media.rtsp.cusset]: [1]
+[tcc.media.rtsp.eos]: [1]
+[tcc.media.rtsp.seekend]: [3]
+[tcc.media.rtsp.starttime]: [10]
+[tcc.media.wfd.sink.run]: [0]
+[tcc.output.component_mode]: [0]
+[tcc.primary_storage.type]: [Internal Storage(primary)]
+[tcc.show.video.fps]: [0]
+[tcc.solution.mbox.anc]: [1]
+[tcc.solution.use.screenmode]: [0]
+[tcc.swap.path]: [/dev/block/mmcblk0p9]
+[tcc.sys.output_mode_detected]: [0]
+[tcc.sys.output_mode_plugout]: [0]
+[tcc.video.booting.mode]: [0]
+[tcc.video.deinterlace.support]: [0]
+[tcc.video.hwr.id]: [1005675]
+[tcc.video.lplayback.mode]: [0]
+[tcc.video.multidecoding.check]: [0]
+[tcc.video.support.vc1]: [1]
+[tcc.video.support.wmv7]: [1]
+[tcc.video.support.wmv8]: [1]
+[tcc.video.surface.enable]: [0]
+[tcc.video.surface.support]: [1]
+[tcc.video.vsync.enable]: [0]
+[tcc.video.vsync.support]: [1]
+[tcc.video.vsync.threshold]: [0] (exit=0)
+
+=== ps ===
+USER     PID   PPID  VSIZE  RSS     WCHAN    PC         NAME
+root      1     0     568    400   ffffffff 00000000 S /init
+root      2     0     0      0     ffffffff 00000000 S kthreadd
+root      3     2     0      0     ffffffff 00000000 S ksoftirqd/0
+root      6     2     0      0     ffffffff 00000000 S migration/0
+root      10    2     0      0     ffffffff 00000000 S khelper
+root      11    2     0      0     ffffffff 00000000 S kworker/u:1
+root      304   2     0      0     ffffffff 00000000 S sync_supers
+root      306   2     0      0     ffffffff 00000000 S bdi-default
+root      308   2     0      0     ffffffff 00000000 S kblockd
+root      319   2     0      0     ffffffff 00000000 S khubd
+root      347   2     0      0     ffffffff 00000000 S cfg80211
+root      447   2     0      0     ffffffff 00000000 S kswapd0
+root      448   2     0      0     ffffffff 00000000 S ksmd
+root      495   2     0      0     ffffffff 00000000 S fsnotify_mark
+root      514   2     0      0     ffffffff 00000000 S crypto
+root      535   2     0      0     ffffffff 00000000 S tccfb
+root      536   2     0      0     ffffffff 00000000 S tccfb-ext
+root      568   2     0      0     ffffffff 00000000 S tcc_clockctrl_w
+root      620   2     0      0     ffffffff 00000000 S dwc3
+root      640   2     0      0     ffffffff 00000000 S f_mtp
+root      645   2     0      0     ffffffff 00000000 S file-storage
+root      657   2     0      0     ffffffff 00000000 S nav360_wq
+root      667   2     0      0     ffffffff 00000000 S irq/75-tcc-rtc
+root      703   2     0      0     ffffffff 00000000 S binder
+root      733   2     0      0     ffffffff 00000000 S mmcqd/0
+root      734   2     0      0     ffffffff 00000000 S mmcqd/0boot0
+root      735   2     0      0     ffffffff 00000000 S mmcqd/0boot1
+root      785   2     0      0     ffffffff 00000000 S krfcommd
+root      806   2     0      0     ffffffff 00000000 S deferwq
+root      807   1     532    236   ffffffff 00000000 S /sbin/ueventd
+root      1115  2     0      0     ffffffff 00000000 S jbd2/mmcblk0p2-
+root      1116  2     0      0     ffffffff 00000000 S ext4-dio-unwrit
+root      1119  2     0      0     ffffffff 00000000 S flush-179:0
+root      1134  1     1432   144   ffffffff 00000000 S /sbin/healthd
+system    1135  1     1008   352   ffffffff 00000000 S /system/bin/servicemanager
+root      1136  1     8472   1904  ffffffff 00000000 S /system/bin/vold
+root      1137  1     2944   740   ffffffff 00000000 S /system/bin/quickboot
+root      1138  1     21844  888   ffffffff 00000000 S /system/bin/componentservice
+root      1139  1     6500   868   ffffffff 00000000 S /system/bin/eeprom
+system    1140  1     2352   788   ffffffff 00000000 S /system/bin/carconfig
+root      1143  1     9796   1312  ffffffff 00000000 S /system/bin/netd
+root      1144  1     1036   432   ffffffff 00000000 S /system/bin/debuggerd
+root      1145  1     5624   904   ffffffff 00000000 S /system/bin/rild
+system    1146  1     106236 9712  ffffffff 00000000 S /system/bin/surfaceflinger
+root      1147  1     502208 43116 ffffffff 00000000 S zygote
+drm       1148  1     9668   3396  ffffffff 00000000 S /system/bin/drmserver
+media     1149  1     68352  7968  ffffffff 00000000 S /system/bin/mediaserver
+install   1150  1     1008   496   ffffffff 00000000 S /system/bin/installd
+root      1152  1     61332  15748 ffffffff 00000000 S /system/bin/videoflinger
+root      1153  1     1196   432   ffffffff 00000000 S /system/bin/autotrace
+system    1155  1     916    352   ffffffff 00000000 S /system/bin/heartbeat
+root      1156  1     14336  3176  ffffffff 00000000 S /system/bin/iapserver
+media_rw  1158  1     3524   736   ffffffff 00000000 S /system/bin/sdcard
+shell     1159  1     928    464   ffffffff 00000000 S /system/bin/sh
+root      1171  1     2992   900   ffffffff 00000000 S bdcl
+system    1519  1147  628600 55216 ffffffff 00000000 S system_server
+u0_a2     1656  1147  515108 23740 ffffffff 00000000 S android.process.acore
+root      1717  2     0      0     ffffffff 00000000 S migration/1
+root      1718  2     0      0     ffffffff 00000000 S kworker/1:0
+root      1719  2     0      0     ffffffff 00000000 S ksoftirqd/1
+root      1734  2     0      0     ffffffff 00000000 S jbd2/mmcblk0p3-
+root      1735  2     0      0     ffffffff 00000000 S ext4-dio-unwrit
+root      1739  2     0      0     ffffffff 00000000 S jbd2/mmcblk0p12
+root      1740  2     0      0     ffffffff 00000000 S ext4-dio-unwrit
+root      1748  2     0      0     ffffffff 00000000 S jbd2/mmcblk0p11
+root      1749  2     0      0     ffffffff 00000000 S ext4-dio-unwrit
+keystore  1750  1     3352   1216  ffffffff 00000000 S /system/bin/keystore
+root      1756  2     0      0     ffffffff 00000000 S kvmgr_operd
+root      1794  2     0      0     ffffffff 00000000 S scsi_eh_0
+root      1795  2     0      0     ffffffff 00000000 S usb-storage
+root      1803  2     0      0     ffffffff 00000000 S irq/37-atmel_to
+root      1816  1     3560   216   ffffffff 00000000 S /sbin/adbd
+u0_a213   1862  1147  529132 31188 ffffffff 00000000 S com.autonavi.amapauto
+u0_a6     1874  1147  549924 40408 ffffffff 00000000 S com.android.systemui
+system    1914  1147  512300 18384 ffffffff 00000000 S com.tcc.IpodUsbdeviceManager
+u0_a203   1922  1147  525788 33716 ffffffff 00000000 S com.desay_svautomotive.svbtmanager
+radio     1932  1147  530048 25696 ffffffff 00000000 S com.android.phone
+system    1947  1147  514972 17936 ffffffff 00000000 S com.desay_svautomotive.svlauncher
+u0_a207   1985  1147  523188 23236 ffffffff 00000000 S com.desay_svautomotive.svdvrserver
+system    1992  1147  519864 19820 ffffffff 00000000 S com.desay_svautomotive.svthirdparty
+system    2004  1147  516312 19532 ffffffff 00000000 S com.tcc.iap2server
+u0_a28    2017  1147  512336 18524 ffffffff 00000000 S com.telechips.android.Iap1ConnManager
+u0_a205   2026  1147  515336 20284 ffffffff 00000000 S com.desay_svautomotive.carlife
+system    2054  1147  516600 21608 ffffffff 00000000 S com.desay_svautomotive.svsettingsservice
+u0_a211   2061  1147  515540 20436 ffffffff 00000000 S com.desay_svautomotive.svradioservices
+system    2073  1147  511356 17592 ffffffff 00000000 S com.desaysv.logreader2
+u0_a220   2112  1147  579340 54520 ffffffff 00000000 S com.wow.carlauncher.mini
+u0_a200   2176  1147  538820 25324 ffffffff 00000000 S com.anwsdk.service
+u0_a214   2195  1147  613352 38196 ffffffff 00000000 S com.sohu.inputmethod.sogouoem
+u0_a216   2215  1147  562704 64972 ffffffff 00000000 S com.iflytek.tts
+u0_a202   2224  1147  536608 30872 ffffffff 00000000 S com.desay_svautomotive.svbt
+u0_a56    2249  1147  511048 17400 ffffffff 00000000 S com.android.smspush
+u0_a201   2457  1147  544516 35412 ffffffff 00000000 S com.desaysv_automotive.geelymediamanager
+u0_a47    2501  1147  512396 18156 ffffffff 00000000 S com.android.printspooler
+u0_a209   2519  1147  518424 22112 ffffffff 00000000 S com.desay_svautomotive.svmediaprovider
+root      2543  2     0      0     ffffffff 00000000 S wl_event_handle
+root      2549  2     0      0     ffffffff 00000000 S dhd_watchdog_th
+root      2550  2     0      0     ffffffff 00000000 S dhd_dpc
+root      2551  2     0      0     ffffffff 00000000 S dhd_rxf
+wifi      2599  1     3428   2248  ffffffff 00000000 S /system/bin/wpa_supplicant
+u0_a5     2605  1147  512160 18252 ffffffff 00000000 S com.android.externalstorage
+u0_a4     2621  1147  513892 20840 ffffffff 00000000 S android.process.media
+system    2639  1147  551784 34740 ffffffff 00000000 S com.android.settings
+u0_a221   2664  1147  557636 50152 ffffffff 00000000 S com.xiaobaifile.tv
+u0_a223   2697  1147  613956 48252 ffffffff 400ba68c S com.boottask
+u0_a1     2723  1147  512028 21004 ffffffff 00000000 S com.android.providers.calendar
+u0_a221   2751  1     4824   1696  ffffffff 00000000 S /data/data/com.xiaobaifile.tv/files/aria2c
+u0_a221   2754  1147  521072 23676 ffffffff 00000000 S com.xiaobaifile.xbpush
+u0_a213   2824  1147  525808 28764 ffffffff 00000000 S com.autonavi.amapauto:locationservice
+u0_a204   2843  1147  514444 18444 ffffffff 00000000 S com.desay_svautomotive.calendar
+u0_a40    2874  1147  536584 32140 ffffffff 00000000 S com.android.packageinstaller
+u0_a8     3147  1147  511 (exit=0)
+
+=== pm list packages -f ===
+package:/system/app2/IpodUsbdeviceManager.apk=com.tcc.IpodUsbdeviceManager
+package:/system/priv-app/DefaultContainerService.apk=com.android.defcontainer
+package:/system/app2/ANTRadioService.apk=com.dsi.ant.service.socket
+package:/system/app2/SVBTManager.apk=com.desay_svautomotive.svbtmanager
+package:/system/app2/SVDvr.apk=com.desay_svautomotive.svdvr
+package:/system/app/LatinIME.apk=com.android.inputmethod.latin
+package:/system/app/TelechipsSystemUpdater.apk=com.telechips.android.systemupdater
+package:/system/priv-app/TeleService.apk=com.android.phone
+package:/data/app/com.xiaobaifile.tv-1.apk=com.xiaobaifile.tv
+package:/data/app/com.boottask-1.apk=com.boottask
+package:/system/priv-app/ProxyHandler.apk=com.android.proxyhandler
+package:/system/app2/SVBT.apk=com.desay_svautomotive.svbt
+package:/system/app2/SVCalendar.apk=com.desay_svautomotive.calendar
+package:/system/app/MapClient.apk=com.broadcom.bt.map
+package:/system/priv-app/CalendarProvider.apk=com.android.providers.calendar
+package:/system/priv-app/InputDevices.apk=com.android.inputdevices
+package:/system/app2/SVVideoManager.apk=com.desay_svautomotive.svvideomanager
+package:/system/app2/SVLauncher.apk=com.desay_svautomotive.svlauncher
+package:/system/app/HoloSpiralWallpaper.apk=com.android.wallpaper.holospiral
+package:/system/app/AntHalService.apk=com.dsi.ant.server
+package:/system/app/TDMBPlayer.apk=com.telechips.android.tdmb
+package:/system/app2/SVDvrServer.apk=com.desay_svautomotive.svdvrserver
+package:/system/app/PbapClient.apk=com.broadcom.bt.pbap
+package:/system/app2/SVThirdparty.apk=com.desay_svautomotive.svthirdparty
+package:/system/app/DownloadProviderUi.apk=com.android.providers.downloads.ui
+package:/system/app2/Auto.apk=com.autonavi.amapauto
+package:/system/app/UserDictionaryProvider.apk=com.android.providers.userdictionary
+package:/system/app/DocumentsUI.apk=com.android.documentsui
+package:/system/app/PinyinIME.apk=com.android.inputmethod.pinyin
+package:/system/priv-app/SharedStorageBackup.apk=com.android.sharedstoragebackup
+package:/system/priv-app/VpnDialogs.apk=com.android.vpndialogs
+package:/system/app/Provision.apk=com.android.provision
+package:/system/app/PacProcessor.apk=com.android.pacprocessor
+package:/system/app/CertInstaller.apk=com.android.certinstaller
+package:/system/app2/SVSettings.apk=com.desay_svautomotive.svsettings
+package:/system/app/Iap2ServerApp.apk=com.tcc.iap2server
+package:/system/app/PhotoTable.apk=com.android.dreams.phototable
+package:/system/app/PrintSpooler.apk=com.android.printspooler
+package:/system/app2/SVEngineering.apk=com.desay_svautomotive.svengineering
+package:/system/framework/framework-res.apk=android
+package:/system/priv-app/Settings.apk=com.android.settings
+package:/system/priv-app/ContactsProvider.apk=com.android.providers.contacts
+package:/system/app2/SVMediaProvider.apk=com.desay_svautomotive.svmediaprovider
+package:/system/priv-app/ExternalStorageProvider.apk=com.android.externalstorage
+package:/system/app/Iap1ConnManager.apk=com.telechips.android.Iap1ConnManager
+package:/system/app2/AnwSdkService.apk=com.anwsdk.service
+package:/system/app2/SVCarLife.apk=com.desay_svautomotive.carlife
+package:/data/app/com.wow.carlauncher.mini-1.apk=com.wow.carlauncher.mini
+package:/system/app/VisualizationWallpapers.apk=com.android.musicvis
+package:/system/priv-app/SystemUI.apk=com.android.systemui
+package:/system/app/LiveWallpapersPicker.apk=com.android.wallpaper.livepicker
+package:/system/app/KeyChain.apk=com.android.keychain
+package:/system/app/WAPPushManager.apk=com.android.smspush
+package:/system/app/PackageInstaller.apk=com.android.packageinstaller
+package:/system/app/Development.apk=com.android.development
+package:/system/app2/SVSettingsService.apk=com.desay_svautomotive.svsettingsservice
+package:/system/app/TelephonyProvider.apk=com.android.providers.telephony
+package:/system/app/LiveWallpapers.apk=com.android.wallpaper
+package:/system/app/PicoTts.apk=com.svox.pico
+package:/system/app/OpenWnn.apk=jp.co.omronsoft.openwnn
+package:/system/app/NoiseField.apk=com.android.noisefield
+package:/data/app/I (exit=0)
+
+=== pm list packages -3 ===
+package:com.xiaobaifile.tv
+package:com.boottask
+package:com.wow.carlauncher.mini
+package:com.iflytek.tts
+package:net.easyconn (exit=0)
+
+=== su probe (uid=0 => root) ===
+su: uid 10223 not allowed to su (exit=1)
+
+=== pm dump com.desay_svautomotive.svbtmanager (receivers/services) ===
+DUMP OF SERVICE activity:
+  Permission Denial: can't dump ActivityManager from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE meminfo:
+  Permission Denial: can't dump meminfo from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE procstats:
+  Permission Denial: can't dump procstats from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE usagestats:
+  Permission Denial: can't dump UsageStats from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE package:
+  Permission Denial: can't dump ActivityManager from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE batterystats:
+  Permission Denial: can't dump BatteryStats from from pid=0, uid=10223 without permission android.permission.DUMP (exit=0)
+(5 of 17 lines filtered)
+
+
+=== pm dump com.desay_svautomotive.svbt (receivers/services) ===
+DUMP OF SERVICE activity:
+  Permission Denial: can't dump ActivityManager from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE meminfo:
+  Permission Denial: can't dump meminfo from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE procstats:
+  Permission Denial: can't dump procstats from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE usagestats:
+  Permission Denial: can't dump UsageStats from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE package:
+  Permission Denial: can't dump ActivityManager from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE batterystats:
+  Permission Denial: can't dump BatteryStats from from pid=0, uid=10223 without permission android.permission.DUMP (exit=0)
+(5 of 17 lines filtered)
+
+
+=== pm dump com.broadcom.bt.map (receivers/services) ===
+DUMP OF SERVICE activity:
+  Permission Denial: can't dump ActivityManager from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE meminfo:
+  Permission Denial: can't dump meminfo from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE procstats:
+  Permission Denial: can't dump procstats from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE usagestats:
+  Permission Denial: can't dump UsageStats from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE package:
+  Permission Denial: can't dump ActivityManager from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE batterystats:
+  Permission Denial: can't dump BatteryStats from from pid=0, uid=10223 without permission android.permission.DUMP (exit=0)
+(5 of 17 lines filtered)
+
+
+=== pm dump com.broadcom.bt.pbap (receivers/services) ===
+DUMP OF SERVICE activity:
+  Permission Denial: can't dump ActivityManager from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE meminfo:
+  Permission Denial: can't dump meminfo from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE procstats:
+  Permission Denial: can't dump procstats from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE usagestats:
+  Permission Denial: can't dump UsageStats from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE package:
+  Permission Denial: can't dump ActivityManager from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE batterystats:
+  Permission Denial: can't dump BatteryStats from from pid=0, uid=10223 without permission android.permission.DUMP (exit=0)
+(5 of 17 lines filtered)
+
+
+=== pm dump com.desay_svautomotive.svmediaprovider (receivers/services) ===
+DUMP OF SERVICE activity:
+  Permission Denial: can't dump ActivityManager from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE meminfo:
+  Permission Denial: can't dump meminfo from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE procstats:
+  Permission Denial: can't dump procstats from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE usagestats:
+  Permission Denial: can't dump UsageStats from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE package:
+  Permission Denial: can't dump ActivityManager from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE batterystats:
+  Permission Denial: can't dump BatteryStats from from pid=0, uid=10223 without permission android.permission.DUMP (exit=0)
+(5 of 17 lines filtered)
+
+
+=== pm dump com.desay_svautomotive.carlife (receivers/services) ===
+DUMP OF SERVICE activity:
+  Permission Denial: can't dump ActivityManager from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE meminfo:
+  Permission Denial: can't dump meminfo from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE procstats:
+  Permission Denial: can't dump procstats from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE usagestats:
+  Permission Denial: can't dump UsageStats from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE package:
+  Permission Denial: can't dump ActivityManager from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE batterystats:
+  Permission Denial: can't dump BatteryStats from from pid=0, uid=10223 without permission android.permission.DUMP (exit=0)
+(5 of 17 lines filtered)
+
+
+--- hardware & network recon (v1.6) ---
+
+=== /proc/cpuinfo (CPU/芯片平台) ===
+Processor	: ARMv7 Processor rev 12 (v7l)
+processor	: 0
+BogoMIPS	: 1993.93
+
+processor	: 1
+BogoMIPS	: 1993.93
+
+Features	: swp half thumb fastmult vfp edsp thumbee neon vfpv3 tls 
+CPU implementer	: 0x41
+CPU architecture: 7
+CPU variant	: 0x2
+CPU part	: 0xc09
+CPU revision	: 12
+
+Hardware	: tcc893x
+Revision	: 1000
+Serial		: 0000000000000000
+
+
+=== /proc/meminfo (内存，前 6 行) ===
+MemTotal:        1727448 kB
+MemFree:          822316 kB
+Buffers:            9924 kB
+Cached:           411764 kB
+SwapCached:            0 kB
+Active:           438168 kB
+
+
+=== /proc/version (内核版本) ===
+Linux version 3.4.35-tcc (uidq0219@hzhe165x) (gcc version 4.7 (GCC) ) #2 SMP PREEMPT Thu Mar 8 08:40:57 CST 2018
+
+
+=== df (存储分区余量) ===
+/mnt/shell/emulated: Permission denied
+Filesystem               Size     Used     Free   Blksize
+/dev                   843.5M   128.0K   843.4M   4096
+/dev/desaysv             3.9K     3.0K     0.9K   31
+/sys/fs/cgroup         843.5M    12.0K   843.5M   4096
+/mnt/asec              843.5M     0.0K   843.5M   4096
+/mnt/obb               843.5M     0.0K   843.5M   4096
+/system                836.6M   583.9M   252.7M   4096
+/system/config           2.0M     4.0K     2.0M   4096
+/storage/emulated      843.5M     0.0K   843.5M   4096
+/cache                 147.6M     4.2M   143.5M   4096
+/data                  738.2M   286.0M   452.2M   4096
+/data/misc/dio        1024.0K     0.0K  1024.0K   4096
+/navidata               12.1G    10.7G     1.4G   4096
+/storage/usb0            7.5G     6.6G   922.9M   32768
+/storage/usb0/usb02     31.7M    27.3M     4.4M   512
+/storage/emulated/0    738.2M   286.0M   452.2M   4096
+/storage/emulated/legacy   738.2M   286.0M   452.2M   4096 (exit=1)
+
+=== /proc/net/wireless (信号强度/链路质量) ===
+Inter-| sta-|   Quality        |   Discarded packets               | Missed | WE
+ face | tus | link level noise |  nwid  crypt   frag  retry   misc | beacon | 22
+  p2p0: 0000    0     0     0        0      0      0      0      0        0
+ wlan0: 0000   70.  -39.  -256        0      0      0    788     39        0
+
+
+=== /proc/net/dev (各网卡收发流量) ===
+Inter-|   Receive                                                |  Transmit
+ face |bytes    packets errs drop fifo frame compressed multicast|bytes    packets errs drop fifo colls carrier compressed
+    lo:   22008      71    0    0    0     0          0         0    22008      71    0    0    0     0       0          0
+ tunl0:       0       0    0    0    0     0          0         0        0       0    0    0    0     0       0          0
+  sit0:       0       0    0    0    0     0          0         0        0       0    0    0    0     0       0          0
+ wlan0:  392297     444    0    3    0     0          0        14    44980     458    0    0    0     0       0          0
+ip6tnl0:       0       0    0    0    0     0          0         0        0       0    0    0    0     0       0          0
+  p2p0:       0       0    0    0    0     0          0         0        0       0    0    0    0     0       0          0
+
+
+=== ip addr (网卡/IP，看 P2P 组 192.168.49.x 是否存在) ===
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 16436 qdisc noqueue state UNKNOWN 
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+    inet6 ::1/128 scope host 
+       valid_lft forever preferred_lft forever
+2: tunl0: <NOARP> mtu 1480 qdisc noop state DOWN 
+    link/ipip 0.0.0.0 brd 0.0.0.0
+3: sit0: <NOARP> mtu 1480 qdisc noop state DOWN 
+    link/sit 0.0.0.0 brd 0.0.0.0
+4: ip6tnl0: <NOARP> mtu 1452 qdisc noop state DOWN 
+    link/tunnel6 :: brd ::
+5: p2p0: <NO-CARRIER,BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state DORMANT qlen 1000
+    link/ether be:82:5d:65:11:ad brd ff:ff:ff:ff:ff:ff
+6: wlan0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP qlen 1000
+    link/ether bc:82:5d:65:11:ad brd ff:ff:ff:ff:ff:ff
+    inet 172.29.200.190/24 brd 172.29.200.255 scope global wlan0 (exit=0)
+
+=== ip route (路由，看默认网关指向哪个网卡) ===
+default via 172.29.200.143 dev wlan0 
+172.29.200.0/24 dev wlan0  scope link 
+172.29.200.0/24 dev wlan0  proto kernel  scope link  src 172.29.200.190 
+172.29.200.143 dev wlan0  scope link (exit=0)
+
+=== 计数器增量 vs 上次快照 (复现断连前后各开一次日志页; errs/drop 涨得快=链路在丢) ===
+[wireless: 列=level等无固定标签, 只看数值变化] wlan0: c8+30 
+
+[dev] wlan0: rx_bytes+1215 rx_packets+20 rx_multi+10 tx_bytes+426 tx_packets+7 
+
+
+
+=== ip neigh (ARP 表, 对端手机可达状态; FAILED=链路已不通) ===
+172.29.200.143 dev wlan0 lladdr 9a:19:af:29:5a:90 STALE (exit=0)
+
+=== CPU 频率/负载/温度 (对比 A/B 两次: 频率掉+温度高+负载满 = 解码降频实锤; 计数器不涨但 RTT 烂 = 网络是清白的, RTT 是 CPU 延迟) ===
+loadavg = 1.02 1.00 0.69 4/902 7377
+cpu0 cur_freq = 996001 KHz
+cpu1 cur_freq = 996001 KHz
+cpu0 governor = performance
+cpu1 governor = performance
+available_governors = ondemand performance
+cpu0 min/max = 342000 / 996000 KHz
+
+
+=== top 快照 (CPU 占用排行, 看亿连解码/渲染进程是否饱和) ===
+User 2%, System 4%, IOW 0%, IRQ 0%
+User 16 + Nice 1 + Sys 29 + Idle 549 + IOW 1 + IRQ 0 + SIRQ 2 = 598
+
+  PID PR CPU% S  #THR     VSS     RSS PCY UID      Name
+ 1519  1   3% S    79 628564K  55920K  fg system   system_server
+ 7378  1   0% R     1   1288K    520K  fg u0_a223  top
+ 6059  0   0% S     1      0K      0K     root     kworker/0:2
+ 3725  1   0% S    63 614592K  51280K  bg u0_a222  net.easyconn
+ 2215  1   0% S    15 562704K  64972K  fg u0_a216  com.iflytek.tts
+ 2112  0   0% S    28 579340K  54368K  bg u0_a220  com.wow.carlauncher.mini
+ 1874  0   0% S    19 549924K  40412K  fg u0_a6    com.android.systemui
+ 1756  0   0% S     1      0K      0K     root     kvmgr_operd
+ 2599  0   0% D     1   3428K   2248K     wifi     /system/bin/wpa_supplicant
+ 2054  1   0% S    12 516600K  21460K  fg system   com.desay_svautomotive.svsettingsservice
+ 1985  1   0% S    18 523188K  23292K  fg u0_a207  com.desay_svautomotive.svdvrserver
+ 1146  0   0% S    16 104200K   9712K  fg system   /system/bin/surfaceflinger
+ 2697  1   0% S    42 621044K  50968K  fg u0_a223  com.boottask
+ 2550  0   0% R     1      0K      0K     root     dhd_dpc
+  514  1   0% S     1      0K      0K     root     crypto
+  535  0   0% S     1      0K      0K     root     tccfb
+  536  1   0% S     1      0K      0K     root     tccfb-ext
+  568  1   0% S     1      0K      0K     root     tcc_clockctrl_w
+  620  1   0% S     1      0K      0K     root     dwc3
+  640  1   0% S     1      0K      0K     root     f_mtp
+  645  0   0% S     1      0K      0K     root     file-storage
+  657  1   0% S     1      0K      0K     root     nav360_wq
+  667  1   0% S     1      0K      0K     root     irq/75-tcc-rtc
+  703  1   0% S     1      0K      0K     root     binder
+  733  0   0% S     1      0K      0K     root     mmcqd/0
+  734  0   0% S     1      0K      0K     root     mmcqd/0boot0
+  735  0   0% S     1      0K      0K     root     mmcqd/0boot1
+  785  0   0% S     1      0K      0K     root     krfcommd
+  806  1   0% S     1      0K      0K     root     deferwq
+  807  0   0% S     1    532K    236K     root     /sbin/ueventd
+ 1115  0   0% S     1      0K      0K     root     jbd2/mmcblk0p2-
+ 1116  1   0% S     1      0K      0K     root     ext4-dio-unwrit
+ 1119  0   0% S     1      0K      0K     root     flush-179:0
+ 1134  1   0% S     1   1432K    144K  fg root     /sbin/healthd
+ 1135  0   0% S     1   1008K    352K     system   /system/bin/servicemanager
+ 1136  0   0% S     4   8472K   1904K     root     /system/bin/vold
+ 1137  0   0% S     2   2944K    740K     root     /system/bin/quickboot
+ 1138  0   0% S    20  21844K    888K  fg root     /system/bin/componentservice
+ 1139  1   0% S     5   6500K    868K  fg root     /system/bin/eeprom
+ 1140  0   0% S     1   2352K    788K  fg system   /system/bin/carconfig
+ 1143  0   0% S     8   9796K   1312K     root     /system/bin/netd
+ 1144  0   0% S     1   1036K    432K     root     /system/bin/debuggerd
+ 1145  0   0% S     4   5624K    904K     root     /system/bin/rild
+ 1147  0   0% S     4 502208K  43116K     root     zygote
+ 1148  0   0% S     2   9668K   3396K  fg drm      /system/bin/drmserver
+ 1149  1   0% S    20  68352K   7968K  fg media    /system/bin/mediaserver
+ 1150  0   0% S     1   1008K    496K     install  /system/bin/installd
+ 1152  0   0% S     5  61332K  15748K  fg root     /system/bin/videoflinger
+ 1153  0   0% S     1   1196K    432K     root     /system/bin/autotrace
+    1  0   0% S     1    568K    400K     root     /init
+ 1156  1   0% S     5  14336K   3176K  fg root     /system/bin/iapserver
+ 1158  0   0% S     3   3524K    736K     media_rw /system/bin/sdcard
+ 1159  0   0% S     1    928K    464K     shell    /system/bin/sh
+ 1171  0   0% S     2   2992K    900K     root     bdcl
+ 1656  0   0% S    12 515108K  23740K  bg u0_a2    android.process.acore
+ 1717  1   0% S     1      0K      0K     root     migration/1
+ 1718  1   0% S     1      0K      0K     root     kworker/1:0
+ 1719  1   0% S     1      0K      0K     root     ksoftirqd/1
+ 1734  0   0% S     1      0K      0K     root     jbd2/mmcblk0p3-
+ 1735  1   0% S     1      0K      0K     root     ext4-dio-unwrit
+ 1739  0   0% S     1      0K      0K     root     jbd2/mmcblk0p12
+ 1740  1   0% S     1      0K      0K     root     ext4-dio-unwrit
+ 1748  1   0% S     1      0K      0K     root     jbd2/mmcblk0p11
+ 1749  1   0% S     1      0K      0K     root     ext4-dio-unwrit
+ 1750  1   0% S     1   3352K   1216K  fg keystore /system/bin/keystore
+ 1794  1   0% S     1      0K      0K     root     scsi_eh_0
+ 1795  0   0% S     1      0K      0K     root     usb-storage
+ 1803  1   0% S     1      0K      0K     root     irq/37-atmel_to
+ 1816  1   0% S     4   3560K    216K     root     /sbin/adbd
+ 1862  0   0% S    14 529132K  31188K  bg u0_a213  com.autonavi.amapauto
+ 1914  1   0% S    11 512300K  18384K  fg system   com.tcc.IpodUsbdeviceManager
+ 1922  1   0% S    14 525788K  33716K  fg u0_a203  com.desay_svautomotive.svbtmanager
+ 1932  1   0% S    24 530048K  25696K  fg radio    com.android.phone
+ 1947  1   0% S    10 514972K  17936K  fg system   com.desay_svautomotive.svlauncher
+ 1992  1   0% S    15 519864K  19820K  fg system   com.desay_svautomotive.svthirdparty
+ 2004  1   0% S    14 516312K  19532K  fg system   com.tcc.iap2server
+ 2017  1   0% S    11 512336K  18524K  fg u0_a28   com.telechips.android.Iap1ConnManager
+ 2026  0   0% S    11 515336K  20284K  fg u0_a205  com.desay_svautomotive.carlife
+ 2061  1   0% S    11 515540K  20436K  fg u0_a211  com.desay_svautomotive.svradioservices
+ 2073  1   0% S    10 511356K  17592K  fg system   com.desaysv.logreader2
+ 2176  1   0% S    27 538820K  25324K  fg u0_a200  com.anwsdk.service
+ 2195  0   0% S    13 613352K  38196K  fg u0_a214  com.sohu.inputmethod.sogouoem
+ 2224  0   0% S    13 536608K  30872K  fg u0_a202  com.desay_svautomotive.svbt
+ 2249  0   0% S    10 511048K  17400K  fg u0_a56   com.android.smspush
+ 2457  0   0% S    18 544516K  35412K  fg u0_a201  com.desaysv_automotive.geelymediamanager
+ 2501  1   0% S    11 512396K  18156K  bg u0_a47   com.android.printspooler
+ 2519  1   0% S    12 518424K  22112K  fg u0_a209  com.desay_svautomotive.svmediaprovider
+ 2543  0   0% S     1      0K      0K     root     wl_event_handle
+ 2549  0   0% S     1      0K      0K     root     dhd_watchdog_th
+ 2551  1   0% S     1      0K      0K     root     dhd_rxf
+ 2605  1   0% S    11 512160K  18252K  bg u0_a5    com.android.externalstorage
+ 2621  1   0% S    12 513892K  20840K  bg u0_a4    android.process.media
+ 2639  0   0% S    14 551784K  34740K  bg system   com.android.settings
+ 2664  0   0% S    22 557636K  50156K  fg u0_a221  com.xiaobaifile.tv
+ 2723  1   0% S    10 512028K  21004K  bg u0_a1    com.android.providers.calendar
+ 2751  0   0% S     1   4824K   1696K  bg u0_a221  /data/data/com.xiaobaifile.tv/files/aria2c
+ 2754  1   0% S    15 521072K  23684K  bg u0_a221  com.xiaobaifile.xbpush
+ 2824  0   0% S    11 525808K  28768K  bg u0_a213  com.autonavi.amapauto:locationservice
+ 2843  0   0% S    10 514444K  18444K  bg u0_a204  com.desay_svautomotive.calendar
+ 2874  1   0% S    13 536584K  32140K  bg u0_a40   com.android.packageinstaller
+ 3147  1   0% S    10 511216K  18184K  bg u0_a8    com.android.musicfx
+ 3169  1   0% S    10 511272K  19320K  bg system   com.android.keychain
+ 3187  0   0% S    11 512264K  18932K  bg u0_a3    com.android.defcontainer
+ 3204  0   0% S    13 514976K  20300K  bg u0_a23   com.android.documentsui
+ 3701  1   0% S    10 511108K  17716K  bg u0_a45   com.svox.pico
+ 3785  0   0% S     6 561616K  19048K  fg u0_a222  net.easyconn
+ 4575  1   0% S     1      0K      0K     root     kworker/1:1
+ 4646  0   0% S     1      0K      0K     root     kworker/0:0
+ 4780  0   0% S     1      0K      0K     root     kworker/u:2
+ 4794  0   0% S    14 540360K  32028K  bg system   com.desay_svautomotive.svsettings
+ 5280  0   0% S     1      0K      0K     root     kworker/0:1
+ 5751  0   0% S     1      0K      0K     root     kworker/u:0
+ 6061  0   0% S     1   1028K    544K     dhcp     /system/bin/dhcpcd
+ 6299  1   0% S     1      0K      0K     root     kworker/1:2
+ 1155  1   0% S     1    916K    352K     system   /system/bin/heartbeat
+    2  0   0% S     1      0K      0K     root     kthreadd
+    3  0   0% S     1      0K      0K     root     ksoftirqd/0
+    6  0   0% S     1      0K      0K     root     migration/0
+   10  1   0% S     1      0K      0K     root     khelper
+   11  0   0% S     1      0K      0K     root     kworker/u:1
+  304  0   0% S     1      0K      0K     root     sync_supers
+  306  0   0% S     1      0K      0K     root     bdi-default
+  308  1   0% S     1      0K      0 (exit=0)
+
+=== 系统开关 (蓝牙 / WiFi扫描 / 休眠 / 息屏) ===
+global bluetooth_on = (无权限读取，需 root)
+global wifi_on = (无权限读取，需 root)
+global wifi_scan_always_enabled = (无权限读取，需 root)
+global wifi_scan_throttle_enabled = (无权限读取，需 root)
+global airplane_mode_on = (无权限读取，需 root)
+global adb_enabled = (无权限读取，需 root)
+global stay_on_while_plugged_in = (无权限读取，需 root)
+system screen_off_timeout = (无权限读取，需 root)
+system wifi_sleep_policy = (无权限读取，需 root)
+system power_sounds_enabled = (无权限读取，需 root)
+system lockscreen.disabled = (无权限读取，需 root)
+
+判读: bluetooth_on=1 且投屏掉线 → 先做「关蓝牙」对照实验（2.4G 与 WLAN 争抢）;
+wifi_scan_always_enabled=1 → 关掉（系统修复菜单⑤）;
+screen_off_timeout 很小 + ROM 省电 → 投屏时保持亮屏。
+
+=== wifi 深度诊断 (root) ===
+(no root, 跳过 dumpsys/logcat; 上面免 root 段仍有效)
+
+--- yilian recon (v1.6) ---
+
+=== 亿连候选包 ===
+net.easyconn
+
+
+=== 亿连包详情 net.easyconn (版本/uid/组件) ===
+DUMP OF SERVICE activity:
+  Permission Denial: can't dump ActivityManager from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE meminfo:
+  Permission Denial: can't dump meminfo from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE procstats:
+  Permission Denial: can't dump procstats from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE usagestats:
+  Permission Denial: can't dump UsageStats from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE package:
+  Permission Denial: can't dump ActivityManager from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE batterystats:
+  Permission Denial: can't dump BatteryStats from from pid=0, uid=10223 without permission android.permission.DUMP (exit=0)
+(12 of 17 lines kept)
+
+
+=== ec.conf (亿连配置, /etc/ec.conf; 降码率 mirror_width/height 改这里, 免重打包) ===
+/etc/ec.conf: No such file or directory (exit=1)
+(不存在=未定制, 亿连走默认值; keys: mirror_width mirror_height video_codec_name keep_screen_bright)
+
+=== 亿连文件日志目录 /sdcard/logger (存在即可 root tail 最新 csv) ===
+/sdcard/logger: No such file or directory (exit=1)
+
+--- repair history (v1.6.6) ---
+
+=== 一键修复历史 (QuickRepair) ===
+10-01 08:49:56 [WiFi省电] 无 root：ROM 里没有 su（App 无法提权）。电脑 adb 仍可能是 root（eng 版 adbd 常为 root），走「root 命令清单」 → 本次修复未执行（未改动任何东西）。可用「免 root 也能做」分区，或用电脑 adb 执行 root 命令清单
+10-01 08:50:05 [亿连降码率] 无 root：ROM 里没有 su（App 无法提权）。电脑 adb 仍可能是 root（eng 版 adbd 常为 root），走「root 命令清单」 → 本次修复未执行（未改动任何东西）。可用「免 root 也能做」分区，或用电脑 adb 执行 root 命令清单
+
+
+--- boot audio recon (v1.6.9) ---
+
+=== 开机启动时间线 / 音频状态 ===
+(需要 root; 车机 eng 版可用, MuMu 无 root 跳过)
+
+=== 自启候选 com.desay_svautomotive.svmediaprovider (开机广播接收器) ===
+(需要 root)
+
+--- mcu / audio-source recon (v1.6.11) ---
+
+=== 串口节点是否存在 (ttyS*/ttyUSB*/ttyMT*) ===
+/dev/ttyS0: No such file or directory
+/dev/ttyS1: No such file or directory
+/dev/ttyS2: No such file or directory
+/dev/ttyS3: No such file or directory
+/dev/ttyUSB0: No such file or directory
+/dev/ttyMT0: No such file or directory
+/dev/ttyMT1: No such file or directory
+/dev/ttyMT2: No such file or directory (exit=1)
+
+=== ls /dev (找 mcu/uart/tty 设备) ===
+crw-rw-r-- system   radio     10,  48 2017-01-01 08:02 alarm
+crw-rw-rw- system   audio     10, 241 2017-01-01 08:02 audio
+crw-rw---- radio    vpn      108,   0 2017-01-01 08:02 ppp
+crw-rw-rw- root     root       5,   0 2017-01-01 08:02 tty
+crw-rw---- root     system     4,   0 2017-01-01 08:02 tty0
+crw------- root     root       4,   1 2017-01-01 08:02 tty1
+crw------- root     root       4,  10 2017-01-01 08:02 tty10
+crw------- root     root       4,  11 2017-01-01 08:02 tty11
+crw------- root     root       4,  12 2017-01-01 08:02 tty12
+crw------- root     root       4,  13 2017-01-01 08:02 tty13
+crw------- root     root       4,  14 2017-01-01 08:02 tty14
+crw------- root     root       4,  15 2017-01-01 08:02 tty15
+crw------- root     root       4,  16 2017-01-01 08:02 tty16
+crw------- root     root       4,  17 2017-01-01 08:02 tty17
+crw------- root     root       4,  18 2017-01-01 08:02 tty18
+crw------- root     root       4,  19 2017-01-01 08:02 tty19
+crw------- root     root       4,   2 2017-01-01 08:02 tty2
+crw------- root     root       4,  20 2017-01-01 08:02 tty20
+crw------- root     root       4,  21 2017-01-01 08:02 tty21
+crw------- root     root       4,  22 2017-01-01 08:02 tty22
+crw------- root     root       4,  23 2017-01-01 08:02 tty23
+crw------- root     root       4,  24 2017-01-01 08:02 tty24
+crw------- root     root       4,  25 2017-01-01 08:02 tty25
+crw------- root     root       4,  26 2017-01-01 08:02 tty26
+crw------- root     root       4,  27 2017-01-01 08:02 tty27
+crw------- root     root       4,  28 2017-01-01 08:02 tty28
+crw------- root     root       4,  29 2017-01-01 08:02 tty29
+crw------- root     root       4,   3 2017-01-01 08:02 tty3
+crw------- root     root       4,  30 2017-01-01 08:02 tty30
+crw------- root     root       4,  31 2017-01-01 08:02 tty31
+crw------- root     root       4,  32 2017-01-01 08:02 tty32
+crw------- root     root       4,  33 2017-01-01 08:02 tty33
+crw------- root     root       4,  34 2017-01-01 08:02 tty34
+crw------- root     root       4,  35 2017-01-01 08:02 tty35
+crw------- root     root       4,  36 2017-01-01 08:02 tty36
+crw------- root     root       4,  37 2017-01-01 08:02 tty37
+crw------- root     root       4,  38 2017-01-01 08:02 tty38
+crw------- root     root       4,  39 2017-01-01 08:02 tty39
+crw------- root     root       4,   4 2017-01-01 08:02 tty4
+crw------- root     root       4,  40 2017-01-01 08:02 tty40
+crw------- root     root       4,  41 2017-01-01 08:02 tty41
+crw------- root     root       4,  42 2017-01-01 08:02 tty42
+crw------- root     root       4,  43 2017-01-01 08:02 tty43
+crw------- root     root       4,  44 2017-01-01 08:02 tty44
+crw------- root     root       4,  45 2017-01-01 08:02 tty45
+crw------- root     root       4,  46 2017-01-01 08:02 tty46
+crw------- root     root       4,  47 2017-01-01 08:02 tty47
+crw------- root     root       4,  48 2017-01-01 08:02 tty48
+crw------- root     root       4,  49 2017-01-01 08:02 tty49
+crw------- root     root       4,   5 2017-01-01 08:02 tty5
+crw------- root     root       4,  50 2017-01-01 08:02 tty50
+crw------- root     root       4,  51 2017-01-01 08:02 tty51
+crw------- root     root       4,  52 2017-01-01 08:02 tty52
+crw------- root     root       4,  53 2017-01-01 08:02 tty53
+crw------- root     root       4,  54 2017-01-01 08:02 tty54
+crw------- root     root       4,  55 2017-01-01 08:02 tty55
+crw------- root     root       4,  56 2017-01-01 08:02 tty56
+crw------- root     root       4,  57 2017-01-01 08:02 tty57
+crw------- root     root       4,  58 2017-01-01 08:02 tty58
+crw------- root     root       4,  59 2017-01-01 08:02 tty59
+(60 of 166 lines kept)
+
+
+=== /proc/tty/drivers (串口驱动) ===
+/dev/tty             /dev/tty        5       0 system:/dev/tty
+/dev/console         /dev/console    5       1 system:console
+/dev/ptmx            /dev/ptmx       5       2 system
+/dev/vc/0            /dev/vc/0       4       0 system:vtmaster
+rfcomm               /dev/rfcomm   216 0-255 serial
+g_serial             /dev/ttyGS    249 0-3 serial
+usbserial            /dev/ttyUSB   188 0-253 serial
+ttyprintk            /dev/ttyprintk   5       3 console
+tcc-uart             /dev/ttyTCC   204 64-71 serial
+pty_slave            /dev/pts      136 0-1048575 pty:slave
+pty_master           /dev/ptm      128 0-1048575 pty:master
+unknown              /dev/tty        4 1-63 console
+
+
+=== getprop 过滤 mcu/audio/tty ===
+[persist.sys.boot.audio.allow]: [true]
+[ro.boot.console]: [ttyTCC0]
+[ro.boot.serialno]: [000018030809054701DC]
+[ro.kernel.android.gps]: [ttyTCC3]
+[ro.radio.noril]: [no]
+[ro.serialno]: [000018030809054701DC]
+[ro.system.audio_active]: [false]
+[tcc.audio.channels]: [2]
+[tcc.audio.sampling_rate]: [4]
+[tcc.audio.support.aac]: [1]
+[tcc.audio.support.ac3]: [0]
+[tcc.audio.support.amr]: [1]
+[tcc.audio.support.amrwbp]: [1]
+[tcc.audio.support.ape]: [1]
+[tcc.audio.support.bsac]: [0]
+[tcc.audio.support.ddp]: [0]
+[tcc.audio.support.dra]: [0]
+[tcc.audio.support.dts]: [0]
+[tcc.audio.support.evrc]: [0]
+[tcc.audio.support.flac]: [1]
+[tcc.audio.support.mp1]: [1]
+[tcc.audio.support.mp2]: [1]
+[tcc.audio.support.mp3]: [1]
+[tcc.audio.support.qcelp]: [0]
+[tcc.audio.support.ra]: [0]
+[tcc.audio.support.vorbis]: [1]
+[tcc.audio.support.wav]: [1]
+[tcc.audio.support.wma]: [1]
+[tcc.hdmi.audio_type]: [0]
+(29 of 303 lines kept)
+
+
+=== ps 过滤 mcu/radio/fm/audio ===
+radio     1932  1147  530048 25696 ffffffff 00000000 S com.android.phone
+u0_a211   2061  1147  515540 20436 ffffffff 00000000 S com.desay_svautomotive.svradioservices
+(2 of 113 lines kept)
+
+
+=== MCU/音源候选包 ===
+(no package matched MCU keywords)
+
+=== MCU 深度段 (root) ===
+(no root, 跳过串口嗅探/GPIO)
+
+--- filtered logcat ---
+--------- beginning of /dev/log/main
+10-01 08:47:26.970 D/BootTask( 2697): NoRootFixes [释放WiFi锁] 已释放高性能锁与组播锁
+10-01 08:48:21.460 I/CarLifeLogXfer( 2697): localIps -> 192.168.49.1
+10-01 08:48:21.790 I/CarLifeLogXfer( 2697): webview load file:///android_asset/logxfer/logxfer.html#http%3A%2F%2F192.168.49.1%3A18081
+10-01 08:48:21.880 I/CarLifeLogXfer( 2697): dir missing: /storage/emulated/0/Android/data/com.boottask/files/log
+10-01 08:48:21.880 I/CarLifeLogXfer( 2697): dir missing: /storage/emulated/0/Android/data/com.boottask/files/log/session
+10-01 08:48:21.880 I/CarLifeLogXfer( 2697): dir missing: /sdcard/BaiduCarlife
+10-01 08:48:21.880 I/CarLifeLogXfer( 2697): dir missing: /sdcard/Android/data/com.baidu.carlifevehicle/files/log
+10-01 08:48:21.880 I/CarLifeLogXfer( 2697): dir missing: /storage/sdcard0/BaiduCarlife
+10-01 08:48:21.890 I/CarLifeLogXfer( 2697): refreshFiles count=2 -> /data/data/com.boottask/files/log/boottask.log;/data/data/com.boottask/files/log/diagnostic.txt;
+10-01 08:48:21.900 I/CarLifeLogXfer( 2697): activity created, urls=http://192.168.49.1:18081
+10-01 08:48:21.900 D/BootTask( 2697): diagnostic snapshot requested
+10-01 08:48:21.920 I/CarLifeLogXfer( 2697): http server started, port=18081
+10-01 08:48:21.920 I/CarLifeLogXfer( 2697): http loop enter
+10-01 08:48:21.920 I/CarLifeLogXfer( 2697): NetWatch registered
+10-01 08:48:21.920 I/CarLifeLogXfer( 2697): activity started
+10-01 08:48:22.180 I/CarLifeLogXfer( 2697): localIps -> 192.168.49.1
+10-01 08:48:22.180 I/CarLifeLogXfer( 2697): net changed -> http://192.168.49.1:18081
+10-01 08:48:22.220 I/CarLifeLogXfer( 2697): localIps -> 192.168.49.1
+10-01 08:48:22.220 I/CarLifeLogXfer( 2697): net changed -> http://192.168.49.1:18081
+10-01 08:48:22.270 I/CarLifeLogXfer( 2697): localIps -> 192.168.49.1
+10-01 08:48:22.270 I/CarLifeLogXfer( 2697): net changed -> http://192.168.49.1:18081
+10-01 08:48:22.280 I/CarLifeLogXfer( 2697): localIps -> 192.168.49.1
+10-01 08:48:22.280 I/CarLifeLogXfer( 2697): net changed -> http://192.168.49.1:18081
+10-01 08:48:22.290 I/CarLifeLogXfer( 2697): localIps -> 192.168.49.1
+10-01 08:48:22.290 I/CarLifeLogXfer( 2697): net changed -> http://192.168.49.1:18081
+10-01 08:49:10.660 I/CarLifeLogXfer( 2697): localIps -> 192.168.49.1
+10-01 08:49:10.660 I/CarLifeLogXfer( 2697): net changed -> http://192.168.49.1:18081
+10-01 08:49:33.190 I/CarLifeLogXfer( 2697): back pressed, finish activity
+10-01 08:49:33.650 I/CarLifeLogXfer( 2697): NetWatch unregistered
+10-01 08:49:33.650 I/CarLifeLogXfer( 2697): http server stopped
+10-01 08:49:33.650 I/CarLifeLogXfer( 2697): activity stopped
+10-01 08:49:33.660 I/CarLifeLogXfer( 2697): http loop exit
+10-01 08:49:40.990 I/CarLifeLogXfer( 2697): localIps -> 192.168.49.1
+10-01 08:49:41.010 I/CarLifeLogXfer( 2697): webview load file:///android_asset/logxfer/logxfer.html#http%3A%2F%2F192.168.49.1%3A18081
+10-01 08:49:41.030 I/CarLifeLogXfer( 2697): dir missing: /storage/emulated/0/Android/data/com.boottask/files/log
+10-01 08:49:41.030 I/CarLifeLogXfer( 2697): dir missing: /storage/emulated/0/Android/data/com.boottask/files/log/session
+10-01 08:49:41.030 I/CarLifeLogXfer( 2697): dir missing: /sdcard/BaiduCarlife
+10-01 08:49:41.030 I/CarLifeLogXfer( 2697): dir missing: /sdcard/Android/data/com.baidu.carlifevehicle/files/log
+10-01 08:49:41.030 I/CarLifeLogXfer( 2697): dir missing: /storage/sdcard0/BaiduCarlife
+10-01 08:49:41.030 I/CarLifeLogXfer( 2697): refreshFiles count=3 -> /data/data/com.boottask/files/log/diagnostic.txt;/data/data/com.boottask/files/log/prev_counters.txt;/data/data/com.boottask/files/log/boottask.log;
+10-01 08:49:41.040 I/CarLifeLogXfer( 2697): activity created, urls=http://192.168.49.1:18081
+10-01 08:49:41.040 D/BootTask( 2697): diagnostic snapshot requested
+10-01 08:49:41.040 I/CarLifeLogXfer( 2697): http server started, port=18081
+10-01 08:49:41.040 I/CarLifeLogXfer( 2697): http loop enter
+10-01 08:49:41.040 I/CarLifeLogXfer( 2697): NetWatch registered
+10-01 08:49:41.040 I/CarLifeLogXfer( 2697): activity started
+10-01 08:49:41.150 I/CarLifeLogXfer( 2697): localIps -> 192.168.49.1
+10-01 08:49:41.150 I/CarLifeLogXfer( 2697): net changed -> http://192.168.49.1:18081
+10-01 08:49:41.160 I/CarLifeLogXfer( 2697): localIps -> 192.168.49.1
+10-01 08:49:41.160 I/CarLifeLogXfer( 2697): net changed -> http://192.168.49.1:18081
+10-01 08:49:41.250 I/CarLifeLogXfer( 2697): localIps -> 192.168.49.1
+10-01 08:49:41.250 I/CarLifeLogXfer( 2697): net changed -> http://192.168.49.1:18081
+10-01 08:49:41.270 I/CarLifeLogXfer( 2697): localIps -> 192.168.49.1
+10-01 08:49:41.270 I/CarLifeLogXfer( 2697): net changed -> http://192.168.49.1:18081
+10-01 08:49:41.280 I/CarLifeLogXfer( 2697): localIps -> 192.168.49.1
+10-01 08:49:41.280 I/CarLifeLogXfer( 2697): net changed -> http://192.168.49.1:18081
+10-01 08:49:53.940 I/CarLifeLogXfer( 2697): back pressed, finish activity
+10-01 08:49:54.420 I/CarLifeLogXfer( 2697): NetWatch unregistered
+10-01 08:49:54.420 I/CarLifeLogXfer( 2697): http server stopped
+10-01 08:49:54.420 I/CarLifeLogXfer( 2697): activity stopped
+10-01 08:49:54.420 I/CarLifeLogXfer( 2697): http loop exit
+10-01 08:49:56.330 D/BootTask( 2697): QuickRepair [WiFi省电] 无 root：ROM 里没有 su（App 无法提权）。电脑 adb 仍可能是 root（eng 版 adbd 常为 root），走「root 命令清单」 → 本次修复未执行（未改动任何东西）。可用「免 root 也能做」分区，或用电脑 adb 执行 root 命令清单
+10-01 08:50:05.690 D/BootTask( 2697): QuickRepair [亿连降码率] 无 root：ROM 里没有 su（App 无法提权）。电脑 adb 仍可能是 root（eng 版 adbd 常为 root），走「root 命令清单」 → 本次修复未执行（未改动任何东西）。可用「免 root 也能做」分区，或用电脑 adb 执行 root 命令清单
+10-01 08:50:09.010 I/CarLifeLogXfer( 2697): localIps -> 192.168.49.1
+10-01 08:50:09.060 I/CarLifeLogXfer( 2697): webview load file:///android_asset/logxfer/logxfer.html#http%3A%2F%2F192.168.49.1%3A18081
+10-01 08:50:09.070 I/CarLifeLogXfer( 2697): dir missing: /storage/emulated/0/Android/data/com.boottask/files/log
+10-01 08:50:09.070 I/CarLifeLogXfer( 2697): dir missing: /storage/emulated/0/Android/data/com.boottask/files/log/session
+10-01 08:50:09.070 I/CarLifeLogXfer( 2697): dir missing: /sdcard/BaiduCarlife
+10-01 08:50:09.070 I/CarLifeLogXfer( 2697): dir missing: /sdcard/Android/data/com.baidu.carlifevehicle/files/log
+10-01 08:50:09.070 I/CarLifeLogXfer( 2697): dir missing: /storage/sdcard0/BaiduCarlife
+10-01 08:50:09.080 I/CarLifeLogXfer( 2697): refreshFiles count=4 -> /data/data/com.boottask/files/log/boottask.log;/data/data/com.boottask/files/log/repair_history.txt;/data/data/com.boottask/files/log/diagnostic.txt;/data/data/com.boottask/files/log/prev_counters.txt;
+10-01 08:50:09.090 I/CarLifeLogXfer( 2697): activity created, urls=http://192.168.49.1:18081
+10-01 08:50:09.090 D/BootTask( 2697): diagnostic snapshot requested
+10-01 08:50:09.110 I/CarLifeLogXfer( 2697): http server started, port=18081
+10-01 08:50:09.110 I/CarLifeLogXfer( 2697): http loop enter
+10-01 08:50:09.110 I/CarLifeLogXfer( 2697): NetWatch registered
+10-01 08:50:09.110 I/CarLifeLogXfer( 2697): activity started
+10-01 08:50:09.270 I/CarLifeLogXfer( 2697): localIps -> 192.168.49.1
+10-01 08:50:09.270 I/CarLifeLogXfer( 2697): net changed -> http://192.168.49.1:18081
+10-01 08:50:09.280 I/CarLifeLogXfer( 2697): localIps -> 192.168.49.1
+10-01 08:50:09.280 I/CarLifeLogXfer( 2697): net changed -> http://192.168.49.1:18081
+10-01 08:50:09.290 I/CarLifeLogXfer( 2697): localIps -> 192.168.49.1
+10-01 08:50:09.290 I/CarLifeLogXfer( 2697): net changed -> http://192.168.49.1:18081
+10-01 08:50:09.330 I/CarLifeLogXfer( 2697): localIps -> 192.168.49.1
+10-01 08:50:09.330 I/CarLifeLogXfer( 2697): net changed -> http://192.168.49.1:18081
+10-01 08:50:09.340 I/CarLifeLogXfer( 2697): localIps -> 192.168.49.1
+10-01 08:50:09.340 I/CarLifeLogXfer( 2697): net changed -> http://192.168.49.1:18081
+10-01 08:50:11.980 I/CarLifeLogXfer( 2697): localIps -> 192.168.49.1
+10-01 08:50:11.980 I/CarLifeLogXfer( 2697): net changed -> http://192.168.49.1:18081
+10-01 08:50:13.740 I/CarLifeLogXfer( 2697): localIps -> 192.168.49.1
+10-01 08:50:13.740 I/CarLifeLogXfer( 2697): net changed -> http://192.168.49.1:18081
+10-01 08:50:15.620 I/CarLifeLogXfer( 2697): localIps -> 192.168.49.1,172.29.200.190
+10-01 08:50:15.620 I/CarLifeLogXfer( 2697): net changed -> http://192.168.49.1:18081
+10-01 08:50:15.620 I/CarLifeLogXfer( 2697): webview reload file:///android_asset/logxfer/logxfer.html#http%3A%2F%2F192.168.49.1%3A18081,http%3A%2F%2F172.29.200.190%3A18081
+10-01 08:50:15.860 I/CarLifeLogXfer( 2697): localIps -> 192.168.49.1,172.29.200.190
+10-01 08:50:15.860 I/CarLifeLogXfer( 2697): net changed -> http://192.168.49.1:18081
+10-01 08:50:15.910 I/CarLifeLogXfer( 2697): localIps -> 192.168.49.1,172.29.200.190
+10-01 08:50:15.910 I/CarLifeLogXfer( 2697): net changed -> http://192.168.49.1:18081
+10-01 08:50:16.620 I/CarLifeLogXfer( 2697): back pressed, finish activity
+10-01 08:50:17.100 I/CarLifeLogXfer( 2697): NetWatch unregistered
+10-01 08:50:17.100 I/CarLifeLogXfer( 2697): http server stopped
+10-01 08:50:17.100 I/CarLifeLogXfer( 2697): activity stopped
+10-01 08:50:17.100 I/CarLifeLogXfer( 2697): http loop exit
+10-01 08:50:17.810 I/CarLifeLogXfer( 2697): localIps -> 192.168.49.1,172.29.200.190
+10-01 08:50:17.860 I/CarLifeLogXfer( 2697): webview load file:///android_asset/logxfer/logxfer.html#http%3A%2F%2F192.168.49.1%3A18081,http%3A%2F%2F172.29.200.190%3A18081
+10-01 08:50:17.880 I/CarLifeLogXfer( 2697): dir missing: /storage/emulated/0/Android/data/com.boottask/files/log
+10-01 08:50:17.880 I/CarLifeLogXfer( 2697): dir missing: /storage/emulated/0/Android/data/com.boottask/files/log/session
+10-01 08:50:17.890 I/CarLifeLogXfer( 2697): dir missing: /sdcard/BaiduCarlife
+10-01 08:50:17.890 I/CarLifeLogXfer( 2697): dir missing: /sdcard/Android/data/com.baidu.carlifevehicle/files/log
+10-01 08:50:17.890 I/CarLifeLogXfer( 2697): dir missing: /storage/sdcard0/BaiduCarlife
+10-01 08:50:17.910 I/CarLifeLogXfer( 2697): refreshFiles count=4 -> /data/data/com.boottask/files/log/diagnostic.txt;/data/data/com.boottask/files/log/prev_counters.txt;/data/data/com.boottask/files/log/boottask.log;/data/data/com.boottask/files/log/repair_history.txt;
+10-01 08:50:17.920 I/CarLifeLogXfer( 2697): activity created, urls=http://192.168.49.1:18081,http://172.29.200.190:18081
+10-01 08:50:17.920 D/BootTask( 2697): diagnostic snapshot requested
+10-01 08:50:17.920 I/CarLifeLogXfer( 2697): http server started, port=18081
+10-01 08:50:17.930 I/CarLifeLogXfer( 2697): NetWatch registered
+10-01 08:50:17.930 I/CarLifeLogXfer( 2697): activity started
+10-01 08:50:17.930 I/CarLifeLogXfer( 2697): http loop enter
+10-01 08:50:18.070 I/CarLifeLogXfer( 2697): localIps -> 192.168.49.1,172.29.200.190
+10-01 08:50:18.080 I/CarLifeLogXfer( 2697): net changed -> http://192.168.49.1:18081
+10-01 08:50:18.150 I/CarLifeLogXfer( 2697): localIps -> 192.168.49.1,172.29.200.190
+10-01 08:50:18.150 I/CarLifeLogXfer( 2697): net changed -> http://192.168.49.1:18081
+10-01 08:50:18.160 I/CarLifeLogXfer( 2697): localIps -> 192.168.49.1,172.29.200.190
+10-01 08:50:18.160 I/CarLifeLogXfer( 2697): net changed -> http://192.168.49.1:18081
+10-01 08:50:18.180 I/CarLifeLogXfer( 2697): localIps -> 192.168.49.1,172.29.200.190
+10-01 08:50:18.180 I/CarLifeLogXfer( 2697): net changed -> http://192.168.49.1:18081
+10-01 08:50:18.210 I/CarLifeLogXfer( 2697): localIps -> 192.168.49.1,172.29.200.190
+10-01 08:50:18.210 I/CarLifeLogXfer( 2697): net changed -> http://192.168.49.1:18081
+10-01 08:50:19.030 I/CarLifeLogXfer( 2697): localIps -> 192.168.49.1,172.29.200.190
+10-01 08:50:19.030 I/CarLifeLogXfer( 2697): net changed -> http://192.168.49.1:18081
+10-01 08:50:19.340 I/CarLifeLogXfer( 2697): localIps -> 192.168.49.1,172.29.200.190
+10-01 08:50:19.340 I/CarLifeLogXfer( 2697): net changed -> http://192.168.49.1:18081
+10-01 08:50:30.010 I/CarLifeLogXfer( 2697): back pressed, finish activity
+10-01 08:50:30.460 I/CarLifeLogXfer( 2697): NetWatch unregistered
+10-01 08:50:30.460 I/CarLifeLogXfer( 2697): http server stopped
+10-01 08:50:30.460 I/CarLifeLogXfer( 2697): activity stopped
+10-01 08:50:30.460 I/CarLifeLogXfer( 2697): http loop exit
+10-01 08:50:31.110 I/CarLifeLogXfer( 2697): localIps -> 192.168.49.1,172.29.200.190
+10-01 08:50:31.140 I/CarLifeLogXfer( 2697): webview load file:///android_asset/logxfer/logxfer.html#http%3A%2F%2F192.168.49.1%3A18081,http%3A%2F%2F172.29.200.190%3A18081
+10-01 08:50:31.160 I/CarLifeLogXfer( 2697): dir missing: /storage/emulated/0/Android/data/com.boottask/files/log
+10-01 08:50:31.160 I/CarLifeLogXfer( 2697): dir missing: /storage/emulated/0/Android/data/com.boottask/files/log/session
+10-01 08:50:31.160 I/CarLifeLogXfer( 2697): dir missing: /sdcard/BaiduCarlife
+10-01 08:50:31.160 I/CarLifeLogXfer( 2697): dir missing: /sdcard/Android/data/com.baidu.carlifevehicle/files/log
+10-01 08:50:31.160 I/CarLifeLogXfer( 2697): dir missing: /storage/sdcard0/BaiduCarlife
+10-01 08:50:31.170 I/CarLifeLogXfer( 2697): refreshFiles count=4 -> /data/data/com.boottask/files/log/diagnostic.txt;/data/data/com.boottask/files/log/prev_counters.txt;/data/data/com.boottask/files/log/boottask.log;/data/data/com.boottask/files/log/repair_history.txt;
+10-01 08:50:31.180 I/CarLifeLogXfer( 2697): activity created, urls=http://192.168.49.1:18081,http://172.29.200.190:18081
+10-01 08:50:31.190 D/BootTask( 2697): diagnostic snapshot requested
+10-01 08:50:31.190 I/CarLifeLogXfer( 2697): http server started, port=18081
+10-01 08:50:31.190 I/CarLifeLogXfer( 2697): http loop enter
+10-01 08:50:31.200 I/CarLifeLogXfer( 2697): NetWatch registered
+10-01 08:50:31.200 I/CarLifeLogXfer( 2697): activity started
+10-01 08:50:31.380 I/CarLifeLogXfer( 2697): localIps -> 192.168.49.1,172.29.200.190
+10-01 08:50:31.380 I/CarLifeLogXfer( 2697): net changed -> http://192.168.49.1:18081
+10-01 08:50:31.430 I/CarLifeLogXfer( 2697): localIps -> 192.168.49.1,172.29.200.190
+10-01 08:50:31.430 I/CarLifeLogXfer( 2697): net changed -> http://192.168.49.1:18081
+10-01 08:50:31.470 I/CarLifeLogXfer( 2697): localIps -> 192.168.49.1,172.29.200.190
+10-01 08:50:31.470 I/CarLifeLogXfer( 2697): net changed -> http://192.168.49.1:18081
+10-01 08:50:31.590 I/CarLifeLogXfer( 2697): localIps -> 192.168.49.1,172.29.200.190
+10-01 08:50:31.590 I/CarLifeLogXfer( 2697): net changed -> http://192.168.49.1:18081
+10-01 08:50:31.680 I/CarLifeLogXfer( 2697): localIps -> 192.168.49.1,172.29.200.190
+10-01 08:50:31.680 I/CarLifeLogXfer( 2697): net changed -> http://192.168.49.1:18081
+10-01 08:50:45.290 I/CarLifeLogXfer( 2697): back pressed, finish activity
+10-01 08:50:45.850 I/CarLifeLogXfer( 2697): NetWatch unregistered
+10-01 08:50:45.850 I/CarLifeLogXfer( 2697): http server stopped
+10-01 08:50:45.850 I/CarLifeLogXfer( 2697): activity stopped
+10-01 08:50:45.850 I/CarLifeLogXfer( 2697): http loop exit
+10-01 08:50:49.410 I/CarLifeLogXfer( 2697): localIps -> 192.168.49.1,172.29.200.190
+10-01 08:50:49.450 I/CarLifeLogXfer( 2697): webview load file:///android_asset/logxfer/logxfer.html#http%3A%2F%2F192.168.49.1%3A18081,http%3A%2F%2F172.29.200.190%3A18081
+10-01 08:50:49.460 I/CarLifeLogXfer( 2697): dir missing: /storage/emulated/0/Android/data/com.boottask/files/log
+10-01 08:50:49.460 I/CarLifeLogXfer( 2697): dir missing: /storage/emulated/0/Android/data/com.boottask/files/log/session
+10-01 08:50:49.460 I/CarLifeLogXfer( 2697): dir missing: /sdcard/BaiduCarlife
+10-01 08:50:49.460 I/CarLifeLogXfer( 2697): dir missing: /sdcard/Android/data/com.baidu.carlifevehicle/files/log
+10-01 08:50:49.460 I/CarLifeLogXfer( 2697): dir missing: /storage/sdcard0/BaiduCarlife
+10-01 08:50:49.480 I/CarLifeLogXfer( 2697): refreshFiles count=4 -> /data/data/com.boottask/files/log/diagnostic.txt;/data/data/com.boottask/files/log/prev_counters.txt;/data/data/com.boottask/files/log/boottask.log;/data/data/com.boottask/files/log/repair_history.txt;
+10-01 08:50:49.480 I/CarLifeLogXfer( 2697): activity created, urls=http://192.168.49.1:18081,http://172.29.200.190:18081
+10-01 08:50:49.480 D/BootTask( 2697): diagnostic snapshot requested
+10-01 08:50:49.490 I/CarLifeLogXfer( 2697): http server started, port=18081
+10-01 08:50:49.490 I/CarLifeLogXfer( 2697): http loop enter
+10-01 08:50:49.490 I/CarLifeLogXfer( 2697): NetWatch registered
+10-01 08:50:49.500 I/CarLifeLogXfer( 2697): activity started
+10-01 08:50:49.650 I/CarLifeLogXfer( 2697): localIps -> 192.168.49.1,172.29.200.190
+10-01 08:50:49.650 I/CarLifeLogXfer( 2697): net changed -> http://192.168.49.1:18081
+10-01 08:50:49.660 I/CarLifeLogXfer( 2697): localIps -> 192.168.49.1,172.29.200.190
+10-01 08:50:49.660 I/CarLifeLogXfer( 2697): net changed -> http://192.168.49.1:18081
+10-01 08:50:49.730 I/CarLifeLogXfer( 2697): localIps -> 192.168.49.1,172.29.200.190
+10-01 08:50:49.730 I/CarLifeLogXfer( 2697): net changed -> http://192.168.49.1:18081
+10-01 08:50:49.740 I/CarLifeLogXfer( 2697): localIps -> 192.168.49.1,172.29.200.190
+10-01 08:50:49.750 I/CarLifeLogXfer( 2697): net changed -> http://192.168.49.1:18081
+10-01 08:50:49.760 I/CarLifeLogXfer( 2697): localIps -> 192.168.49.1,172.29.200.190
+10-01 08:50:49.760 I/CarLifeLogXfer( 2697): net changed -> http://192.168.49.1:18081
+10-01 08:52:41.040 I/CarLifeLogXfer( 2697): localIps -> 172.29.200.190
+10-01 08:52:41.040 I/CarLifeLogXfer( 2697): net changed -> http://172.29.200.190:18081
+10-01 08:52:41.040 I/CarLifeLogXfer( 2697): webview reload file:///android_asset/logxfer/logxfer.html#http%3A%2F%2F172.29.200.190%3A18081
+10-01 08:52:41.160 I/CarLifeLogXfer( 2697): localIps -> 172.29.200.190
+10-01 08:52:41.160 I/CarLifeLogXfer( 2697): net changed -> http://172.29.200.190:18081
+10-01 08:52:47.780 I/CarLifeLogXfer( 2697): back pressed, finish activity
+10-01 08:52:48.250 I/CarLifeLogXfer( 2697): NetWatch unregistered
+10-01 08:52:48.250 I/CarLifeLogXfer( 2697): http server stopped
+10-01 08:52:48.250 I/CarLifeLogXfer( 2697): activity stopped
+10-01 08:52:48.250 I/CarLifeLogXfer( 2697): http loop exit
+10-01 08:52:50.000 I/CarLifeLogXfer( 2697): localIps -> 172.29.200.190
+10-01 08:52:50.040 I/CarLifeLogXfer( 2697): webview load file:///android_asset/logxfer/logxfer.html#http%3A%2F%2F172.29.200.190%3A18081
+10-01 08:52:50.050 I/CarLifeLogXfer( 2697): dir missing: /storage/emulated/0/Android/data/com.boottask/files/log
+10-01 08:52:50.050 I/CarLifeLogXfer( 2697): dir missing: /storage/emulated/0/Android/data/com.boottask/files/log/session
+10-01 08:52:50.050 I/CarLifeLogXfer( 2697): dir missing: /sdcard/BaiduCarlife
+10-01 08:52:50.050 I/CarLifeLogXfer( 2697): dir missing: /sdcard/Android/data/com.baidu.carlifevehicle/files/log
+10-01 08:52:50.050 I/CarLifeLogXfer( 2697): dir missing: /storage/sdcard0/BaiduCarlife
+10-01 08:52:50.070 I/CarLifeLogXfer( 2697): refreshFiles count=4 -> /data/data/com.boottask/files/log/diagnostic.txt;/data/data/com.boottask/files/log/prev_counters.txt;/data/data/com.boottask/files/log/boottask.log;/data/data/com.boottask/files/log/repair_history.txt;
+10-01 08:52:50.070 I/CarLifeLogXfer( 2697): activity created, urls=http://172.29.200.190:18081
+10-01 08:52:50.070 D/BootTask( 2697): diagnostic snapshot requested
+10-01 08:52:50.070 I/CarLifeLogXfer( 2697): http server started, port=18081
+10-01 08:52:50.070 I/CarLifeLogXfer( 2697): http loop enter
+10-01 08:52:50.080 I/CarLifeLogXfer( 2697): NetWatch registered
+10-01 08:52:50.080 I/CarLifeLogXfer( 2697): activity started
+10-01 08:52:50.200 I/CarLifeLogXfer( 2697): localIps -> 172.29.200.190
+10-01 08:52:50.200 I/CarLifeLogXfer( 2697): net changed -> http://172.29.200.190:18081
+10-01 08:52:50.200 I/CarLifeLogXfer( 2697): localIps -> 172.29.200.190
+10-01 08:52:50.200 I/CarLifeLogXfer( 2697): net changed -> http://172.29.200.190:18081
+10-01 08:52:50.210 I/CarLifeLogXfer( 2697): localIps -> 172.29.200.190
+10-01 08:52:50.210 I/CarLifeLogXfer( 2697): net changed -> http://172.29.200.190:18081
+10-01 08:52:50.240 I/CarLifeLogXfer( 2697): localIps -> 172.29.200.190
+10-01 08:52:50.240 I/CarLifeLogXfer( 2697): net changed -> http://172.29.200.190:18081
+10-01 08:52:50.270 I/CarLifeLogXfer( 2697): localIps -> 172.29.200.190
+10-01 08:52:50.270 I/CarLifeLogXfer( 2697): net changed -> http://172.29.200.190:18081
+10-01 08:53:11.540 I/CarLifeLogXfer( 2697): REQ /
+10-01 08:53:11.550 I/CarLifeLogXfer( 2697): dir missing: /storage/emulated/0/Android/data/com.boottask/files/log
+10-01 08:53:11.550 I/CarLifeLogXfer( 2697): dir missing: /storage/emulated/0/Android/data/com.boottask/files/log/session
+10-01 08:53:11.550 I/CarLifeLogXfer( 2697): dir missing: /sdcard/BaiduCarlife
+10-01 08:53:11.550 I/CarLifeLogXfer( 2697): dir missing: /sdcard/Android/data/com.baidu.carlifevehicle/files/log
+10-01 08:53:11.550 I/CarLifeLogXfer( 2697): dir missing: /storage/sdcard0/BaiduCarlife
+10-01 08:53:11.570 I/CarLifeLogXfer( 2697): refreshFiles count=4 -> /data/data/com.boottask/files/log/diagnostic.txt;/data/data/com.boottask/files/log/prev_counters.txt;/data/data/com.boottask/files/log/boottask.log;/data/data/com.boottask/files/log/repair_history.txt;
+10-01 08:53:11.790 I/CarLifeLogXfer( 2697): REQ /favicon.ico
+10-01 08:53:12.570 I/CarLifeLogXfer( 2697): localIps -> 172.29.200.190
+10-01 08:53:12.570 I/CarLifeLogXfer( 2697): net changed -> http://172.29.200.190:18081

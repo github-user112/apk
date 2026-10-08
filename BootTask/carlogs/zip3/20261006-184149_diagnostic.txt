@@ -1,0 +1,857 @@
+BootTask diagnostic snapshot
+time=2026-10-06 18:41:27.553
+package=com.boottask
+sdk=19
+android=4.4.2
+device=telechips TCC893X_EVM
+version=1.6.15 (22)
+enabled=true
+filesDir=/data/data/com.boottask/files
+rules=[]
+
+--- env recon (v1.4) ---
+
+=== getprop ===
+[dalvik.vm.dexopt-flags]: [m=y]
+[dalvik.vm.heapgrowthlimit]: [128m]
+[dalvik.vm.heapmaxfree]: [2m]
+[dalvik.vm.heapminfree]: [512k]
+[dalvik.vm.heapsize]: [256m]
+[dalvik.vm.heapstartsize]: [16m]
+[dalvik.vm.heaptargetutilization]: [0.75]
+[dalvik.vm.stack-trace-file]: [/data/anr/traces.txt]
+[debug.force_rtl]: [0]
+[dev.bootcomplete]: [1]
+[dhcp.p2p-p2p0-2.domain]: []
+[dhcp.p2p.dns1]: [192.168.49.1]
+[dhcp.p2p.dns2]: []
+[dhcp.p2p.dns3]: []
+[dhcp.p2p.dns4]: []
+[dhcp.p2p.gateway]: [192.168.49.1]
+[dhcp.p2p.ipaddress]: [192.168.49.64]
+[dhcp.p2p.leasetime]: [3600]
+[dhcp.p2p.mask]: [255.255.255.0]
+[dhcp.p2p.mtu]: []
+[dhcp.p2p.pid]: [5645]
+[dhcp.p2p.reason]: [BOUND]
+[dhcp.p2p.result]: [ok]
+[dhcp.p2p.server]: [192.168.49.1]
+[dhcp.p2p.vendorInfo]: [ANDROID_METERED]
+[gsm.current.phone-type]: [2]
+[gsm.network.type]: [Unknown]
+[gsm.operator.alpha]: []
+[gsm.operator.iso-country]: []
+[gsm.operator.isroaming]: [false]
+[gsm.operator.numeric]: []
+[gsm.sim.operator.iso-country]: []
+[gsm.sim.state]: [NOT_READY]
+[gsm.version.ril-impl]: [SIMCOM_RIL44_20160812_3]
+[hw.sensor.ak8975]: [0]
+[init.svc.accept_localhost]: [stopped]
+[init.svc.adbd]: [running]
+[init.svc.autotrace]: [running]
+[init.svc.bdcl]: [stopped]
+[init.svc.carconfig]: [running]
+[init.svc.componentservice]: [running]
+[init.svc.console]: [running]
+[init.svc.debuggerd]: [running]
+[init.svc.dhcpcd_p2p]: [running]
+[init.svc.drm]: [running]
+[init.svc.eeprom]: [running]
+[init.svc.healthd]: [running]
+[init.svc.heartbeat]: [running]
+[init.svc.iapserver]: [running]
+[init.svc.installd]: [running]
+[init.svc.keystore]: [running]
+[init.svc.media]: [running]
+[init.svc.netd]: [running]
+[init.svc.p2p_supplicant]: [running]
+[init.svc.qsrvc]: [stopped]
+[init.svc.quickboot]: [running]
+[init.svc.ril-daemon]: [running]
+[init.svc.sdcard]: [running]
+[init.svc.servicemanager]: [running]
+[init.svc.setup_fs]: [stopped]
+[init.svc.surfaceflinger]: [running]
+[init.svc.ueventd]: [running]
+[init.svc.userapp]: [stopped]
+[init.svc.videoflinger]: [running]
+[init.svc.vold]: [running]
+[init.svc.zygote]: [running]
+[net.bt.name]: [Android]
+[net.change]: [net.qtaguid_enabled]
+[net.hostname]: [android-13a85a20fbea46e3]
+[net.qtaguid_enabled]: [1]
+[net.tcp.buffersize.default]: [4096,87380,110208,4096,16384,110208]
+[net.tcp.buffersize.edge]: [4093,26280,35040,4096,16384,35040]
+[net.tcp.buffersize.evdo]: [4094,87380,262144,4096,16384,262144]
+[net.tcp.buffersize.gprs]: [4092,8760,11680,4096,8760,11680]
+[net.tcp.buffersize.hsdpa]: [4094,87380,262144,4096,16384,262144]
+[net.tcp.buffersize.hspa]: [4094,87380,262144,4096,16384,262144]
+[net.tcp.buffersize.hspap]: [4094,87380,1220608,4096,16384,1220608]
+[net.tcp.buffersize.hsupa]: [4094,87380,262144,4096,16384,262144]
+[net.tcp.buffersize.lte]: [524288,1048576,2097152,262144,524288,1048576]
+[net.tcp.buffersize.umts]: [4094,87380,110208,4096,16384,110208]
+[net.tcp.buffersize.wifi]: [524288,1048576,2097152,262144,524288,1048576]
+[persist.demo.hdmirotationlock]: [true]
+[persist.ium.support]: [carplay]
+[persist.sys.QB.aging.count]: [343]
+[persist.sys.QB.home.timeout]: [stop]
+[persist.sys.QB.updated]: [no]
+[persist.sys.QB.user.allow]: []
+[persist.sys.app_rotation]: [0]
+[persist.sys.boot.audio.allow]: [true]
+[persist.sys.component_mode]: [0]
+[persist.sys.composite_mode]: [0]
+[persist.sys.composite_resize_x]: [3]
+[persist.sys.composite_resize_y]: [3]
+[persist.sys.country]: [CN]
+[persist.sys.cvbs_mode]: [0]
+[persist.sys.cvbs_power_mode]: [0]
+[persist.sys.dalvik.vm.lib]: [libdvm.so]
+[persist.sys.display_orientation]: [0]
+[persist.sys.duck.enable]: [1]
+[persist.sys.extenddisplay_reset]: [0]
+[persist.sys.hdmi_auto_select]: [0]
+[persist.sys.hdmi_cec]: [0]
+[persist.sys.hdmi_color_space]: [1]
+[persist.sys.hdmi_detected]: [0]
+[persist.sys.hdmi_mode]: [0]
+[persist.sys.hdmi_resize_x]: [0]
+[persist.sys.hdmi_resize_y]: [0]
+[persist.sys.hdmi_resolution]: [125]
+[persist.sys.keypress.effect.vol]: [6]
+[persist.sys.language]: [zh]
+[persist.sys.log.level]: [full]
+[persist.sys.middle_mouse]: [0]
+[persist.sys.output_mode]: [1]
+[persist.sys.profiler_ms]: [0]
+[persist.sys.renderer_onthefly]: [true]
+[persist.sys.right_mouse]: [0]
+[persist.sys.spdif_setting]: [0]
+[persist.sys.strictmode.disable]: [true]
+[persist.sys.strictmode.visual]: [false]
+[persist.sys.timezone]: [Asia/Shanghai]
+[persist.sys.usb.config]: [device,adb]
+[persist.sys.wifi.mac]: [bc:82:5d:65:11:ad]
+[qemu.hw.mainkeys]: [0]
+[rild.simcom.clvl]: [4]
+[rild.simcom.netclose]: [1]
+[ro.QB.builtin.systemui]: [2]
+[ro.QB.builtin.widget]: [1]
+[ro.QB.builtin.windowManager]: [2]
+[ro.QB.enable]: [1]
+[ro.allow.mock.location]: [1]
+[ro.baseband]: [unknown]
+[ro.board.platform]: [tcc893x]
+[ro.boot.btaddr]: [005056C00008]
+[ro.boot.console]: [ttyTCC0]
+[ro.boot.dignostic]: []
+[ro.boot.memtype]: [2]
+[ro.boot.mode]: [emmc]
+[ro.boot.qb_prebuilt_mode]: [disable]
+[ro.boot.serialno]: [000018030809054701DC]
+[ro.boot.wifimac]: []
+[ro.bootloader]: [unknown]
+[ro.bootmode]: [emmc]
+[ro.btaddr]: [005056C00008]
+[ro.build.characteristics]: [tablet,sdcard]
+[ro.build.date.utc]: [1520469918]
+[ro.build.date]: [Thu Mar  8 08:45:18 CST 2018]
+[ro.build.description]: [full_tcc893x-eng 4.4.2 KVT49L eng.uidq0219.20180308.084400 test-keys]
+[ro.build.display.id]: [FE-4KA_N2297_03_41.35_180308_R]
+[ro.build.fingerprint]: [Android/full_tcc893x/tcc893x:4.4.2/KVT49L/eng.uidq0219.20180308.084400:eng/test-keys]
+[ro.build.host]: [hzhe165x]
+[ro.build.id]: [KVT49L]
+[ro.build.product]: [tcc893x]
+[ro.build.tags]: [test-keys]
+[ro.build.type]: [eng]
+[ro.build.user]: [uidq0219]
+[ro.build.version.codename]: [REL]
+[ro.build.version.incremental]: [eng.uidq0219.20180308.084400]
+[ro.build.version.release]: [4.4.2]
+[ro.build.version.sdk]: [19]
+[ro.carrier]: [wifi-only]
+[ro.com.android.dateformat]: [MM-dd-yyyy]
+[ro.config.alarm_alert]: [Cesium.ogg]
+[ro.config.max_starting_bg]: [20]
+[ro.config.notification_sound]: [pixiedust.ogg]
+[ro.config.ringtone]: [Ring_Synth_04.ogg]
+[ro.crypto.fuse_sdcard]: [true]
+[ro.crypto.state]: [unencrypted]
+[ro.debuggable]: [1]
+[ro.dignostic]: [unknown]
+[ro.factorytest]: [0]
+[ro.fota.enable]: [1]
+[ro.fota.url]: [http://172.27.35.1:10086/testOTA.xml]
+[ro.hardware.nfc]: [false]
+[ro.hardware]: [tcc893x]
+[ro.kernel.android.checkjni]: [1]
+[ro.kernel.android.gps]: [ttyTCC3]
+[ro.lockscreen.disable.default]: [1]
+[ro.opengles.version]: [131072]
+[ro.product.board]: [tcc893x_evm]
+[ro.product.brand]: [Android]
+[ro.product.cpu.abi2]: [armeabi]
+[ro.product.cpu.abi]: [armeabi-v7a]
+[ro.product.device]: [tcc893x]
+[ro.product.locale.language]: [en]
+[ro.product.locale.region]: [US]
+[ro.product.manufacturer]: [telechips]
+[ro.product.model]: [TCC893X_EVM]
+[ro.product.name]: [full_tcc893x]
+[ro.qb_prebuilt_mode]: [disable]
+[ro.radio.noril]: [no]
+[ro.revision]: [4096]
+[ro.ril.debug]: [0]
+[ro.rotation.block180]: [false]
+[ro.runtime.firstboot]: [1791282366150]
+[ro.secure]: [0]
+[ro.serialno]: [000018030809054701DC]
+[ro.sf.lcd_density]: [160]
+[ro.sys.car.module]: [FE-3AC]
+[ro.sys.rvc.handover]: [true]
+[ro.system.audio_active]: [false]
+[ro.system.component_active]: [false]
+[ro.system.composite_active]: [false]
+[ro.system.cvbs_active]: [false]
+[ro.system.hdmi_active]: [true]
+[ro.system.hdmi_max_resolution]: [fullhd]
+[ro.system.hdmi_portable]: [true]
+[ro.system.osd_active]: [true]
+[ro.tcc.qb_prebuilt_mode]: [0]
+[ro.telephony.default_network]: [4]
+[ro.usb.switch]: [otg]
+[ro.wifi.channels]: []
+[runtime.power.first]: [completed]
+[runtime.warningpage.dismiss]: [true]
+[service.bootanim.exit]: [0]
+[sys.boot_completed]: [1]
+[sys.settings_global_version]: [1]
+[sys.settings_secure_version]: [3]
+[sys.settings_system_version]: [5]
+[sys.sysctl.extra_free_kbytes]: [7200]
+[sys.usb.config]: [host]
+[sys.usb.connected]: [0]
+[sys.usb.control]: [reset]
+[sys.usb.state]: [host]
+[tcc.QB.boot.with]: [snapshot]
+[tcc.QB.profile.dlog]: [0]
+[tcc.QB.profile.dtime]: [10]
+[tcc.QB.start.framework]: [1395912602929]
+[tcc.QB.timezone]: [Asia/Shanghai]
+[tcc.all.camera.no.display]: [0]
+[tcc.all.hdmi.720p.fixed]: [0]
+[tcc.all.output.support.camera]: [0]
+[tcc.all.video.call.enable]: [0]
+[tcc.all.web.full.video]: [0]
+[tcc.audio.channels]: [2]
+[tcc.audio.sampling_rate]: [4]
+[tcc.audio.support.aac]: [1]
+[tcc.audio.support.ac3]: [0]
+[tcc.audio.support.amr]: [1]
+[tcc.audio.support.amrwbp]: [1]
+[tcc.audio.support.ape]: [1]
+[tcc.audio.support.bsac]: [0]
+[tcc.audio.support.ddp]: [0]
+[tcc.audio.support.dra]: [0]
+[tcc.audio.support.dts]: [0]
+[tcc.audio.support.evrc]: [0]
+[tcc.audio.support.flac]: [1]
+[tcc.audio.support.mp1]: [1]
+[tcc.audio.support.mp2]: [1]
+[tcc.audio.support.mp3]: [1]
+[tcc.audio.support.qcelp]: [0]
+[tcc.audio.support.ra]: [0]
+[tcc.audio.support.vorbis]: [1]
+[tcc.audio.support.wav]: [1]
+[tcc.audio.support.wma]: [1]
+[tcc.bootanim.exit]: [1]
+[tcc.container.support.asf]: [1]
+[tcc.default.timezone]: [Asia/Shanghai]
+[tcc.dhcpclient.ipaddress]: [192.168.49.37]
+[tcc.dmx.opt.seek.over.lastkey]: [1]
+[tcc.dxb.dvbt.baseband]: [1]
+[tcc.dxb.linuxtv.enable]: [1]
+[tcc.dxb.ringbuffer.enable]: [0]
+[tcc.extenddisplay.detected]: [0]
+[tcc.hdmi.audio_type]: [0]
+[tcc.hibernate.property]: [reloaded]
+[tcc.http.disconn.at.full]: [0]
+[tcc.hwc.dynamic.disable]: [0]
+[tcc.hwc.fb.update.async]: [1]
+[tcc.hwc.lcd.disable]: [0]
+[tcc.hwc.no.use.external]: [0]
+[tcc.hwc.use.fence.sync]: [1]
+[tcc.iap.start]: [1]
+[tcc.iap.surpport.only]: [t]
+[tcc.iap2.surpport]: [f]
+[tcc.internal.storage.fat.number]: [11]
+[tcc.media.rtsp.autimeout]: [10]
+[tcc.media.rtsp.cusset]: [1]
+[tcc.media.rtsp.eos]: [1]
+[tcc.media.rtsp.seekend]: [3]
+[tcc.media.rtsp.starttime]: [10]
+[tcc.media.wfd.sink.run]: [0]
+[tcc.output.component_mode]: [0]
+[tcc.primary_storage.type]: [Internal Storage(primary)]
+[tcc.show.video.fps]: [0]
+[tcc.solution.mbox.anc]: [1]
+[tcc.solution.use.screenmode]: [0]
+[tcc.swap.path]: [/dev/block/mmcblk0p9]
+[tcc.sys.output_mode_detected]: [0]
+[tcc.sys.output_mode_plugout]: [0]
+[tcc.video.booting.mode]: [0]
+[tcc.video.deinterlace.support]: [0]
+[tcc.video.hwr.id]: [842405]
+[tcc.video.lplayback.mode]: [0]
+[tcc.video.multidecoding.check]: [0]
+[tcc.video.support.vc1]: [1]
+[tcc.video.support.wmv7]: [1]
+[tcc.video.support.wmv8]: [1]
+[tcc.video.surface.enable]: [0]
+[tcc.video.surface.support]: [1]
+[tcc.video.vsync.enable]: [0]
+[tcc.video.vsync.support]: [1]
+[tcc.video.vsync.threshold]: [0]
+[tcc.wfd.display.level]: [0]
+[tcc.wifi.display.con (exit=0)
+
+=== ps ===
+USER     PID   PPID  VSIZE  RSS     WCHAN    PC         NAME
+root      1     0     568    400   ffffffff 00000000 S /init
+root      2     0     0      0     ffffffff 00000000 S kthreadd
+root      3     2     0      0     ffffffff 00000000 S ksoftirqd/0
+root      5     2     0      0     ffffffff 00000000 S kworker/u:0
+root      6     2     0      0     ffffffff 00000000 S migration/0
+root      10    2     0      0     ffffffff 00000000 S khelper
+root      304   2     0      0     ffffffff 00000000 S sync_supers
+root      306   2     0      0     ffffffff 00000000 S bdi-default
+root      308   2     0      0     ffffffff 00000000 S kblockd
+root      319   2     0      0     ffffffff 00000000 S khubd
+root      345   2     0      0     ffffffff 00000000 S kworker/0:1
+root      347   2     0      0     ffffffff 00000000 S cfg80211
+root      447   2     0      0     ffffffff 00000000 S kswapd0
+root      448   2     0      0     ffffffff 00000000 S ksmd
+root      495   2     0      0     ffffffff 00000000 S fsnotify_mark
+root      514   2     0      0     ffffffff 00000000 S crypto
+root      535   2     0      0     ffffffff 00000000 S tccfb
+root      536   2     0      0     ffffffff 00000000 S tccfb-ext
+root      568   2     0      0     ffffffff 00000000 S tcc_clockctrl_w
+root      620   2     0      0     ffffffff 00000000 S dwc3
+root      640   2     0      0     ffffffff 00000000 S f_mtp
+root      645   2     0      0     ffffffff 00000000 S file-storage
+root      657   2     0      0     ffffffff 00000000 S nav360_wq
+root      667   2     0      0     ffffffff 00000000 S irq/75-tcc-rtc
+root      703   2     0      0     ffffffff 00000000 S binder
+root      733   2     0      0     ffffffff 00000000 S mmcqd/0
+root      734   2     0      0     ffffffff 00000000 S mmcqd/0boot0
+root      735   2     0      0     ffffffff 00000000 S mmcqd/0boot1
+root      785   2     0      0     ffffffff 00000000 S krfcommd
+root      806   2     0      0     ffffffff 00000000 S deferwq
+root      807   1     532    236   ffffffff 00000000 S /sbin/ueventd
+root      1115  2     0      0     ffffffff 00000000 S jbd2/mmcblk0p2-
+root      1116  2     0      0     ffffffff 00000000 S ext4-dio-unwrit
+root      1119  2     0      0     ffffffff 00000000 S flush-179:0
+root      1134  1     1432   144   ffffffff 00000000 S /sbin/healthd
+system    1135  1     1008   352   ffffffff 00000000 S /system/bin/servicemanager
+root      1136  1     8472   1916  ffffffff 00000000 S /system/bin/vold
+root      1137  1     2944   740   ffffffff 00000000 S /system/bin/quickboot
+root      1138  1     21832  876   ffffffff 00000000 S /system/bin/componentservice
+root      1139  1     6500   868   ffffffff 00000000 S /system/bin/eeprom
+system    1140  1     2352   788   ffffffff 00000000 S /system/bin/carconfig
+root      1143  1     9764   1272  ffffffff 00000000 S /system/bin/netd
+root      1144  1     1036   432   ffffffff 00000000 S /system/bin/debuggerd
+root      1145  1     5624   904   ffffffff 00000000 S /system/bin/rild
+system    1146  1     106228 9700  ffffffff 00000000 S /system/bin/surfaceflinger
+root      1147  1     502208 43116 ffffffff 00000000 S zygote
+drm       1148  1     9668   3396  ffffffff 00000000 S /system/bin/drmserver
+media     1149  1     68372  7980  ffffffff 00000000 S /system/bin/mediaserver
+install   1150  1     1016   484   ffffffff 00000000 S /system/bin/installd
+root      1152  1     62356  15756 ffffffff 00000000 S /system/bin/videoflinger
+root      1153  1     1196   432   ffffffff 00000000 S /system/bin/autotrace
+system    1155  1     916    352   ffffffff 00000000 S /system/bin/heartbeat
+root      1156  1     14336  3176  ffffffff 00000000 S /system/bin/iapserver
+media_rw  1158  1     3516   504   ffffffff 00000000 S /system/bin/sdcard
+shell     1159  1     928    464   ffffffff 00000000 S /system/bin/sh
+root      1171  1     2992   920   ffffffff 00000000 S bdcl
+system    1519  1147  626216 52064 ffffffff 00000000 S system_server
+u0_a2     1656  1147  514076 23616 ffffffff 00000000 S android.process.acore
+root      1717  2     0      0     ffffffff 00000000 S migration/1
+root      1719  2     0      0     ffffffff 00000000 S ksoftirqd/1
+root      1730  2     0      0     ffffffff 00000000 S kworker/1:1
+root      1734  2     0      0     ffffffff 00000000 S jbd2/mmcblk0p3-
+root      1735  2     0      0     ffffffff 00000000 S ext4-dio-unwrit
+root      1743  2     0      0     ffffffff 00000000 S jbd2/mmcblk0p12
+root      1744  2     0      0     ffffffff 00000000 S ext4-dio-unwrit
+root      1748  2     0      0     ffffffff 00000000 S jbd2/mmcblk0p11
+root      1749  2     0      0     ffffffff 00000000 S ext4-dio-unwrit
+keystore  1750  1     3352   1216  ffffffff 00000000 S /system/bin/keystore
+root      1756  2     0      0     ffffffff 00000000 S kvmgr_operd
+root      1794  2     0      0     ffffffff 00000000 S scsi_eh_0
+root      1795  2     0      0     ffffffff 00000000 S usb-storage
+root      1803  2     0      0     ffffffff 00000000 S irq/37-atmel_to
+root      1808  1     3564   220   ffffffff 00000000 S /sbin/adbd
+u0_a213   1826  1147  529140 31048 ffffffff 00000000 S com.autonavi.amapauto
+u0_a6     1840  1147  560008 48496 ffffffff 00000000 S com.android.systemui
+system    1882  1147  512300 18364 ffffffff 00000000 S com.tcc.IpodUsbdeviceManager
+u0_a203   1893  1147  526048 35832 ffffffff 00000000 S com.desay_svautomotive.svbtmanager
+radio     1901  1147  529948 25380 ffffffff 00000000 S com.android.phone
+u0_a202   1910  1147  514136 19636 ffffffff 00000000 S com.desay_svautomotive.svbt
+system    1922  1147  514972 17920 ffffffff 00000000 S com.desay_svautomotive.svlauncher
+u0_a207   1950  1147  525256 23264 ffffffff 00000000 S com.desay_svautomotive.svdvrserver
+system    1961  1147  519852 19684 ffffffff 00000000 S com.desay_svautomotive.svthirdparty
+system    1973  1147  516312 19524 ffffffff 00000000 S com.tcc.iap2server
+u0_a28    1980  1147  512352 18536 ffffffff 00000000 S com.telechips.android.Iap1ConnManager
+u0_a205   1993  1147  539032 28948 ffffffff 00000000 S com.desay_svautomotive.carlife
+system    2009  1147  516600 21416 ffffffff 00000000 S com.desay_svautomotive.svsettingsservice
+u0_a211   2026  1147  514500 20480 ffffffff 00000000 S com.desay_svautomotive.svradioservices
+system    2044  1147  511356 17572 ffffffff 00000000 S com.desaysv.logreader2
+u0_a220   2063  1147  548816 42000 ffffffff 00000000 S com.wow.carlauncher.mini
+u0_a200   2091  1147  534480 22132 ffffffff 00000000 S com.anwsdk.service
+u0_a214   2118  1147  564796 35680 ffffffff 00000000 S com.sohu.inputmethod.sogouoem
+u0_a216   2131  1147  561648 64936 ffffffff 00000000 S com.iflytek.tts
+u0_a56    2156  1147  511048 17380 ffffffff 00000000 S com.android.smspush
+u0_a222   2233  1147  602576 54844 ffffffff 00000000 S net.easyconn
+u0_a5     2302  1147  511116 18292 ffffffff 00000000 S com.android.externalstorage
+u0_a222   2359  2233  0      0     ffffffff 00000000 Z ZIDThreadPoolEx
+u0_a4     2364  1147  512828 20632 ffffffff 00000000 S android.process.media
+u0_a209   2389  1147  518404 21944 ffffffff 00000000 S com.desay_svautomotive.svmediaprovider
+system    2403  1147  559108 45688 ffffffff 00000000 S com.android.settings
+u0_a222   2429  2233  565628 19592 ffffffff 00000000 S net.easyconn
+u0_a221   2459  1147  555244 48536 ffffffff 00000000 S com.xiaobaifile.tv
+u0_a221   2521  1     4824   1696  ffffffff 00000000 S /data/data/com.xiaobaifile.tv/files/aria2c
+u0_a204   2531  1147  514448 18588 ffffffff 00000000 S com.desay_svautomotive.calendar
+u0_a201   2832  1147  545016 35244 ffffffff 00000000 S com.desaysv_automotive.geelymediamanager
+u0_a47    2864  1147  512396 18160 ffffffff 00000000 S com.android.printspooler
+root      2884  2     0      0     ffffffff 00000000 S kworker/u:3
+u0_a1     2947  1147  512028 20948 ffffffff 00000000 S com.android.providers.calendar
+u0_a213   3013  1147  525792 28736 ffffffff 00000000 S com.autonavi.amapauto:locationservice
+root      3043  2     0      0     ffffffff 00000000 S wl_event_handle
+root      3051  2     0      0     ffffffff 00000000 S dhd_watchdog_th
+root      3052  2     0      0     ffffffff 00000000 S dhd_dpc
+root      3054  2     0      0     ffffffff 00000000 S dhd_rxf
+wifi      3100  1     3432   2260  ffffffff 00000000 S /system/bin/wpa_supplicant
+root      4667  2     0      0     ffffffff 00000000 S kworker/u:2
+u0_a221   4737  1147  524228 23808 ffffffff 00000000 S com.xiaobaifile.xbpu (exit=0)
+
+=== pm list packages -f ===
+package:/system/app2/IpodUsbdeviceManager.apk=com.tcc.IpodUsbdeviceManager
+package:/system/priv-app/DefaultContainerService.apk=com.android.defcontainer
+package:/system/app2/ANTRadioService.apk=com.dsi.ant.service.socket
+package:/system/app2/SVBTManager.apk=com.desay_svautomotive.svbtmanager
+package:/system/app2/SVDvr.apk=com.desay_svautomotive.svdvr
+package:/system/app/LatinIME.apk=com.android.inputmethod.latin
+package:/system/app/TelechipsSystemUpdater.apk=com.telechips.android.systemupdater
+package:/system/priv-app/TeleService.apk=com.android.phone
+package:/data/app/com.xiaobaifile.tv-1.apk=com.xiaobaifile.tv
+package:/data/app/com.boottask-1.apk=com.boottask
+package:/system/priv-app/ProxyHandler.apk=com.android.proxyhandler
+package:/system/app2/SVBT.apk=com.desay_svautomotive.svbt
+package:/system/app2/SVCalendar.apk=com.desay_svautomotive.calendar
+package:/system/app/MapClient.apk=com.broadcom.bt.map
+package:/system/priv-app/CalendarProvider.apk=com.android.providers.calendar
+package:/system/priv-app/InputDevices.apk=com.android.inputdevices
+package:/system/app2/SVVideoManager.apk=com.desay_svautomotive.svvideomanager
+package:/system/app2/SVLauncher.apk=com.desay_svautomotive.svlauncher
+package:/system/app/HoloSpiralWallpaper.apk=com.android.wallpaper.holospiral
+package:/system/app/AntHalService.apk=com.dsi.ant.server
+package:/system/app/TDMBPlayer.apk=com.telechips.android.tdmb
+package:/system/app2/SVDvrServer.apk=com.desay_svautomotive.svdvrserver
+package:/system/app/PbapClient.apk=com.broadcom.bt.pbap
+package:/system/app2/SVThirdparty.apk=com.desay_svautomotive.svthirdparty
+package:/system/app/DownloadProviderUi.apk=com.android.providers.downloads.ui
+package:/system/app2/Auto.apk=com.autonavi.amapauto
+package:/system/app/UserDictionaryProvider.apk=com.android.providers.userdictionary
+package:/system/app/DocumentsUI.apk=com.android.documentsui
+package:/system/app/PinyinIME.apk=com.android.inputmethod.pinyin
+package:/system/priv-app/SharedStorageBackup.apk=com.android.sharedstoragebackup
+package:/system/priv- (exit=0)
+
+=== pm list packages -3 ===
+package:com.xiaobaifile.tv
+package:com.boottask
+package:com.wow.carlauncher.mini
+package:com.iflytek.tts
+package:net.easyconn (exit=0)
+
+=== su probe (uid=0 => root) ===
+su: uid 10223 not allowed to su (exit=1)
+
+=== pm dump com.desay_svautomotive.svbtmanager (receivers/services) ===
+DUMP OF SERVICE activity:
+  Permission Denial: can't dump ActivityManager from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE meminfo:
+  Permission Denial: can't dump meminfo from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE procstats:
+  Permission Denial: can't dump procstats from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE usagestats:
+  Permission Denial: can't dump UsageStats from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE package:
+  Permission Denial: can't dump ActivityManager from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE batterystats:
+  Permission Denial: can't dump BatteryStats from from pid=0, uid=10223 without permission android.permission.DUMP (exit=0)
+(5 of 17 lines filtered)
+
+
+=== pm dump com.desay_svautomotive.svbt (receivers/services) ===
+DUMP OF SERVICE activity:
+  Permission Denial: can't dump ActivityManager from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE meminfo:
+  Permission Denial: can't dump meminfo from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE procstats:
+  Permission Denial: can't dump procstats from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE usagestats:
+  Permission Denial: can't dump UsageStats from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE package:
+  Permission Denial: can't dump ActivityManager from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE batterystats:
+  Permission Denial: can't dump BatteryStats from from pid=0, uid=10223 without permission android.permission.DUMP (exit=0)
+(5 of 17 lines filtered)
+
+
+=== pm dump com.broadcom.bt.map (receivers/services) ===
+DUMP OF SERVICE activity:
+  Permission Denial: can't dump ActivityManager from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE meminfo:
+  Permission Denial: can't dump meminfo from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE procstats:
+  Permission Denial: can't dump procstats from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE usagestats:
+  Permission Denial: can't dump UsageStats from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE package:
+  Permission Denial: can't dump ActivityManager from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE batterystats:
+  Permission Denial: can't dump BatteryStats from from pid=0, uid=10223 without permission android.permission.DUMP (exit=0)
+(5 of 17 lines filtered)
+
+
+=== pm dump com.broadcom.bt.pbap (receivers/services) ===
+DUMP OF SERVICE activity:
+  Permission Denial: can't dump ActivityManager from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE meminfo:
+  Permission Denial: can't dump meminfo from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE procstats:
+  Permission Denial: can't dump procstats from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE usagestats:
+  Permission Denial: can't dump UsageStats from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE package:
+  Permission Denial: can't dump ActivityManager from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE batterystats:
+  Permission Denial: can't dump BatteryStats from from pid=0, uid=10223 without permission android.permission.DUMP (exit=0)
+(5 of 17 lines filtered)
+
+
+--- hardware & network recon (v1.6) ---
+
+=== /proc/cpuinfo (CPU/芯片平台) ===
+Processor	: ARMv7 Processor rev 12 (v7l)
+processor	: 0
+BogoMIPS	: 1993.93
+
+processor	: 1
+BogoMIPS	: 1993.93
+
+Features	: swp half thumb fastmult vfp edsp thumbee neon vfpv3 tls 
+CPU implementer	: 0x41
+CPU architecture: 7
+CPU variant	: 0x2
+CPU part	: 0xc09
+CPU revision	: 12
+
+Hardware	: tcc893x
+Revision	: 1000
+Serial		: 0000000000000000
+
+
+=== /proc/meminfo (内存，前 6 行) ===
+MemTotal:        1727448 kB
+MemFree:          962928 kB
+Buffers:            9704 kB
+Cached:           321228 kB
+SwapCached:            0 kB
+Active:           347916 kB
+
+
+=== /proc/version (内核版本) ===
+Linux version 3.4.35-tcc (uidq0219@hzhe165x) (gcc version 4.7 (GCC) ) #2 SMP PREEMPT Thu Mar 8 08:40:57 CST 2018
+
+
+=== df (存储分区余量) ===
+/mnt/shell/emulated: Permission denied
+Filesystem               Size     Used     Free   Blksize
+/dev                   843.5M   128.0K   843.4M   4096
+/dev/desaysv             3.9K     3.0K     0.9K   31
+/sys/fs/cgroup         843.5M    12.0K   843.5M   4096
+/mnt/asec              843.5M     0.0K   843.5M   4096
+/mnt/obb               843.5M     0.0K   843.5M   4096
+/system                836.6M   583.9M   252.7M   4096
+/system/config           2.0M     4.0K     2.0M   4096
+/storage/emulated      843.5M     0.0K   843.5M   4096
+/cache                 147.6M     4.2M   143.5M   4096
+/data                  738.2M   286.4M   451.8M   4096
+/data/misc/dio        1024.0K     0.0K  1024.0K   4096
+/navidata               12.1G    10.7G     1.4G   4096
+/storage/usb0            7.5G     6.6G   922.9M   32768
+/storage/usb0/usb02     31.7M    27.3M     4.4M   512
+/storage/emulated/0    738.2M   286.4M   451.8M   4096
+/storage/emulated/legacy   738.2M   286.4M   451.8M   4096 (exit=1)
+
+=== /proc/net/wireless (信号强度/链路质量) ===
+Inter-| sta-|   Quality        |   Discarded packets               | Missed | WE
+ face | tus | link level noise |  nwid  crypt   frag  retry   misc | beacon | 22
+  p2p0: 0000    0     0     0        0      0      0      0      0        0
+ wlan0: 0000    0     0     0        0      0      0      0      0        0
+p2p-p2p0-2: 0000    0     0     0        0      0      0      0      0        0
+
+
+=== /proc/net/dev (各网卡收发流量) ===
+Inter-|   Receive                                                |  Transmit
+ face |bytes    packets errs drop fifo frame compressed multicast|bytes    packets errs drop fifo colls carrier compressed
+    lo:   84720     745    0    0    0     0          0         0    84720     745    0    0    0     0       0          0
+ tunl0:       0       0    0    0    0     0          0         0        0       0    0    0    0     0       0          0
+  sit0:       0       0    0    0    0     0          0         0        0       0    0    0    0     0       0          0
+ wlan0:       0       0    0    0    0     0          0         0        0       0    0    0    0     0       0          0
+p2p-p2p0-2: 60470443   47894    0    0    0     0          0        49  1581519   23250    0    0    0     0       0          0
+ip6tnl0:       0       0    0    0    0     0          0         0        0       0    0    0    0     0       0          0
+  p2p0:       0       0    0    0    0     0          0         0        0       0    0    0    0     0       0          0
+
+
+=== ip addr (网卡/IP，看 P2P 组 192.168.49.x 是否存在) ===
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 16436 qdisc noqueue state UNKNOWN 
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+    inet6 ::1/128 scope host 
+       valid_lft forever preferred_lft forever
+2: tunl0: <NOARP> mtu 1480 qdisc noop state DOWN 
+    link/ipip 0.0.0.0 brd 0.0.0.0
+3: sit0: <NOARP> mtu 1480 qdisc noop state DOWN 
+    link/sit 0.0.0.0 brd 0.0.0.0
+4: ip6tnl0: <NOARP> mtu 1452 qdisc noop state DOWN 
+    link/tunnel6 :: brd ::
+5: p2p0: <NO-CARRIER,BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state DORMANT qlen 1000
+    link/ether be:82:5d:65:11:ad brd ff:ff:ff:ff:ff:ff
+6: wlan0: <NO-CARRIER,BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state DORMANT qlen 1000
+    link/ether bc:82:5d:65:11:ad brd ff:ff:ff:ff:ff:ff
+9: p2p-p2p0-2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP qlen 1000
+    link/ether be:82:5d:65:91:ad brd ff:ff:ff:ff:ff:ff
+    inet 192.168.49.64/24 brd 192.168.49.255 scope global p2p-p2p0-2
+    inet6 fe80::bc82:5dff:fe65:91ad/64 scope link 
+       valid_lft forever preferred_lft forever (exit=0)
+
+=== ip route (路由，看默认网关指向哪个网卡) ===
+192.168.49.0/24 dev p2p-p2p0-2  proto kernel  scope link  src 192.168.49.64 (exit=0)
+
+=== 计数器增量 vs 上次快照 (复现断连前后各开一次日志页; errs/drop 涨得快=链路在丢) ===
+[wireless: 列=level等无固定标签, 只看数值变化] (与上次快照相比计数无变化)
+[dev] p2p-p2p0-2: rx_bytes+52002207 rx_packets+41017 rx_multi+17 tx_bytes+1330454 tx_packets+19754 
+
+
+
+=== ip neigh (ARP 表, 对端手机可达状态; FAILED=链路已不通) ===
+192.168.49.1 dev p2p-p2p0-2 lladdr 0e:02:b2:43:2e:2e REACHABLE (exit=0)
+
+=== CPU 频率/负载/温度 (对比 A/B 两次: 频率掉+温度高+负载满 = 解码降频实锤; 计数器不涨但 RTT 烂 = 网络是清白的, RTT 是 CPU 延迟) ===
+loadavg = 0.93 1.05 0.85 3/849 6753
+cpu0 cur_freq = 996001 KHz
+cpu1 cur_freq = 996001 KHz
+cpu0 governor = performance
+cpu1 governor = performance
+available_governors = ondemand performance
+cpu0 min/max = 342000 / 996000 KHz
+
+
+=== top 快照 (CPU 占用排行, 看亿连解码/渲染进程是否饱和) ===
+User 6%, System 6%, IOW 0%, IRQ 0%
+User 41 + Nice 1 + Sys 41 + Idle 513 + IOW 1 + IRQ 0 + SIRQ 4 = 601
+
+  PID PR CPU% S  #THR     VSS     RSS PCY UID      Name
+ 1519  1   2% S    78 626212K  52056K  fg system   system_server
+ 2233  0   2% S    58 602512K  54732K  bg u0_a222  net.easyconn
+ 5492  1   1% S    42 619636K  49760K  fg u0_a223  com.boottask
+ 3052  0   0% S     1      0K      0K     root     dhd_dpc
+ 5412  0   0% S     1      0K      0K     root     kworker/0:0
+ 6754  0   0% R     1   1288K    520K  fg u0_a223  top
+ 2131  1   0% S    14 561648K  64936K  fg u0_a216  com.iflytek.tts
+ 2063  1   0% S    22 548812K  41420K  bg u0_a220  com.wow.carlauncher.mini
+ 3054  1   0% S     1      0K      0K     root     dhd_rxf
+ 1149  0   0% S    20  68372K   7980K  fg media    /system/bin/mediaserver
+ 1950  1   0% S    20 525256K  23304K  fg u0_a207  com.desay_svautomotive.svdvrserver
+ 2009  1   0% S    12 516600K  21448K  fg system   com.desay_svautomotive.svsettingsservice
+ 1146  0   0% S    16 104192K   9700K  fg system   /system/bin/surfaceflinger
+ 2429  0   0% S     6 565628K  19592K  fg u0_a222  net.easyconn
+ 3051  0   0% S     1      0K      0K     root     dhd_watchdog_th
+  514  1   0% S     1      0K      0K     root     crypto
+  535  0   0% S     1      0K      0K     root     tccfb
+  536  1   0% S     1      0K      0K     root     tccfb-ext
+  568  1   0% S     1      0K      0K     root     tcc_clockctrl_w
+  620  1   0% S     1      0K      0K     root     dwc3
+  640  1   0% S     1      0K      0K     root     f_mtp
+  645  0   0% S     1      0K      0K     root     file-storage
+  657  1   0% S     1      0K      0K     root     nav360_wq
+  667  1   0% S     1      0K      0K     root     irq/75-tcc-rtc
+  703  1   0% S     1      0K      0K     root     binder
+  733  0   0% S     1      0K      0K     root     mmcqd/0
+  734  0   0% S     1      0K      0K     root     mmcqd/0boot0
+  735  0   0% S     1      0K      0K     root     mmcqd/0boot1
+  785  0   0% S     1      0K      0K     root     krfcommd
+  806  1   0% S     1      0K      0K     root     deferwq
+  807  0   0% S     1    532K    236K     root     /sbin/ueventd
+ 1115  0   0% S     1      0K      0K     root     jbd2/mmcblk0p2-
+ 1116  1   0% S     1      0K      0K     root     ext4-dio-unwrit
+ 1119  1   0% S     1      0K      0K     root     flush-179:0
+ 1134  1   0% S     1   1432K    144K  fg root     /sbin/healthd
+ 1135  1   0% S     1   1008K    352K     system   /system/bin/servicemanager
+ 1136  1   0% S     4   8472K   1916K     root     /system/bin/vold
+ 1137  0   0% S     2   2944K    740K     root     /system/bin/quickboot
+ 1138  1   0% S    20  21832K    876K  fg root     /system/bin/componentservice
+ 1139  0   0% S     5   6500K    868K  fg root     /system/bin/eeprom
+ 1140  0   0% S     1   2352K    788K  fg system   /system/bin/carconfig
+ 1143  1   0% S     8   9764K   1272K     root     /system/bin/netd
+ 1144  0   0% S     1   1036K    432K     root     /system/bin/debuggerd
+ 1145  0   0% S     4   5624K    904K     root     /system/bin/rild
+ 1147  1   0% S     4 502208K  43116K     root     zygote
+ 1148  0   0% S     2   9668K   3396K  fg drm      /system/bin/drmserver
+ 1150  1   0% S     1   1016K    484K     install  /system/bin/installd
+ 1152  0   0% S     6  62356K  15756K  fg root     /system/bin/videoflinger
+    1  0   0% S     1    568K    400K     root     /init
+ 1155  1   0% S     1    916K    352K     system   /system/bin/heartbeat
+ 1156  0   0% S     5  14336K   3176K  fg root     /system/bin/iapserver
+ 1158  0   0% S     3   3516K    504K     media_rw /system/bin/sdcard
+ 1159  0   0% S     1    928K    464K     shell    /system/bin/sh
+ 1171  0   0% S     2   2992K    920K     root     bdcl
+ 1656  0   0% S    11 514076K  23616K  bg u0_a2    android.process.acore
+ 1717  1   0% S     1      0K      0K     root     migration/1
+ 1719  1   0% S     1      0K      0K     root     ksoftirqd/1
+ 1730  1   0% S     1      0K      0K     root     kworker/1:1
+ 1734  1   0% S     1      0K      0K     root     jbd2/mmcblk0p3-
+ 1735  0   0% S     1      0K      0K     root     ext4-dio-unwrit
+ 1743  1   0% S     1      0K      0K     root     jbd2/mmcblk0p12
+ 1744  0   0% S     1      0K      0K     root     ext4-dio-unwrit
+ 1748  0   0% S     1      0K      0K     root     jbd2/mmcblk0p11
+ 1749  0   0% S     1      0K      0K     root     ext4-dio-unwrit
+ 1750  0   0% S     1   3352K   1216K  fg keystore /system/bin/keystore
+ 1756  1   0% S     1      0K      0K     root     kvmgr_operd
+ 1794  1   0% S     1      0K      0K     root     scsi_eh_0
+ 1795  0   0% S     1      0K      0K     root     usb-storage
+ 1803  1   0% S     1      0K      0K     root     irq/37-atmel_to
+ 1808  1   0% S     4   3564K    220K     root     /sbin/adbd
+ 1826  1   0% S    14 529140K  31048K  bg u0_a213  com.autonavi.amapauto
+ 1840  0   0% S    20 560008K  48496K  fg u0_a6    com.android.systemui
+ 1882  1   0% S    11 512300K  18364K  fg system   com.tcc.IpodUsbdeviceManager
+ 1893  0   0% S    14 526048K  35832K  fg u0_a203  com.desay_svautomotive.svbtmanager
+ 1901  0   0% S    24 529948K  25380K  fg radio    com.android.phone
+ 1910  1   0% S    10 514136K  19636K  fg u0_a202  com.desay_svautomotive.svbt
+ 1922  1   0% S    10 514972K  17920K  fg system   com.desay_svautomotive.svlauncher
+ 1961  1   0% S    15 519852K  19684K  fg system   com.desay_svautomotive.svthirdparty
+ 1973  1   0% S    14 516312K  19524K  fg system   com.tcc.iap2server
+ 1980  0   0% S    11 512352K  18536K  fg u0_a28   com.telechips.android.Iap1ConnManager
+ 1993  1   0% S    16 539032K  28948K  fg u0_a205  com.desay_svautomotive.carlife
+ 2026  1   0% S    10 514500K  20480K  fg u0_a211  com.desay_svautomotive.svradioservices
+ 2044  1   0% S    10 511356K  17572K  fg system   com.desaysv.logreader2
+ 2091  0   0% S    26 534480K  22132K  fg u0_a200  com.anwsdk.service
+ 2118  1   0% S    13 564796K  35680K  fg u0_a214  com.sohu.inputmethod.sogouoem
+ 2156  1   0% S    10 511048K  17380K  fg u0_a56   com.android.smspush
+ 2302  0   0% S    10 511116K  18292K  bg u0_a5    com.android.externalstorage
+ 2359  0   0% Z     1      0K      0K     u0_a222  ZIDThreadPoolEx
+ 2364  0   0% S    11 512828K  20632K  bg u0_a4    android.process.media
+ 2389  0   0% S    12 518404K  21944K  fg u0_a209  com.desay_svautomotive.svmediaprovider
+ 2403  1   0% S    25 559108K  45688K  bg system   com.android.settings
+ 2459  1   0% S    21 555244K  48536K  fg u0_a221  com.xiaobaifile.tv
+ 2521  1   0% S     1   4824K   1696K  bg u0_a221  /data/data/com.xiaobaifile.tv/files/aria2c
+ 2531  0   0% S    10 514448K  18588K  bg u0_a204  com.desay_svautomotive.calendar
+ 2832  0   0% S    18 545016K  35244K  fg u0_a201  com.desaysv_automotive.geelymediamanager
+ 2864  0   0% S    11 512396K  18160K  bg u0_a47   com.android.printspooler
+ 2884  1   0% S     1      0K      0K     root     kworker/u:3
+ 2947  1   0% S    10 512028K  20948K  bg u0_a1    com.android.providers.calendar
+ 3013  1   0% S    11 525792K  28736K  bg u0_a213  com.autonavi.amapauto:locationservice
+ 3043  0   0% S     1      0K      0K     root     wl_event_handle
+ 3100  1   0% S     1   3432K   2260K     wifi     /system/bin/wpa_supplicant
+ 4667  0   0% S     1      0K      0K     root     kworker/u:2
+ 4737  0   0% S    18 524228K  23808K  bg u0_a221  com.xiaobaifile.xbpush
+ 4824  1   0% S     1      0K      0K     root     kworker/1:0
+ 5423  0   0% S    15 516328K  18424K  bg u0_a3    com.android.defcontainer
+ 5473  1   0% S    11 512800K  18804K  bg u0_a23   com.android.documentsui
+ 5645  0   0% S     1   1028K    544K     dhcp     /system/bin/dhcpcd
+ 5922  1   0% S     1      0K      0K     root     kworker/1:2
+ 6543  0   0% S     1      0K      0K     root     kworker/0:2
+ 1153  1   0% S     1   1196K    432K     root     /system/bin/autotrace
+    2  1   0% S     1      0K      0K     root     kthreadd
+    3  0   0% S     1      0K      0K     root     ksoftirqd/0
+    5  1   0% S     1      0K      0K     root     kworker/u:0
+    6  0   0% S     1      0K      0K     root     migration/0
+   10  1   0% S     1      0K      0K     root     khelper
+  304  0   0% S     1      0K      0K     root     sync_supers
+  306  1   0% S     1      0K      0K     root     bdi-default
+  308  1   0% S     1      0K      0K     root     kblockd (exit=0)
+
+=== 系统开关 (蓝牙 / WiFi扫描 / 休眠 / 息屏) ===
+global bluetooth_on = (无权限读取，需 root)
+global wifi_on = (无权限读取，需 root)
+global wifi_scan_always_enabled = (无权限读取，需 root)
+global wifi_scan_throttle_enabled = (无权限读取，需 root)
+global airplane_mode_on = (无权限读取，需 root)
+global adb_enabled = (无权限读取，需 root)
+global stay_on_while_plugged_in = (无权限读取，需 root)
+system screen_off_timeout = (无权限读取，需 root)
+system wifi_sleep_policy = (无权限读取，需 root)
+system power_sounds_enabled = (无权限读取，需 root)
+system lockscreen.disabled = (无权限读取，需 root)
+
+判读: bluetooth_on=1 且投屏掉线 → 先做「关蓝牙」对照实验（2.4G 与 WLAN 争抢）;
+wifi_scan_always_enabled=1 → 关掉（系统修复菜单⑤）;
+screen_off_timeout 很小 + ROM 省电 → 投屏时保持亮屏。
+
+=== wifi 深度诊断 (root) ===
+(no root, 跳过 dumpsys/logcat; 上面免 root 段仍有效)
+
+--- yilian recon (v1.6) ---
+
+=== 亿连候选包 ===
+net.easyconn
+
+
+=== 亿连包详情 net.easyconn (版本/uid/组件) ===
+DUMP OF SERVICE activity:
+  Permission Denial: can't dump ActivityManager from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE meminfo:
+  Permission Denial: can't dump meminfo from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE procstats:
+  Permission Denial: can't dump procstats from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE usagestats:
+  Permission Denial: can't dump UsageStats from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE package:
+  Permission Denial: can't dump ActivityManager from from pid=0, uid=10223 without permission android.permission.DUMP
+DUMP OF SERVICE batterystats:
+  Permission Denial: can't dump BatteryStats from from pid=0, uid=10223 without permission android.permission.DUMP (exit=0)
+(12 of 17 lines kept)
+
+
+=== ec.conf (亿连配置, /etc/ec.conf; 降码率 mirror_width/height 改这里, 免重打包) ===
+/etc/ec.conf: No such file or directory (exit=1)
+(不存在=未定制, 亿连走默认值; keys: mirror_width mirror_height video_codec_name keep_screen_bright)
+
+=== 亿连文件日志目录 /sdcard/logger (存在即可 root tail 最新 csv) ===
+/sdcard/logger: No such file or directory (exit=1)
+
+--- repair history (v1.6.6) ---
+
+=== 一键修复历史 (QuickRepair) ===
+(还没做过一键修复)
+
+--- boot audio recon (v1.6.9) ---
+
+=== 开机启动时间线 / 音频状态 ===
+(需要 root; 车机 eng 版可用, MuMu 无 root 跳过)
+
+--- mcu / audio-source recon (v1.6.11) ---
+
+=== 串口节点是否存在 (ttyS*/ttyUSB*/ttyMT*) ===
+/dev/ttyS0: No such file or directory
+/dev/ttyS1: No such file or directory
+/dev/ttyS2: No such file or directory
+/dev/ttyS3: No such file or directory
+/dev/ttyUSB0: No such file or directory
+/dev/ttyMT0: No such file or directory
+/dev/ttyMT1: No such file or directory
+/dev/ttyMT2: No such file or directory (exit=1)

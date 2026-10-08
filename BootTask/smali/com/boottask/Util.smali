@@ -66,7 +66,7 @@
 .method public static actionKeys()[Ljava/lang/String;
     .locals 3
 
-    const/4 v0, 0x4
+    const/4 v0, 0x6
 
     new-array v0, v0, [Ljava/lang/String;
 
@@ -94,6 +94,18 @@
 
     aput-object v2, v0, v1
 
+    const/4 v1, 0x4
+
+    const-string v2, "broadcast"
+
+    aput-object v2, v0, v1
+
+    const/4 v1, 0x5
+
+    const-string v2, "rootcmd"
+
+    aput-object v2, v0, v1
+
     return-object v0
 .end method
 
@@ -102,31 +114,43 @@
 .method public static actionLabels()[Ljava/lang/String;
     .locals 3
 
-    const/4 v0, 0x4
+    const/4 v0, 0x6
 
     new-array v0, v0, [Ljava/lang/String;
 
     const/4 v1, 0x0
 
-    const-string v2, "打开应用"
+    const-string v2, "\u6253\u5f00\u5e94\u7528"
 
     aput-object v2, v0, v1
 
     const/4 v1, 0x1
 
-    const-string v2, "关闭应用"
+    const-string v2, "\u5173\u95ed\u5e94\u7528"
 
     aput-object v2, v0, v1
 
     const/4 v1, 0x2
 
-    const-string v2, "静音"
+    const-string v2, "\u9759\u97f3"
 
     aput-object v2, v0, v1
 
     const/4 v1, 0x3
 
-    const-string v2, "取消静音"
+    const-string v2, "\u53d6\u6d88\u9759\u97f3"
+
+    aput-object v2, v0, v1
+
+    const/4 v1, 0x4
+
+    const-string v2, "\u53d1\u9001\u5e7f\u64ad"
+
+    aput-object v2, v0, v1
+
+    const/4 v1, 0x5
+
+    const-string v2, "Root \u547d\u4ee4"
 
     aput-object v2, v0, v1
 
@@ -290,6 +314,12 @@
 
     invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
 
+    invoke-static {p0}, Lcom/boottask/Util;->argText(Lorg/json/JSONObject;)Ljava/lang/String;
+
+    move-result-object v1
+
+    invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
     invoke-virtual {v0}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
 
     move-result-object v1
@@ -385,6 +415,74 @@
 
     move-result-object v0
 
+    const-string v1, " "
+
+    invoke-virtual {v1, v0}, Ljava/lang/String;->concat(Ljava/lang/String;)Ljava/lang/String;
+
+    move-result-object v0
+
+    return-object v0
+
+    :cond_no
+    const-string v0, ""
+
+    return-object v0
+.end method
+
+
+# 帮手: 广播/Root 命令动作附加参数（截断 20 字符）
+# 寄存器类型责任制: v0/v1 只放 String, v2/v3 只放 int —— 汇合点类型必须一致
+.method private static argText(Lorg/json/JSONObject;)Ljava/lang/String;
+    .locals 4
+
+    const-string v0, "action"
+
+    const-string v1, "open"
+
+    invoke-virtual {p0, v0, v1}, Lorg/json/JSONObject;->optString(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+
+    move-result-object v1
+
+    const-string v2, "broadcast"
+
+    invoke-virtual {v1, v2}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v2
+
+    if-nez v2, :cond_has
+
+    const-string v2, "rootcmd"
+
+    invoke-virtual {v1, v2}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v2
+
+    if-eqz v2, :cond_no
+
+    :cond_has
+    const-string v0, "arg"
+
+    const-string v2, ""
+
+    invoke-virtual {p0, v0, v2}, Lorg/json/JSONObject;->optString(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+
+    move-result-object v0
+
+    invoke-virtual {v0}, Ljava/lang/String;->length()I
+
+    move-result v2
+
+    const/16 v3, 0x14
+
+    if-le v2, v3, :cond_full
+
+    const/4 v2, 0x0
+
+    invoke-virtual {v0, v2, v3}, Ljava/lang/String;->substring(II)Ljava/lang/String;
+
+    move-result-object v0
+
+    :cond_full
     const-string v1, " "
 
     invoke-virtual {v1, v0}, Ljava/lang/String;->concat(Ljava/lang/String;)Ljava/lang/String;

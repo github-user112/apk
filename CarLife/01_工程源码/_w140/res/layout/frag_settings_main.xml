@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout android:background="@color/cl_bg_c_main" android:layout_width="match_parent" android:layout_height="match_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <include android:id="@id/common_title_bar" layout="@layout/carlife_common_title_bar_new" />
+    <ScrollView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="104.0dp">
+        <LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_below="@id/common_title_bar">
+            <View android:background="@color/cl_line_a1_item" android:layout_width="match_parent" android:layout_height="1.0dp" android:layout_marginLeft="108.0dp" android:layout_marginRight="108.0dp" />
+            <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="wrap_content">
+                <FrameLayout android:layout_width="84.0dp" android:layout_height="96.0dp" />
+                <LinearLayout android:background="@drawable/com_bg_item_selector" android:clickable="true" android:layout_width="match_parent" android:layout_height="96.0dp" android:layout_weight="1.0">
+                    <RelativeLayout android:layout_width="wrap_content" android:layout_height="match_parent">
+                        <TextView android:textSize="30.0sp" android:textColor="@color/cl_text_a5_content" android:paddingLeft="24.0dp" android:paddingTop="24.0dp" android:paddingRight="24.0dp" android:paddingBottom="24.0dp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="有线连接拉起软件" />
+                        <RadioGroup android:orientation="horizontal" android:layout_width="wrap_content" android:layout_height="match_parent" android:layout_marginRight="24.0dp" android:layout_alignParentRight="true" android:layout_centerVertical="true">
+                            <RadioButton android:textSize="30.0sp" android:textColor="@color/cl_text_a5_content" android:id="@id/pullupvehicle_yes" android:layout_width="wrap_content" android:layout_height="match_parent" android:text="是" />
+                            <RadioButton android:textSize="30.0sp" android:textColor="@color/cl_text_a5_content" android:id="@id/pullupvehicle_no" android:layout_width="wrap_content" android:layout_height="match_parent" android:checked="true" android:text="否" />
+                        </RadioGroup>
+                    </RelativeLayout>
+                </LinearLayout>
+                <FrameLayout android:layout_width="84.0dp" android:layout_height="96.0dp" />
+            </LinearLayout>
+            <View android:background="@color/cl_line_a1_item" android:layout_width="match_parent" android:layout_height="1.0dp" android:layout_marginLeft="108.0dp" android:layout_marginRight="108.0dp" />
+            <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="wrap_content">
+                <FrameLayout android:layout_width="84.0dp" android:layout_height="96.0dp" />
+                <LinearLayout android:background="@drawable/com_bg_item_selector" android:clickable="true" android:layout_width="match_parent" android:layout_height="96.0dp" android:layout_weight="1.0">
+                    <RelativeLayout android:layout_width="wrap_content" android:layout_height="match_parent">
+                        <TextView android:textSize="30.0sp" android:textColor="@color/cl_text_a5_content" android:paddingLeft="24.0dp" android:paddingTop="24.0dp" android:paddingRight="24.0dp" android:paddingBottom="24.0dp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="开机自启动" />
+                        <RadioGroup android:orientation="horizontal" android:layout_width="wrap_content" android:layout_height="match_parent" android:layout_marginRight="24.0dp" android:layout_alignParentRight="true" android:layout_centerVertical="true">
+                            <RadioButton android:textSize="30.0sp" android:textColor="@color/cl_text_a5_content" android:id="@id/starting_yes" android:layout_width="wrap_content" android:layout_height="match_parent" android:text="是" />
+                            <RadioButton android:textSize="30.0sp" android:textColor="@color/cl_text_a5_content" android:id="@id/starting_no" android:layout_width="wrap_content" android:layout_height="match_parent" android:checked="true" android:text="否" />
+                        </RadioGroup>
+                    </RelativeLayout>
+                </LinearLayout>
+                <FrameLayout android:layout_width="84.0dp" android:layout_height="96.0dp" />
+            </LinearLayout>
+            <View android:background="@color/cl_line_a1_item" android:layout_width="match_parent" android:layout_height="1.0dp" android:layout_marginLeft="108.0dp" android:layout_marginRight="108.0dp" />
+            <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="wrap_content">
+                <FrameLayout android:layout_width="84.0dp" android:layout_height="96.0dp" />
+                <LinearLayout android:background="@drawable/com_bg_item_selector" android:clickable="true" android:layout_width="match_parent" android:layout_height="96.0dp" android:layout_weight="1.0">
+                    <RelativeLayout android:layout_width="wrap_content" android:layout_height="match_parent">
+                        <TextView android:textSize="30.0sp" android:textColor="@color/cl_text_a5_content" android:paddingLeft="24.0dp" android:paddingTop="24.0dp" android:paddingRight="24.0dp" android:paddingBottom="24.0dp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="自启动延迟时间(毫秒)" />
+                        <EditText android:textSize="30.0sp" android:textColor="@color/cl_text_a5_content" android:gravity="center" android:orientation="horizontal" android:id="@id/starting_timeout" android:layout_width="100.0dp" android:layout_height="match_parent" android:layout_marginRight="24.0dp" android:layout_alignParentRight="true" android:layout_centerVertical="true" android:inputType="number" />
+                    </RelativeLayout>
+                </LinearLayout>
+                <FrameLayout android:layout_width="84.0dp" android:layout_height="96.0dp" />
+            </LinearLayout>
+            <View android:background="@color/cl_line_a1_item" android:layout_width="match_parent" android:layout_height="1.0dp" android:layout_marginLeft="108.0dp" android:layout_marginRight="108.0dp" />
+            <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="wrap_content">
+                <FrameLayout android:layout_width="84.0dp" android:layout_height="96.0dp" />
+                <LinearLayout android:background="@drawable/com_bg_item_selector" android:clickable="true" android:layout_width="match_parent" android:layout_height="96.0dp" android:layout_weight="1.0">
+                    <RelativeLayout android:layout_width="wrap_content" android:layout_height="match_parent">
+                        <TextView android:textSize="30.0sp" android:textColor="@color/cl_text_a5_content" android:paddingLeft="24.0dp" android:paddingTop="24.0dp" android:paddingRight="24.0dp" android:paddingBottom="24.0dp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="音频API版本" />
+                        <RadioGroup android:orientation="horizontal" android:layout_width="wrap_content" android:layout_height="match_parent" android:layout_marginRight="24.0dp" android:layout_alignParentRight="true" android:layout_centerVertical="true">
+                            <RadioButton android:textSize="30.0sp" android:textColor="@color/cl_text_a5_content" android:id="@id/mediaapi_jb" android:layout_width="wrap_content" android:layout_height="match_parent" android:checked="true" android:text="旧版" />
+                            <RadioButton android:textSize="30.0sp" android:textColor="@color/cl_text_a5_content" android:id="@id/mediaapi_xb" android:layout_width="wrap_content" android:layout_height="match_parent" android:text="新版" />
+                        </RadioGroup>
+                    </RelativeLayout>
+                </LinearLayout>
+                <FrameLayout android:layout_width="84.0dp" android:layout_height="96.0dp" />
+            </LinearLayout>
+            <View android:background="@color/cl_line_a1_item" android:layout_width="match_parent" android:layout_height="1.0dp" android:layout_marginLeft="108.0dp" android:layout_marginRight="108.0dp" />
+            <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="wrap_content">
+                <FrameLayout android:layout_width="84.0dp" android:layout_height="96.0dp" />
+                <LinearLayout android:background="@drawable/com_bg_item_selector" android:clickable="true" android:layout_width="match_parent" android:layout_height="96.0dp" android:layout_weight="1.0">
+                    <RelativeLayout android:layout_width="wrap_content" android:layout_height="match_parent">
+                        <TextView android:textSize="30.0sp" android:textColor="@color/cl_text_a5_content" android:paddingLeft="24.0dp" android:paddingTop="24.0dp" android:paddingRight="24.0dp" android:paddingBottom="24.0dp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="媒体音频通道" />
+                        <EditText android:textSize="30.0sp" android:textColor="@color/cl_text_a5_content" android:gravity="center" android:orientation="horizontal" android:id="@id/music_channel_edit" android:layout_width="100.0dp" android:layout_height="match_parent" android:layout_marginRight="24.0dp" android:layout_alignParentRight="true" android:layout_centerVertical="true" android:inputType="number" />
+                    </RelativeLayout>
+                </LinearLayout>
+                <FrameLayout android:layout_width="84.0dp" android:layout_height="96.0dp" />
+            </LinearLayout>
+            <View android:background="@color/cl_line_a1_item" android:layout_width="match_parent" android:layout_height="1.0dp" android:layout_marginLeft="108.0dp" android:layout_marginRight="108.0dp" />
+            <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="wrap_content">
+                <FrameLayout android:layout_width="84.0dp" android:layout_height="96.0dp" />
+                <LinearLayout android:background="@drawable/com_bg_item_selector" android:clickable="true" android:layout_width="match_parent" android:layout_height="96.0dp" android:layout_weight="1.0">
+                    <RelativeLayout android:layout_width="wrap_content" android:layout_height="match_parent">
+                        <TextView android:textSize="30.0sp" android:textColor="@color/cl_text_a5_content" android:paddingLeft="24.0dp" android:paddingTop="24.0dp" android:paddingRight="24.0dp" android:paddingBottom="24.0dp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="导航音频通道" />
+                        <EditText android:textSize="30.0sp" android:textColor="@color/cl_text_a5_content" android:gravity="center" android:orientation="horizontal" android:id="@id/tts_channel_edit" android:layout_width="100.0dp" android:layout_height="match_parent" android:layout_marginRight="24.0dp" android:layout_alignParentRight="true" android:layout_centerVertical="true" android:inputType="number" />
+                    </RelativeLayout>
+                </LinearLayout>
+                <FrameLayout android:layout_width="84.0dp" android:layout_height="96.0dp" />
+            </LinearLayout>
+            <View android:background="@color/cl_line_a1_item" android:layout_width="match_parent" android:layout_height="1.0dp" android:layout_marginLeft="108.0dp" android:layout_marginRight="108.0dp" />
+            <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="wrap_content">
+                <FrameLayout android:layout_width="84.0dp" android:layout_height="96.0dp" />
+                <LinearLayout android:background="@drawable/com_bg_item_selector" android:clickable="true" android:layout_width="match_parent" android:layout_height="96.0dp" android:layout_weight="1.0">
+                    <RelativeLayout android:layout_width="wrap_content" android:layout_height="match_parent">
+                        <TextView android:textSize="30.0sp" android:textColor="@color/cl_text_a5_content" android:paddingLeft="24.0dp" android:paddingTop="24.0dp" android:paddingRight="24.0dp" android:paddingBottom="24.0dp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="USB设备配置" />
+                        <TextView android:textSize="30.0sp" android:textColor="@color/cl_text_a4_title" android:gravity="center" android:id="@id/button_usbsbhl" android:background="@drawable/com_bg_btn_selector" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginRight="36.0dp" android:scaleType="center" android:text="忽略插入的设备" android:layout_alignParentRight="true" android:layout_centerVertical="true" />
+                    </RelativeLayout>
+                </LinearLayout>
+                <FrameLayout android:layout_width="84.0dp" android:layout_height="96.0dp" />
+            </LinearLayout>
+            <View android:background="@color/cl_line_a1_item" android:layout_width="match_parent" android:layout_height="1.0dp" android:layout_marginLeft="108.0dp" android:layout_marginRight="108.0dp" />
+            <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="wrap_content">
+                <FrameLayout android:layout_width="84.0dp" android:layout_height="96.0dp" />
+                <LinearLayout android:background="@drawable/com_bg_item_selector" android:clickable="true" android:layout_width="match_parent" android:layout_height="96.0dp" android:layout_weight="1.0">
+                    <RelativeLayout android:layout_width="wrap_content" android:layout_height="match_parent">
+                        <TextView android:textSize="30.0sp" android:textColor="@color/cl_text_a5_content" android:paddingLeft="24.0dp" android:paddingTop="24.0dp" android:paddingRight="24.0dp" android:paddingBottom="24.0dp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="麦克风选择" />
+                        <Spinner android:theme="@style/Spinner2Style" android:id="@id/mic_select" android:layout_width="wrap_content" android:layout_height="match_parent" android:layout_marginRight="24.0dp" android:layout_alignParentRight="true" android:layout_centerVertical="true" />
+                    </RelativeLayout>
+                </LinearLayout>
+                <FrameLayout android:layout_width="84.0dp" android:layout_height="96.0dp" />
+            </LinearLayout>
+            <View android:background="@color/cl_line_a1_item" android:layout_width="match_parent" android:layout_height="1.0dp" android:layout_marginLeft="108.0dp" android:layout_marginRight="108.0dp" />
+            <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="wrap_content">
+                <FrameLayout android:layout_width="84.0dp" android:layout_height="96.0dp" />
+                <LinearLayout android:background="@drawable/com_bg_item_selector" android:clickable="true" android:layout_width="match_parent" android:layout_height="96.0dp" android:layout_weight="1.0">
+                    <RelativeLayout android:layout_width="wrap_content" android:layout_height="match_parent">
+                        <TextView android:textSize="30.0sp" android:textColor="@color/cl_text_a5_content" android:paddingLeft="24.0dp" android:paddingTop="24.0dp" android:paddingRight="24.0dp" android:paddingBottom="24.0dp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="音频传输方式" />
+                        <Spinner android:theme="@style/Spinner2Style" android:id="@id/ypcsfs_select" android:layout_width="wrap_content" android:layout_height="match_parent" android:layout_marginRight="24.0dp" android:layout_alignParentRight="true" android:layout_centerVertical="true" />
+                    </RelativeLayout>
+                </LinearLayout>
+                <FrameLayout android:layout_width="84.0dp" android:layout_height="96.0dp" />
+            </LinearLayout>
+            <View android:background="@color/cl_line_a1_item" android:layout_width="match_parent" android:layout_height="1.0dp" android:layout_marginLeft="108.0dp" android:layout_marginRight="108.0dp" />
+            <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="wrap_content">
+                <FrameLayout android:layout_width="84.0dp" android:layout_height="96.0dp" />
+                <LinearLayout android:background="@drawable/com_bg_item_selector" android:clickable="true" android:layout_width="match_parent" android:layout_height="96.0dp" android:layout_weight="1.0">
+                    <RelativeLayout android:layout_width="wrap_content" android:layout_height="match_parent">
+                        <TextView android:textSize="30.0sp" android:textColor="@color/cl_text_a5_content" android:paddingLeft="24.0dp" android:paddingTop="24.0dp" android:paddingRight="24.0dp" android:paddingBottom="24.0dp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="返回键设置" />
+                        <Spinner android:theme="@style/Spinner2Style" android:id="@id/backbutton_set" android:layout_width="wrap_content" android:layout_height="match_parent" android:layout_marginRight="24.0dp" android:layout_alignParentRight="true" android:layout_centerVertical="true" />
+                    </RelativeLayout>
+                </LinearLayout>
+                <FrameLayout android:layout_width="84.0dp" android:layout_height="96.0dp" />
+            </LinearLayout>
+            <View android:background="@color/cl_line_a1_item" android:layout_width="match_parent" android:layout_height="1.0dp" android:layout_marginLeft="108.0dp" android:layout_marginRight="108.0dp" />
+            <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="wrap_content">
+                <FrameLayout android:layout_width="84.0dp" android:layout_height="96.0dp" />
+                <LinearLayout android:background="@drawable/com_bg_item_selector" android:clickable="true" android:layout_width="match_parent" android:layout_height="96.0dp" android:layout_weight="1.0">
+                    <RelativeLayout android:layout_width="wrap_content" android:layout_height="match_parent">
+                        <TextView android:textSize="30.0sp" android:textColor="@color/cl_text_a5_content" android:paddingLeft="24.0dp" android:paddingTop="24.0dp" android:paddingRight="24.0dp" android:paddingBottom="24.0dp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="显示设置" />
+                        <Spinner android:theme="@style/Spinner2Style" android:id="@id/toolbar_set" android:layout_width="wrap_content" android:layout_height="match_parent" android:layout_marginRight="24.0dp" android:layout_alignParentRight="true" android:layout_centerVertical="true" />
+                    </RelativeLayout>
+                </LinearLayout>
+                <FrameLayout android:layout_width="84.0dp" android:layout_height="96.0dp" />
+            </LinearLayout>
+            <View android:background="@color/cl_line_a1_item" android:layout_width="match_parent" android:layout_height="1.0dp" android:layout_marginLeft="108.0dp" android:layout_marginRight="108.0dp" />
+            <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="wrap_content">
+                <FrameLayout android:layout_width="84.0dp" android:layout_height="96.0dp" />
+                <LinearLayout android:background="@drawable/com_bg_item_selector" android:clickable="true" android:layout_width="match_parent" android:layout_height="96.0dp" android:layout_weight="1.0">
+                    <RelativeLayout android:layout_width="wrap_content" android:layout_height="match_parent">
+                        <TextView android:textSize="30.0sp" android:textColor="@color/cl_text_a5_content" android:paddingLeft="24.0dp" android:paddingTop="24.0dp" android:paddingRight="24.0dp" android:paddingBottom="24.0dp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="投屏渲染模式" />
+                        <Spinner android:theme="@style/Spinner2Style" android:id="@id/video_surface_ms_set" android:layout_width="wrap_content" android:layout_height="match_parent" android:layout_marginRight="24.0dp" android:layout_alignParentRight="true" android:layout_centerVertical="true" />
+                    </RelativeLayout>
+                </LinearLayout>
+                <FrameLayout android:layout_width="84.0dp" android:layout_height="96.0dp" />
+            </LinearLayout>
+            <View android:background="@color/cl_line_a1_item" android:layout_width="match_parent" android:layout_height="1.0dp" android:layout_marginLeft="108.0dp" android:layout_marginRight="108.0dp" />
+            <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="wrap_content">
+                <FrameLayout android:layout_width="84.0dp" android:layout_height="96.0dp" />
+                <LinearLayout android:background="@drawable/com_bg_item_selector" android:clickable="true" android:layout_width="match_parent" android:layout_height="96.0dp" android:layout_weight="1.0">
+                    <RelativeLayout android:layout_width="wrap_content" android:layout_height="match_parent">
+                        <TextView android:textSize="30.0sp" android:textColor="@color/cl_text_a5_content" android:paddingLeft="24.0dp" android:paddingTop="24.0dp" android:paddingRight="24.0dp" android:paddingBottom="24.0dp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="有线弹窗自动点击延迟时间(毫秒)" />
+                        <EditText android:textSize="30.0sp" android:textColor="@color/cl_text_a5_content" android:gravity="center" android:orientation="horizontal" android:id="@id/usbclick_timeout_edit" android:layout_width="100.0dp" android:layout_height="match_parent" android:layout_marginRight="24.0dp" android:layout_alignParentRight="true" android:layout_centerVertical="true" android:inputType="number" />
+                    </RelativeLayout>
+                </LinearLayout>
+                <FrameLayout android:layout_width="84.0dp" android:layout_height="96.0dp" />
+            </LinearLayout>
+            <View android:background="@color/cl_line_a1_item" android:layout_width="match_parent" android:layout_height="1.0dp" android:layout_marginLeft="108.0dp" android:layout_marginRight="108.0dp" />
+            <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="wrap_content">
+                <FrameLayout android:layout_width="84.0dp" android:layout_height="96.0dp" />
+                <LinearLayout android:background="@drawable/com_bg_item_selector" android:clickable="true" android:layout_width="match_parent" android:layout_height="96.0dp" android:layout_weight="1.0">
+                    <RelativeLayout android:layout_width="wrap_content" android:layout_height="match_parent">
+                        <TextView android:textSize="30.0sp" android:textColor="@color/cl_text_a5_content" android:paddingLeft="24.0dp" android:paddingTop="24.0dp" android:paddingRight="24.0dp" android:paddingBottom="24.0dp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="手机端IP地址" />
+                        <TextView android:textSize="30.0sp" android:textColor="@color/cl_text_a4_title" android:gravity="center" android:id="@id/phoneip_set" android:background="@drawable/com_bg_btn_selector" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginRight="36.0dp" android:scaleType="center" android:text="配置" android:layout_alignParentRight="true" android:layout_centerVertical="true" />
+                    </RelativeLayout>
+                </LinearLayout>
+                <FrameLayout android:layout_width="84.0dp" android:layout_height="96.0dp" />
+            </LinearLayout>
+            <View android:background="@color/cl_line_a1_item" android:layout_width="match_parent" android:layout_height="1.0dp" android:layout_marginLeft="108.0dp" android:layout_marginRight="108.0dp" android:layout_marginBottom="216.0dp" />
+        </LinearLayout>
+    </ScrollView>
+</RelativeLayout>

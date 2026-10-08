@@ -1,0 +1,2 @@
+10-01 08:49:56 [WiFi省电] 无 root：ROM 里没有 su（App 无法提权）。电脑 adb 仍可能是 root（eng 版 adbd 常为 root），走「root 命令清单」 → 本次修复未执行（未改动任何东西）。可用「免 root 也能做」分区，或用电脑 adb 执行 root 命令清单
+10-01 08:50:05 [亿连降码率] 无 root：ROM 里没有 su（App 无法提权）。电脑 adb 仍可能是 root（eng 版 adbd 常为 root），走「root 命令清单」 → 本次修复未执行（未改动任何东西）。可用「免 root 也能做」分区，或用电脑 adb 执行 root 命令清单

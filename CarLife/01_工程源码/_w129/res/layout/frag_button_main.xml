@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout android:background="@color/cl_bg_c_main" android:layout_width="match_parent" android:layout_height="match_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <include android:id="@id/common_title_bar" layout="@layout/carlife_common_title_bar_new" />
+    <ScrollView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="104.0dp">
+        <LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_below="@id/common_title_bar">
+            <View android:background="@color/cl_line_a1_item" android:layout_width="match_parent" android:layout_height="1.0dp" android:layout_marginLeft="108.0dp" android:layout_marginRight="108.0dp" />
+            <TextView android:textSize="30.0sp" android:textColor="@color/cl_text_a2_content" android:paddingLeft="108.0dp" android:paddingTop="24.0dp" android:paddingRight="108.0dp" android:paddingBottom="24.0dp" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="标准广播方控协议(方案1)" />
+            <View android:background="@color/cl_line_a1_item" android:layout_width="match_parent" android:layout_height="1.0dp" android:layout_marginLeft="108.0dp" android:layout_marginRight="108.0dp" />
+            <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="wrap_content">
+                <FrameLayout android:layout_width="84.0dp" android:layout_height="96.0dp" />
+                <LinearLayout android:background="@drawable/com_bg_item_selector" android:clickable="true" android:layout_width="match_parent" android:layout_height="96.0dp" android:layout_weight="1.0">
+                    <RelativeLayout android:layout_width="wrap_content" android:layout_height="match_parent">
+                        <TextView android:textSize="30.0sp" android:textColor="@color/cl_text_a5_content" android:paddingLeft="24.0dp" android:paddingTop="24.0dp" android:paddingRight="24.0dp" android:paddingBottom="24.0dp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="协议选择" />
+                        <Spinner android:theme="@style/Spinner2Style" android:id="@id/button_control_type" android:layout_width="wrap_content" android:layout_height="match_parent" android:layout_marginRight="24.0dp" android:layout_alignParentRight="true" android:layout_centerVertical="true" />
+                    </RelativeLayout>
+                </LinearLayout>
+                <FrameLayout android:layout_width="84.0dp" android:layout_height="96.0dp" />
+            </LinearLayout>
+            <View android:background="@color/cl_line_a1_item" android:layout_width="match_parent" android:layout_height="1.0dp" android:layout_marginLeft="108.0dp" android:layout_marginRight="108.0dp" />
+            <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="wrap_content">
+                <FrameLayout android:layout_width="84.0dp" android:layout_height="96.0dp" />
+                <LinearLayout android:background="@drawable/com_bg_item_selector" android:clickable="true" android:layout_width="match_parent" android:layout_height="96.0dp" android:layout_weight="1.0">
+                    <RelativeLayout android:layout_width="wrap_content" android:layout_height="match_parent">
+                        <Spinner android:theme="@style/Spinner2Style" android:id="@id/bzxy_ys_key" android:layout_width="wrap_content" android:layout_height="match_parent" android:layout_marginLeft="24.0dp" android:layout_centerVertical="true" />
+                        <TextView android:textSize="30.0sp" android:textColor="@color/cl_text_a4_title" android:gravity="center" android:id="@id/bzxy_ys_set_jzsr" android:background="@drawable/com_bg_btn_selector" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginRight="180.0dp" android:scaleType="center" android:text="键值输入" android:layout_alignParentRight="true" android:layout_centerVertical="true" />
+                        <TextView android:textSize="30.0sp" android:textColor="@color/cl_text_a4_title" android:gravity="center" android:id="@id/bzxy_ys_set" android:background="@drawable/com_bg_btn_selector" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginRight="36.0dp" android:scaleType="center" android:text="按键映射" android:layout_alignParentRight="true" android:layout_centerVertical="true" />
+                    </RelativeLayout>
+                </LinearLayout>
+                <FrameLayout android:layout_width="84.0dp" android:layout_height="96.0dp" />
+            </LinearLayout>
+            <View android:background="@color/cl_line_a1_item" android:layout_width="match_parent" android:layout_height="1.0dp" android:layout_marginLeft="108.0dp" android:layout_marginRight="108.0dp" />
+            <TextView android:textSize="30.0sp" android:textColor="@color/cl_text_a2_content" android:paddingLeft="108.0dp" android:paddingTop="24.0dp" android:paddingRight="108.0dp" android:paddingBottom="24.0dp" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="其他广播方控协议(方案2)" />
+            <View android:background="@color/cl_line_a1_item" android:layout_width="match_parent" android:layout_height="1.0dp" android:layout_marginLeft="108.0dp" android:layout_marginRight="108.0dp" />
+            <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="wrap_content">
+                <FrameLayout android:layout_width="84.0dp" android:layout_height="96.0dp" />
+                <LinearLayout android:background="@drawable/com_bg_item_selector" android:clickable="true" android:layout_width="match_parent" android:layout_height="96.0dp" android:layout_weight="1.0">
+                    <RelativeLayout android:layout_width="wrap_content" android:layout_height="match_parent">
+                        <TextView android:textSize="30.0sp" android:textColor="@color/cl_text_a5_content" android:paddingLeft="24.0dp" android:paddingTop="24.0dp" android:paddingRight="24.0dp" android:paddingBottom="24.0dp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="协议选择" />
+                        <Spinner android:theme="@style/Spinner2Style" android:gravity="right" android:id="@id/button_control_select" android:layout_width="wrap_content" android:layout_height="match_parent" android:layout_marginRight="24.0dp" android:layout_alignParentRight="true" android:layout_centerVertical="true" />
+                    </RelativeLayout>
+                </LinearLayout>
+                <FrameLayout android:layout_width="84.0dp" android:layout_height="96.0dp" />
+            </LinearLayout>
+            <View android:background="@color/cl_line_a1_item" android:layout_width="match_parent" android:layout_height="1.0dp" android:layout_marginLeft="108.0dp" android:layout_marginRight="108.0dp" />
+            <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="wrap_content">
+                <FrameLayout android:layout_width="84.0dp" android:layout_height="96.0dp" />
+                <LinearLayout android:background="@drawable/com_bg_item_selector" android:clickable="true" android:layout_width="match_parent" android:layout_height="96.0dp" android:layout_weight="1.0">
+                    <RelativeLayout android:layout_width="wrap_content" android:layout_height="match_parent">
+                        <Spinner android:theme="@style/Spinner2Style" android:id="@id/qtxy_ys_key" android:layout_width="wrap_content" android:layout_height="match_parent" android:layout_marginLeft="24.0dp" android:layout_centerVertical="true" />
+                        <TextView android:textSize="30.0sp" android:textColor="@color/cl_text_a4_title" android:gravity="center" android:id="@id/qtxy_ys_set_jzsr" android:background="@drawable/com_bg_btn_selector" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginRight="180.0dp" android:scaleType="center" android:text="键值输入" android:layout_alignParentRight="true" android:layout_centerVertical="true" />
+                        <TextView android:textSize="30.0sp" android:textColor="@color/cl_text_a4_title" android:gravity="center" android:id="@id/qtxy_ys_set" android:background="@drawable/com_bg_btn_selector" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginRight="36.0dp" android:scaleType="center" android:text="按键映射" android:layout_alignParentRight="true" android:layout_centerVertical="true" />
+                    </RelativeLayout>
+                </LinearLayout>
+                <FrameLayout android:layout_width="84.0dp" android:layout_height="96.0dp" />
+            </LinearLayout>
+            <View android:background="@color/cl_line_a1_item" android:layout_width="match_parent" android:layout_height="1.0dp" android:layout_marginLeft="108.0dp" android:layout_marginRight="108.0dp" />
+            <TextView android:textSize="30.0sp" android:textColor="@color/cl_text_a2_content" android:paddingLeft="108.0dp" android:paddingTop="24.0dp" android:paddingRight="108.0dp" android:paddingBottom="24.0dp" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="安卓标准按键映射(方案3)" />
+            <View android:background="@color/cl_line_a1_item" android:layout_width="match_parent" android:layout_height="1.0dp" android:layout_marginLeft="108.0dp" android:layout_marginRight="108.0dp" />
+            <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="wrap_content">
+                <FrameLayout android:layout_width="84.0dp" android:layout_height="96.0dp" />
+                <LinearLayout android:background="@drawable/com_bg_item_selector" android:clickable="true" android:layout_width="match_parent" android:layout_height="96.0dp" android:layout_weight="1.0">
+                    <RelativeLayout android:layout_width="wrap_content" android:layout_height="match_parent">
+                        <Spinner android:theme="@style/Spinner2Style" android:id="@id/keyword_ys_key" android:layout_width="wrap_content" android:layout_height="match_parent" android:layout_marginLeft="24.0dp" android:layout_centerVertical="true" />
+                        <TextView android:textSize="30.0sp" android:textColor="@color/cl_text_a4_title" android:gravity="center" android:id="@id/keyword_ys_set_jzsr" android:background="@drawable/com_bg_btn_selector" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginRight="180.0dp" android:scaleType="center" android:text="键值输入" android:layout_alignParentRight="true" android:layout_centerVertical="true" />
+                        <TextView android:textSize="30.0sp" android:textColor="@color/cl_text_a4_title" android:gravity="center" android:id="@id/keyword_ys_set" android:background="@drawable/com_bg_btn_selector" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginRight="36.0dp" android:scaleType="center" android:text="按键映射" android:layout_alignParentRight="true" android:layout_centerVertical="true" />
+                    </RelativeLayout>
+                </LinearLayout>
+                <FrameLayout android:layout_width="84.0dp" android:layout_height="96.0dp" />
+            </LinearLayout>
+            <View android:background="@color/cl_line_a1_item" android:layout_width="match_parent" android:layout_height="1.0dp" android:layout_marginLeft="108.0dp" android:layout_marginRight="108.0dp" />
+            <TextView android:textSize="30.0sp" android:textColor="@color/cl_text_a2_content" android:paddingLeft="108.0dp" android:paddingTop="24.0dp" android:paddingRight="108.0dp" android:paddingBottom="24.0dp" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="安卓日志监听方控(方案4)" />
+            <View android:background="@color/cl_line_a1_item" android:layout_width="match_parent" android:layout_height="1.0dp" android:layout_marginLeft="108.0dp" android:layout_marginRight="108.0dp" />
+            <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="wrap_content">
+                <FrameLayout android:layout_width="84.0dp" android:layout_height="96.0dp" />
+                <LinearLayout android:background="@drawable/com_bg_item_selector" android:clickable="true" android:layout_width="match_parent" android:layout_height="96.0dp" android:layout_weight="1.0">
+                    <RelativeLayout android:layout_width="wrap_content" android:layout_height="match_parent">
+                        <TextView android:textSize="30.0sp" android:textColor="@color/cl_text_a5_content" android:paddingLeft="24.0dp" android:paddingTop="24.0dp" android:paddingRight="24.0dp" android:paddingBottom="24.0dp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="日志监听开关" />
+                        <TextView android:textSize="30.0sp" android:textColor="@color/cl_text_a4_title" android:gravity="center" android:id="@id/logcat_jtgjz_set" android:background="@drawable/com_bg_btn_selector" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginRight="180.0dp" android:scaleType="center" android:text="监听关键字设置" android:layout_alignParentRight="true" android:layout_centerVertical="true" />
+                        <Spinner android:theme="@style/Spinner2Style" android:gravity="right" android:id="@id/logcat_jt_kg" android:layout_width="wrap_content" android:layout_height="match_parent" android:layout_marginRight="24.0dp" android:layout_alignParentRight="true" android:layout_centerVertical="true" />
+                    </RelativeLayout>
+                </LinearLayout>
+                <FrameLayout android:layout_width="84.0dp" android:layout_height="96.0dp" />
+            </LinearLayout>
+            <View android:background="@color/cl_line_a1_item" android:layout_width="match_parent" android:layout_height="1.0dp" android:layout_marginLeft="108.0dp" android:layout_marginRight="108.0dp" />
+            <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="wrap_content">
+                <FrameLayout android:layout_width="84.0dp" android:layout_height="96.0dp" />
+                <LinearLayout android:background="@drawable/com_bg_item_selector" android:clickable="true" android:layout_width="match_parent" android:layout_height="96.0dp" android:layout_weight="1.0">
+                    <RelativeLayout android:layout_width="wrap_content" android:layout_height="match_parent">
+                        <TextView android:textSize="30.0sp" android:textColor="@color/cl_text_a5_content" android:paddingLeft="24.0dp" android:paddingTop="24.0dp" android:paddingRight="24.0dp" android:paddingBottom="24.0dp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="日志读取间隔时间" />
+                        <TextView android:textSize="30.0sp" android:textColor="@color/cl_text_a4_title" android:gravity="center" android:id="@id/logcat_time_set" android:background="@drawable/com_bg_btn_selector" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginRight="36.0dp" android:scaleType="center" android:text="设置" android:layout_alignParentRight="true" android:layout_centerVertical="true" />
+                    </RelativeLayout>
+                </LinearLayout>
+                <FrameLayout android:layout_width="84.0dp" android:layout_height="96.0dp" />
+            </LinearLayout>
+            <View android:background="@color/cl_line_a1_item" android:layout_width="match_parent" android:layout_height="1.0dp" android:layout_marginLeft="108.0dp" android:layout_marginRight="108.0dp" />
+            <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="wrap_content">
+                <FrameLayout android:layout_width="84.0dp" android:layout_height="96.0dp" />
+                <LinearLayout android:background="@drawable/com_bg_item_selector" android:clickable="true" android:layout_width="match_parent" android:layout_height="96.0dp" android:layout_weight="1.0">
+                    <RelativeLayout android:layout_width="wrap_content" android:layout_height="match_parent">
+                        <Spinner android:theme="@style/Spinner2Style" android:id="@id/logcat_jtrn_key" android:layout_width="wrap_content" android:layout_height="match_parent" android:layout_marginLeft="24.0dp" android:layout_centerVertical="true" />
+                        <TextView android:textSize="30.0sp" android:textColor="@color/cl_text_a4_title" android:gravity="center" android:id="@id/logcat_ys_set" android:background="@drawable/com_bg_btn_selector" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginRight="36.0dp" android:scaleType="center" android:text="按键映射" android:layout_alignParentRight="true" android:layout_centerVertical="true" />
+                    </RelativeLayout>
+                </LinearLayout>
+                <FrameLayout android:layout_width="84.0dp" android:layout_height="96.0dp" />
+            </LinearLayout>
+            <View android:background="@color/cl_line_a1_item" android:layout_width="match_parent" android:layout_height="1.0dp" android:layout_marginLeft="108.0dp" android:layout_marginRight="108.0dp" android:layout_marginBottom="216.0dp" />
+        </LinearLayout>
+    </ScrollView>
+</RelativeLayout>

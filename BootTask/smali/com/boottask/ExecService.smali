@@ -282,6 +282,32 @@
 .method private exec(Landroid/content/Context;Lorg/json/JSONObject;)V
     .locals 5
 
+    # v1.4: 先交给扩展动作（broadcast/rootcmd），处理了就直接返回
+    const-string v0, "action"
+
+    const-string v2, "open"
+
+    invoke-virtual {p2, v0, v2}, Lorg/json/JSONObject;->optString(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+
+    move-result-object v0
+
+    const-string v2, "arg"
+
+    const-string v3, ""
+
+    invoke-virtual {p2, v2, v3}, Lorg/json/JSONObject;->optString(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+
+    move-result-object v2
+
+    invoke-static {p1, v0, v2}, Lcom/boottask/AdvActions;->exec(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;)Z
+
+    move-result v3
+
+    if-eqz v3, :cond_adv
+
+    return-void
+
+    :cond_adv
     const-string v0, "action"
 
     invoke-virtual {p2, v0}, Lorg/json/JSONObject;->getString(Ljava/lang/String;)Ljava/lang/String;
@@ -408,6 +434,8 @@
 
     invoke-static {p1}, Lcom/boottask/MuteGuard;->mute(Landroid/content/Context;)V
 
+    invoke-static {p1}, Lcom/boottask/MediaMute;->muteAll(Landroid/content/Context;)V
+
     return-void
 
     :cond_3
@@ -420,6 +448,8 @@
     if-eqz v2, :cond_4
 
     invoke-static {p1}, Lcom/boottask/MuteGuard;->unmute(Landroid/content/Context;)V
+
+    invoke-static {p1}, Lcom/boottask/MediaMute;->unmuteAll(Landroid/content/Context;)V
 
     :cond_4
     return-void

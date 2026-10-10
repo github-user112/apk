@@ -78,6 +78,7 @@ public class HotspotProbe extends Service {
         super.onCreate();
         sCtx = this;
         sRunning = true;
+        migrateOldLog(this, "hotspot_probe.txt");   // v1.6.25：旧根目录日志搬进 log/（zip 只收 log/）
         sLastAction = "探测运行中，每 5 秒蹲守";
         sLastSnapshot = "";
         logFile(this, "==== 热点探测蹲守启动 ====");
@@ -297,7 +298,12 @@ public class HotspotProbe extends Service {
             }
             String ts = new SimpleDateFormat("MM-dd HH:mm:ss", Locale.US)
                     .format(new Date());
-            write(ctx.getFilesDir(), "hotspot_probe.txt", ts, line);
+            // v1.6.25：内部副本改落 files/log/（打包下载只枚举 files/log/，根目录文件进不了 zip）
+            File inDir = new File(ctx.getFilesDir(), "log");
+            if (!inDir.isDirectory() && !inDir.mkdirs()) {
+                inDir = ctx.getFilesDir();   // 退化
+            }
+            write(inDir, "hotspot_probe.txt", ts, line);
 
             // 外部落盘：/sdcard/boottask/hotspot_probe.log，fm.html 可直接取
             File ext = new File("/sdcard/boottask");
@@ -305,6 +311,43 @@ public class HotspotProbe extends Service {
                 return;
             }
             write(ext.getAbsoluteFile(), "hotspot_probe.log", ts, line);
+        } catch (Throwable ignored) {
+        }
+    }
+
+    /** v1.6.25：把旧版写在 getFilesDir() 根的历史日志搬进 log/（rename 失败则内容搬运） */
+    private static void migrateOldLog(Context ctx, String name) {
+        try {
+            File root = ctx.getFilesDir();
+            File oldF = new File(root, name);
+            if (!oldF.isFile() || oldF.length() == 0) {
+                return;
+            }
+            File dir = new File(root, "log");
+            if (!dir.isDirectory() && !dir.mkdirs()) {
+                return;
+            }
+            File newF = new File(dir, name);
+            if (newF.exists()) {
+                return;
+            }
+            if (!oldF.renameTo(newF)) {
+                java.io.FileInputStream in = new java.io.FileInputStream(oldF);
+                byte[] b = new byte[(int) oldF.length()];
+                int off = 0;
+                while (off < b.length) {
+                    int n = in.read(b, off, b.length - off);
+                    if (n < 0) {
+                        break;
+                    }
+                    off += n;
+                }
+                in.close();
+                java.io.FileOutputStream out = new java.io.FileOutputStream(newF, true);
+                out.write(b);
+                out.close();
+                oldF.delete();
+            }
         } catch (Throwable ignored) {
         }
     }
@@ -333,7 +376,11 @@ public class HotspotProbe extends Service {
             if (ctx == null) {
                 return "（探测未启动过）";
             }
-            File f = new File(ctx.getFilesDir(), "hotspot_probe.txt");
+            File f = new File(new File(ctx.getFilesDir(), "log"), "hotspot_probe.txt");
+            if (!f.exists()) {
+                // v1.6.25 兼容：迁移前旧版写在 getFilesDir() 根
+                f = new File(ctx.getFilesDir(), "hotspot_probe.txt");
+            }
             if (!f.exists()) {
                 return "（还没有记录）";
             }

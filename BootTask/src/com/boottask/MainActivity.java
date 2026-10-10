@@ -59,6 +59,12 @@ public class MainActivity extends Activity implements View.OnClickListener,
     private Button hsToggleButton;
     private Button hsApButton;
     private TextView hsStatusText;
+    private Button wrProbeButton;
+    private Button wrShortButton;
+    private TextView wrStatusText;
+    private Button lrfFixButton;
+    private Button lrfUndoButton;
+    private TextView lrfStatusText;
     private Button amToggleButton;
     private Button amPickButton;
     private Button amClearButton;
@@ -345,6 +351,82 @@ public class MainActivity extends Activity implements View.OnClickListener,
         hshLp.topMargin = dip(4);
         root.addView(hsHint, hshLp);
 
+        // ---- 分区四点九：WLAN 速率低诊断（v1.6.24）----
+        TextView wrLabel = new TextView(this);
+        wrLabel.setText("WLAN 速率低诊断（复刻亿连判定）");
+        wrLabel.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
+        wrLabel.setTypeface(Typeface.DEFAULT_BOLD);
+        wrLabel.setTextColor(Color.rgb(51, 51, 51));
+        LinearLayout.LayoutParams wrLp = matchWrap();
+        wrLp.topMargin = dip(16);
+        root.addView(wrLabel, wrLp);
+
+        wrProbeButton = new Button(this);
+        wrProbeButton.setText("开始测 RTT（120 秒）");
+        wrProbeButton.setOnClickListener(this);
+        root.addView(wrProbeButton, matchWrap());
+
+        wrShortButton = new Button(this);
+        wrShortButton.setText("短测 30 秒（快速验证）");
+        wrShortButton.setOnClickListener(this);
+        root.addView(wrShortButton, matchWrap());
+
+        wrStatusText = new TextView(this);
+        wrStatusText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+        wrStatusText.setTextColor(Color.rgb(90, 90, 90));
+        LinearLayout.LayoutParams wrsLp = matchWrap();
+        wrsLp.topMargin = dip(4);
+        root.addView(wrStatusText, wrsLp);
+
+        TextView wrHint = new TextView(this);
+        wrHint.setText("亿连弹「WiFi传输速率低」的真实条件：每 2 秒 ping 一次对端，"
+                + "单次往返 >200ms 记一次，连续 3 次（约 6 秒）就弹 —— 测的是延迟不是带宽。"
+                + "本按钮在车机上复刻同一判定并记录全部样本，"
+                + "直接告诉你「够不够触发弹窗」。\n"
+                + "★用法：投屏正常时点开始，然后正常使用导航；再点一次短测对比。"
+                + "日志在手机文件管理页 /sdcard/boottask/ 可取（或日志下载页）。");
+        wrHint.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+        wrHint.setTextColor(Color.rgb(120, 120, 120));
+        LinearLayout.LayoutParams wrhLp = matchWrap();
+        wrhLp.topMargin = dip(4);
+        root.addView(wrHint, wrhLp);
+
+        // ---- 分区四点九五：低速断连一站式修复（v1.6.25）----
+        TextView lrfLabel = new TextView(this);
+        lrfLabel.setText("低速断连一站式修复（免 root）");
+        lrfLabel.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
+        lrfLabel.setTypeface(Typeface.DEFAULT_BOLD);
+        lrfLabel.setTextColor(Color.rgb(51, 51, 51));
+        LinearLayout.LayoutParams lrfLp = matchWrap();
+        lrfLp.topMargin = dip(16);
+        root.addView(lrfLabel, lrfLp);
+
+        lrfFixButton = new Button(this);
+        lrfFixButton.setOnClickListener(this);
+        root.addView(lrfFixButton, matchWrap());
+
+        lrfUndoButton = new Button(this);
+        lrfUndoButton.setOnClickListener(this);
+        root.addView(lrfUndoButton, matchWrap());
+
+        lrfStatusText = new TextView(this);
+        lrfStatusText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+        lrfStatusText.setTextColor(Color.rgb(90, 90, 90));
+        LinearLayout.LayoutParams lrfsLp = matchWrap();
+        lrfsLp.topMargin = dip(4);
+        root.addView(lrfStatusText, lrfsLp);
+
+        TextView lrfHint = new TextView(this);
+        lrfHint.setText("一键做完全部免 root 缓解：①关蓝牙（防 2.4G 争抢）②清/禁用已保存 WiFi 网络"
+                + "（掐断后台扫描重连——头号嫌疑）③高性能 WiFi 锁 ④开直连保护（防热点双连）。"
+                + "做完直接投屏 15 分钟：不弹「速率低」= 根因已消；还弹 = GO 负担，转手机热点模式。"
+                + "「还原」恢复蓝牙与全部网络。");
+        lrfHint.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+        lrfHint.setTextColor(Color.rgb(120, 120, 120));
+        LinearLayout.LayoutParams lrfhLp = matchWrap();
+        lrfhLp.topMargin = dip(4);
+        root.addView(lrfHint, lrfhLp);
+
         // ---- 分区四点八：启动与声音监控（v1.6.21）----
         TextView amLabel = new TextView(this);
         amLabel.setText("启动与声音监控（抓自启收音机）");
@@ -458,6 +540,8 @@ public class MainActivity extends Activity implements View.OnClickListener,
         updateGuardUi();
         updateHsUi();
         updateAmUi();
+        updateWrUi();
+        updateLrfUi();
         // v1.6.13：每次回到前台都重新探测 root —— 用户在 SuperSU 里授权后回来能自动变绿，
         // 不用杀 App 重开（探测在后台线程，不卡 UI）
         probeRootAsync();
@@ -521,6 +605,61 @@ public class MainActivity extends Activity implements View.OnClickListener,
             }
             hsStatusText.setText("状态：" + HotspotProbe.lastAction()
                     + "\n最近记录：\n" + tail);
+        } catch (Throwable ignored) {
+        }
+    }
+
+    /** v1.6.24：WLAN 速率低诊断分区状态 */
+    private void updateWrUi() {
+        try {
+            boolean run = WifiRateProbe.isRunning();
+            wrProbeButton.setEnabled(!run);
+            wrShortButton.setEnabled(!run);
+            if (run) {
+                wrProbeButton.setText("正在测 RTT…（"
+                        + WifiRateProbe.duration(this) + " 秒）");
+                wrStatusText.setText("状态：正在采样，测完自动显示结果。");
+                return;
+            }
+            wrProbeButton.setText("开始测 RTT（"
+                    + WifiRateProbe.duration(this) + " 秒）");
+            String verdict = WifiRateProbe.verdict();
+            String log = WifiRateProbe.lastResult();
+            if (log == null || log.length() == 0) {
+                wrStatusText.setText("状态：" + (verdict.length() == 0 ? "未测过" : verdict)
+                        + "\n（连上手机并投屏后点上面的按钮开始测）");
+                return;
+            }
+            String[] lines = log.split("\n");
+            StringBuilder tail = new StringBuilder();
+            int from = Math.max(0, lines.length - 6);
+            for (int i = from; i < lines.length; i++) {
+                if (tail.length() > 0) {
+                    tail.append('\n');
+                }
+                tail.append(lines[i]);
+            }
+            wrStatusText.setText("结论：" + verdict + "\n最近记录：\n" + tail);
+        } catch (Throwable ignored) {
+        }
+    }
+
+    /** v1.6.25：低速断连一站式修复分区状态 */
+    private void updateLrfUi() {
+        try {
+            lrfFixButton.setText("⚡ 一键修复（关蓝牙+清保存网络+高性能锁+开保护）");
+            lrfUndoButton.setText("还原（恢复蓝牙+重新启用网络+释放锁）");
+            String last = LowRateFix.lastResult(this);
+            String[] lines = last.split("\n");
+            StringBuilder tail = new StringBuilder();
+            int from = Math.max(0, lines.length - 4);
+            for (int i = from; i < lines.length; i++) {
+                if (tail.length() > 0) {
+                    tail.append('\n');
+                }
+                tail.append(lines[i]);
+            }
+            lrfStatusText.setText("上次结果：\n" + tail);
         } catch (Throwable ignored) {
         }
     }
@@ -760,6 +899,45 @@ public class MainActivity extends Activity implements View.OnClickListener,
                                     updateHsUi();
                                 }
                             }, 6000L);
+                        }
+                    });
+                }
+            }).start();
+            return;
+        }
+        if (v == wrProbeButton || v == wrShortButton) {
+            final int dur = (v == wrShortButton) ? 30 : 120;
+            WifiRateProbe.setDuration(this, dur);
+            Toast.makeText(this, "开始测 RTT，" + dur + " 秒后出结论", Toast.LENGTH_SHORT).show();
+            try {
+                startService(new Intent(this, WifiRateProbe.class));
+            } catch (Throwable t) {
+                Toast.makeText(this, "服务拉起失败：" + t, Toast.LENGTH_LONG).show();
+                return;
+            }
+            updateWrUi();
+            wrStatusText.postDelayed(new Runnable() {
+                public void run() {
+                    updateWrUi();
+                }
+            }, (dur + 20L) * 1000L);
+            return;
+        }
+        if (v == lrfFixButton || v == lrfUndoButton) {
+            final boolean isFix = (v == lrfFixButton);
+            Toast.makeText(this, isFix ? "一键修复执行中…" : "还原执行中…",
+                    Toast.LENGTH_SHORT).show();
+            new Thread(new Runnable() {
+                public void run() {
+                    final String r = isFix ? LowRateFix.runFix(MainActivity.this)
+                            : LowRateFix.undo(MainActivity.this);
+                    runOnUiThread(new Runnable() {
+                        public void run() {
+                            Toast.makeText(MainActivity.this,
+                                    r.length() > 200 ? r.substring(0, 200) : r,
+                                    Toast.LENGTH_LONG).show();
+                            updateLrfUi();
+                            updateGuardUi();
                         }
                     });
                 }

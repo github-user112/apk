@@ -193,6 +193,9 @@ public final class BootDiagnostics {
         // ---- v1.6.19: SoftAP 热点能力探测（车机有热点菜单但手机搜不到 → 定位挂在哪一层）----
         softapProbe(writer, ipAddr);
 
+        // ---- v1.6.23: 开机自启 + 声音嫌疑（v1.6.21 AudioMonitor 的免 root 快照版）----
+        bootAutoStart(writer);
+
         // ---- v1.6.2 计数器双采样：与上次快照 diff 增量，复现断连前后各开一次日志页即可看丢包速度 ----
         counterDiff(writer, prevCountersFile, wireless, netdev);
         // ---- v1.6.3: ARP 邻居表（对端可达性状态 STALE/REACHABLE/FAILED）——免 root ----
@@ -476,7 +479,12 @@ public final class BootDiagnostics {
                         int c1 = t.indexOf(':');
                         int c2 = t.indexOf(':', c1 + 1);
                         cur = (c2 > c1 ? t.substring(c1 + 1, c2) : "").trim();
-                        wlanCarrier = t.indexOf("NO-CARRIER") < 0 && t.indexOf("LOWER_UP") >= 0;
+                        // ⚠ 只在遇到 wlan0 那一行时判定 carrier —— 不能对每个接口都赋值：
+                        // p2p-p2p0-1（GO 组接口）没有 NO-CARRIER 标志，会把 wlan0 的 NO-CARRIER 覆盖成
+                        // true，误报「单射频双连实锤」（10-09 车机日志实锤的误报）。
+                        if ("wlan0".equals(cur)) {
+                            wlanCarrier = t.indexOf("NO-CARRIER") < 0 && t.indexOf("LOWER_UP") >= 0;
+                        }
                         continue;
                     }
                     if (t.startsWith("inet ") && cur != null) {
@@ -505,17 +513,142 @@ public final class BootDiagnostics {
             }
             b.append("wlan0：").append(wlanIp != null ? "已连 AP，IP=" + wlanIp
                     : (wlanCarrier ? "有 carrier 但无 IP" : "未关联（NO-CARRIER）")).append('\n');
-            if (groupIp != null && (wlanIp != null || wlanCarrier)) {
+            // 第二判据（比 carrier 标志更硬）：wlan0 累计收发字节。全 0 = 这条射频根本没在
+            // 收发任何数据，即使 flags 看着 UP 也不算连着东西。
+            long wlanRx = ifaceBytes("wlan0");
+            if (wlanRx >= 0) {
+                b.append("wlan0 累计收发：").append(wlanRx).append(" 字节")
+                        .append(wlanRx == 0 ? "  → 完全没在收发数据 = wlan0 没连任何 AP\n" : "\n");
+            }
+            if (groupIp != null && (wlanIp != null || (wlanCarrier && wlanRx != 0))) {
                 b.append("\n⚠⚠ 单射频双连实锤：P2P 组与 wlan0 同时活跃！TCC893x 只有一颗射频，\n")
                         .append("异信道并发会产生延迟尖刺（亿连 ping 超标 → 弹「WLAN 速率低」），\n")
                         .append("随后驱动可能直接拆组（断联）。10-01 日志已实锤此机制。\n")
                         .append("→ 立即处理：关掉手机热点 / 车机 WiFi 里取消保存会自动重连的热点网络。\n");
+            } else if (groupIp != null) {
+                b.append("\n✅ 单射频冲突排除：P2P 组在跑，但 wlan0 无 IP、无数据收发 —— ")
+                        .append("这次「WLAN 速率低」不是双连引起的（10-01 那次的形态是 wlan0 拿到 IP）。\n");
             }
             b.append("role/dual-link 判读结束\n");
         } catch (Throwable t) {
             b.append("(判读异常: ").append(t).append(")\n");
         }
         section(writer, "P2P 角色 + 双连判读 (v1.6.16, 依据 10-01 断联实锤自动分析)", b.toString());
+    }
+
+/**
+     * v1.6.23: 开机自启清单 + 声音嫌疑（免 root 快照版）。
+     * v1.6.21 的 AudioMonitor 需要开服务跑几分钟才有时间线；这里在诊断时立刻给一份
+     * 「当前活着的进程 + 谁最可能发出声音」的静态判断，抓一次日志就能看。
+     */
+    private static void bootAutoStart(Writer writer) {
+        StringBuilder b = new StringBuilder(2048);
+        try {
+            String ps = AdvActions.run(new String[]{"ps"}, 8000L, 16384);
+            String[] lines = ps == null ? new String[0] : ps.split("\n");
+            java.util.List<String> early = new java.util.ArrayList<String>();
+            java.util.Set<String> running = new java.util.HashSet<String>();
+            for (int i = 0; i < lines.length; i++) {
+                String t = lines[i].trim();
+                if (t.length() < 8) {
+                    continue;
+                }
+                String[] f = t.split("\\s+");
+                if (f.length < 9) {
+                    continue;
+                }
+                String name = f[8];
+                if (name.indexOf('/') >= 0) {
+                    continue;   // 内核线程/native 进程不列
+                }
+                running.add(name);
+                try {
+                    int pid = Integer.parseInt(f[1]);
+                    // zygote(1147) 派生、PID 较小 = 开机早期被拉起 = 大概率 BOOT_COMPLETED receiver
+                    if (pid > 1200 && pid < 2300) {
+                        early.add(name + "(pid " + pid + ")");
+                    }
+                } catch (Throwable ignored) {
+                }
+            }
+            b.append("开机早期拉起的应用（PID 1200~2300，按启动顺序）:\n");
+            if (early.isEmpty()) {
+                b.append("(ps 没抓到)\n");
+            } else {
+                for (int i = 0; i < early.size(); i++) {
+                    b.append("  ").append(early.get(i)).append('\n');
+                }
+            }
+
+            // 声音嫌疑：车机 ROM 里跟音频/媒体/收音机相关的包名特征
+            String[] audioKeys = {"media", "radio", "audio", "music", "player", "tuner",
+                    "dvr", "tts", "speech", "sound", "tv", "cmcc", "iptv"};
+            String packages = AdvActions.run(new String[]{"pm", "list", "packages", "-f"},
+                    10000L, 32768);
+            StringBuilder sus = new StringBuilder();
+            if (packages != null) {
+                String[] pl = packages.split("\n");
+                for (int i = 0; i < pl.length; i++) {
+                    String low = pl[i].toLowerCase(java.util.Locale.US);
+                    boolean hit = false;
+                    for (int k = 0; k < audioKeys.length && !hit; k++) {
+                        if (low.indexOf(audioKeys[k]) >= 0) {
+                            hit = true;
+                        }
+                    }
+                    if (!hit) {
+                        continue;
+                    }
+                    String pkg = pl[i].substring(pl[i].indexOf('=') + 1).trim();
+                    sus.append("  ").append(pl[i].indexOf('=') >= 0 ? pkg : pl[i].trim())
+                            .append(running.contains(pkg) ? "  ← 【正在运行】" : "")
+                            .append(pl[i].indexOf("/data/app") >= 0 ? "  (后装)" : "  (系统预装)")
+                            .append('\n');
+                }
+            }
+            b.append("\n声音/媒体嫌疑包（★=正在运行，最可能就是它开机出声）:\n")
+                    .append(sus.length() > 0 ? sus : "(pm list 没抓到)\n");
+
+            b.append("\n怎么用：上面带 ★ 的包逐个在主界面「选择拦截目标」里选上并重启验证。\n")
+                    .append("想要精确时间线（谁先起、谁抢音频焦点），开 v1.6.21 的「启动与声音监控」再开机一次，\n")
+                    .append("日志 /sdcard/boottask/audio_monitor.log。\n");
+        } catch (Throwable t) {
+            b.append("(探测异常: ").append(t).append(")\n");
+        }
+        section(writer, "开机自启清单 + 声音嫌疑 (v1.6.23, 免 root 静态快照)", b.toString());
+    }
+
+/**
+     * 从 /proc/net/dev 取某接口的累计收发字节（rx+tx）。取不到返回 -1。
+ */
+    private static long ifaceBytes(String name) {
+        try {
+            String out = AdvActions.run(new String[]{"cat", "/proc/net/dev"}, 6000L, 8192);
+            if (out == null) {
+                return -1L;
+            }
+            String[] lines = out.split("\n");
+            for (int i = 0; i < lines.length; i++) {
+                int c = lines[i].indexOf(':');
+                if (c <= 0) {
+                    continue;
+                }
+                if (!lines[i].substring(0, c).trim().equals(name)) {
+                    continue;
+                }
+                String[] f = lines[i].substring(c + 1).trim().split("\\s+");
+                if (f.length < 9) {
+                    return -1L;
+                }
+                try {
+                    return Long.parseLong(f[0]) + Long.parseLong(f[8]);
+                } catch (Throwable t) {
+                    return -1L;
+                }
+            }
+        } catch (Throwable ignored) {
+        }
+        return -1L;
     }
 
     /**
@@ -569,6 +702,9 @@ public final class BootDiagnostics {
                     || lowAll.indexOf("ap0") >= 0 || all.indexOf("192.168.43.") >= 0;
 
             // ---- 自动判读 ----
+            // hostapd 二进制在不在（有它 ≠ ROM 编译了 SoftAP，只说明刷进了这个文件）
+            String bin = AdvActions.run(new String[]{"ls", "/system/bin/hostapd"}, 5000L, 1024);
+            boolean hasBin = bin != null && bin.indexOf("hostapd") >= 0;
             b.append("\n判读:\n");
             if (svcRunning && apIface) {
                 b.append("热点服务在跑、AP 接口已拿到地址 → 车机侧其实是好的，手机搜不到是射频侧问题：\n")
@@ -579,8 +715,14 @@ public final class BootDiagnostics {
                         .append("  （bcmdhd 的 softap 需要 wl0.1 虚接口，起不来=驱动/固件不含 AP 功能），菜单点了也白点。\n");
             } else if (!svcRunning && apIface) {
                 b.append("AP 接口存在但服务属性没看到 running → 看上面①的属性原文再定（少见）。\n");
+            } else if (!svcRunning && !apIface && hasBin) {
+                b.append("⚠ /system/bin/hostapd 二进制【存在】，但既没有 softap/hostapd 服务在跑、也没有 AP 接口：\n")
+                        .append("  → ROM 刷进了 hostapd 文件，却没有配套的 init 服务 / WifiService AP 模式配置，\n")
+                        .append("    即「有壳无魂」：开热点菜单时 framework 不去起 hostapd，所以手机搜不到。\n")
+                        .append("  → 这台车机不能用热点模式（车机当 AP）。热点模式请走已验证的路：\n")
+                        .append("    手机开热点(2.4G) → 车机连（9-24 实测 100% 通）。\n");
             } else {
-                b.append("⚠ 系统里没有任何 softap/hostapd 服务在跑、也没有 AP 接口 →\n")
+                b.append("⚠ 系统里既没有 softap/hostapd 服务在跑、没有 AP 接口，连 hostapd 二进制也没有 →\n")
                         .append("  这台 ROM 的「便携式热点」菜单是摆设（没编译配套服务），起不来属正常，不是操作问题。\n")
                         .append("  → 热点模式请走已验证的路：手机开热点(2.4G) → 车机连（9-24 实测 100% 通）。\n");
             }

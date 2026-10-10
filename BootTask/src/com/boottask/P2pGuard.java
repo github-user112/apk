@@ -134,6 +134,25 @@ public class P2pGuard extends Service {
         if (!p2pActive) {
             return;   // 没有直连组：热点该连就连（热点模式正常用）
         }
+
+        // v1.6.25：直连活跃时保持蓝牙关闭（蓝牙与 WLAN 共抢 2.4G 是速率低的并列嫌疑；
+        // LowRateFix 修完若用户手动开回蓝牙，这里每 8s 会再压回去 —— 一键修复的一致性保障）
+        try {
+            boolean btGuard = ctx.getSharedPreferences("lowrate", Context.MODE_PRIVATE)
+                    .getBoolean("btGuard", false);
+            if (btGuard) {
+                android.bluetooth.BluetoothAdapter ad =
+                        android.bluetooth.BluetoothAdapter.getDefaultAdapter();
+                if (ad != null && ad.isEnabled()) {
+                    boolean ok = ad.disable();
+                    logFile(ctx, "直连活跃但蓝牙开着 → 自动关闭(ok=" + ok + ")，还原按钮可开回");
+                    sLastAction = "直连保护：已自动关闭蓝牙（防 2.4G 争抢）";
+                }
+            }
+        } catch (Throwable t) {
+            Log.w(TAG, "bt-guard: " + t);
+        }
+
         if (wlanExternal) {
             cut(ctx, "检测到双连（wlan0=" + wlanIp + "）", fromGuard);
             return;

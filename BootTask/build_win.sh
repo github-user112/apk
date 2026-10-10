@@ -12,7 +12,7 @@ ANDROID_JAR="$LOGXFER/tools/android.jar"
 R8_JAR="$LOGXFER/tools/r8.jar"
 APKTOOL_JAR="$ROOT/tools/apktool.jar"
 APKSIGNER_JAR="$ROOT/tools/apksigner/apksigner.jar"
-OUT=${1:-"$PROJECT/dist/BootTask_v1.6.21.apk"}
+OUT=${1:-"$PROJECT/dist/BootTask_v1.6.25.apk"}
 
 for path in "$ANDROID_JAR" "$R8_JAR" "$APKTOOL_JAR" "$APKSIGNER_JAR" "$PROJECT/keys/boottask.p12"; do
     if [[ ! -e "$path" ]]; then
@@ -61,6 +61,8 @@ cp "$PROJECT/src/com/boottask/QuickRepair.java" "$WORK/java/com/boottask/QuickRe
 cp "$PROJECT/src/com/boottask/NoRootFixes.java" "$WORK/java/com/boottask/NoRootFixes.java"
 cp "$PROJECT/src/com/boottask/P2pGuard.java" "$WORK/java/com/boottask/P2pGuard.java"
 cp "$PROJECT/src/com/boottask/HotspotProbe.java" "$WORK/java/com/boottask/HotspotProbe.java"
+cp "$PROJECT/src/com/boottask/WifiRateProbe.java" "$WORK/java/com/boottask/WifiRateProbe.java"
+cp "$PROJECT/src/com/boottask/LowRateFix.java" "$WORK/java/com/boottask/LowRateFix.java"
 cp "$PROJECT/src/com/boottask/AudioMonitor.java" "$WORK/java/com/boottask/AudioMonitor.java"
 cp "$PROJECT/src/com/boottask/BootAudioReceiver.java" "$WORK/java/com/boottask/BootAudioReceiver.java"
 cp "$PROJECT/src/com/boottask/UploadServer.java" "$WORK/java/com/boottask/UploadServer.java"
@@ -114,6 +116,8 @@ javac -encoding UTF-8 -source 8 -target 8 \
     "$WORK/java/com/boottask/NoRootFixes.java" \
     "$WORK/java/com/boottask/P2pGuard.java" \
     "$WORK/java/com/boottask/HotspotProbe.java" \
+    "$WORK/java/com/boottask/WifiRateProbe.java" \
+    "$WORK/java/com/boottask/LowRateFix.java" \
     "$WORK/java/com/boottask/AudioMonitor.java" \
     "$WORK/java/com/boottask/BootAudioReceiver.java" \
     "$WORK/java/com/boottask/UploadServer.java" \

@@ -1,6 +1,11 @@
 package com.boottask;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.TypedValue;
@@ -24,6 +29,11 @@ import java.io.File;
  *
  * 服务随页面 onStart/onStop 启停（不后台常驻，端口用完释放）。
  * 访问码每次启动随机生成，二维码 URL 里带着它 —— 别人就算扫到端口也动不了文件。
+ *
+ * v1.6.22：① 挂网络变化监听（对齐 CarLife 1.30 的 NetWatch 修复——
+ * 页面开着时网络通了/换了网卡，二维码自动跟着刷新，不再画死码；
+ * NetWatch 回调硬编码 LogHttpServer.baseUrls()，这里是 ShareServer，故自建接收器）
+ * ② 传前 3 个地址进 recv.html（原来只传 urls[0]，"备选地址"分支是死代码）。
  */
 public class FileShareActivity extends Activity implements ShareServer.Listener {
 
@@ -36,6 +46,15 @@ public class FileShareActivity extends Activity implements ShareServer.Listener 
     private TextView mLog;
     private final Handler mHandler = new Handler();
     private Runnable mTicker;
+    /** 当前已渲染进 WebView 的地址串（变化才重载，避免网络广播风暴反复刷码） */
+    private String mLastRender;
+    /** v1.6.22 网络变化监听：WiFi/P2P/以太网/连通性一变就刷新二维码 */
+    private BroadcastReceiver mNetWatch;
+    private final Runnable mRefresh = new Runnable() {
+        public void run() {
+            refreshQr(false);
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -150,30 +169,15 @@ public class FileShareActivity extends Activity implements ShareServer.Listener 
         super.onStart();
         ShareServer.setListener(this);
         ShareServer.get().start();
+        registerNetWatch();
         if (!ShareServer.get().isRunning()) {
             Toast.makeText(this, "端口 " + ShareServer.PORT + " 起不来（可能被占用）",
                     Toast.LENGTH_LONG).show();
             mAddr.setText("服务未启动");
             return;
         }
-        String[] urls = ShareServer.urls();
-        if (urls.length == 0) {
-            mAddr.setText("未检测到网络地址\n请连接 WiFi / 热点 / 直连后重进本页");
-        } else {
-            // 地址全文由页面二维码旁显示 + 「显示访问路径」按钮展开，这里只给一行摘要，
-            // 不然车机矮屏上几行地址会把二维码挤没
-            mAddr.setText("访问码 " + ShareServer.key() + "（已包含在链接里，重启本页会变）\n"
-                    + urls[0]);
-            if (mWeb != null) {
-                try {
-                    StringBuilder sb = new StringBuilder("file:///android_asset/logxfer/recv.html#");
-                    sb.append(java.net.URLEncoder.encode(urls[0], "UTF-8"));
-                    mWeb.loadUrl(sb.toString());
-                } catch (Throwable t) {
-                    BootDiagnostics.log(this, "webview load fail: " + t);
-                }
-            }
-        }
+        mLastRender = null;
+        refreshQr(true);
         mTicker = new Runnable() {
             public void run() {
                 String s = ShareServer.recentLog();
@@ -187,9 +191,88 @@ public class FileShareActivity extends Activity implements ShareServer.Listener 
     @Override
     protected void onStop() {
         mHandler.removeCallbacks(mTicker);
+        mHandler.removeCallbacks(mRefresh);
+        if (mNetWatch != null) {
+            try {
+                unregisterReceiver(mNetWatch);
+            } catch (Throwable ignored) {
+            }
+            mNetWatch = null;
+        }
         ShareServer.setListener(null);
         ShareServer.get().stop();
         super.onStop();
+    }
+
+    /**
+     * v1.6.22：取最新地址列表刷二维码/地址栏；force=true 无视「没变化」直接刷。
+     * 多网卡时把前 3 个地址传给 recv.html（主地址画码，其余显示为备选）。
+     */
+    private void refreshQr(boolean force) {
+        String[] urls = ShareServer.urls();
+        StringBuilder joined = new StringBuilder();
+        for (int i = 0; i < urls.length; i++) {
+            joined.append(urls[i]).append(',');
+        }
+        String key = joined.toString();
+        if (!force && key.equals(mLastRender)) {
+            return;   // 地址没变，不折腾 WebView
+        }
+        mLastRender = key;
+        if (urls.length == 0) {
+            mAddr.setText("未检测到网络地址\n请连接 WiFi / 热点 / 直连（有网会自动刷新）");
+            if (mWeb != null) {
+                mWeb.loadUrl("file:///android_asset/logxfer/recv.html#");
+            }
+            return;
+        }
+        mAddr.setText("访问码 " + ShareServer.key() + "（已包含在链接里，重启本页会变）\n"
+                + urls[0]);
+        if (mWeb != null) {
+            try {
+                StringBuilder sb = new StringBuilder("file:///android_asset/logxfer/recv.html#");
+                for (int i = 0; i < urls.length && i < 3; i++) {
+                    if (i > 0) {
+                        sb.append(',');
+                    }
+                    sb.append(java.net.URLEncoder.encode(urls[i], "UTF-8"));
+                }
+                mWeb.loadUrl(sb.toString());
+            } catch (Throwable t) {
+                BootDiagnostics.log(this, "webview load fail: " + t);
+            }
+        }
+    }
+
+    /** v1.6.22：网络变化接收器（动作集对齐 logxfer NetWatch） */
+    private void registerNetWatch() {
+        if (mNetWatch != null) {
+            return;
+        }
+        mNetWatch = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                // 广播风暴去抖：600ms 内的连续变化只刷一次
+                mHandler.removeCallbacks(mRefresh);
+                mHandler.postDelayed(mRefresh, 600L);
+            }
+        };
+        IntentFilter f = new IntentFilter();
+        f.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION);
+        f.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
+        f.addAction(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION);
+        f.addAction("android.net.wifi.p2p.STATE_CHANGED");
+        f.addAction("android.net.wifi.p2p.PEERS_CHANGED");
+        f.addAction("android.net.wifi.p2p.CONNECTION_CHANGED");
+        f.addAction("android.net.wifi.p2p.THIS_DEVICE_CHANGED");
+        f.addAction("android.net.ethernet.ETHERNET_STATE_CHANGED");
+        f.addAction("android.net.conn.CONNECTIVITY_CHANGE");
+        try {
+            registerReceiver(mNetWatch, f);
+        } catch (Throwable t) {
+            BootDiagnostics.log(this, "net watch register fail: " + t);
+            mNetWatch = null;
+        }
     }
 
     public void onUploaded(final File f, final long bytes) {

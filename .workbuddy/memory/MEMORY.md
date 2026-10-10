@@ -63,3 +63,37 @@ adb=`D:/PJGG/platform-tools-latest-windows/platform-tools/adb.exe`。realme X7 P
 ## BootTask v1.6.21（vc28，2026-10-08）：启动与声音监控 AudioMonitor + MuteGuard 缺类修复
 新增 AudioMonitor 服务：ps diff 记录开机后新进程（首轮只建档）、dumpsys audio 焦点/音量变化全落 /sdcard/boottask/audio_monitor.log；拦截目标（SharedPreferences audiomon/blockPkg，UI 复用 smali AppPickActivity：setClassName + startActivityForResult(77) 取 extra "pkg"）存活即 killBackgroundProcesses，连续 2 轮杀不掉→MuteGuard.mute 静音兜底；BootAudioReceiver（独立 Java BOOT_COMPLETED receiver）开机自动拉起。★修复 rebase 遗留真 bug：MuteGuard.java 不在 build_win.sh 编译清单，ExecService(smali) 引用悬空，执行静音规则必 NoSuchMethodError——已补 cp+javac。★判据：查类在 dex 用 `Lpkg/Class;` 分号结尾类型描述符，裸类名会被字符串引用误判为存在。git 未提交。
 
+## BootTask v1.6.23（vc30，2026-10-10）：修诊断双连误报 + 热点结论修正
+★重要结论修正（10-09 车机日志实锤）：
+① **诊断误报双连**：`p2pRoleAndDualLink` 里 `wlanCarrier=...` 对每个接口行都赋值，p2p-p2p0-1
+（GO 组接口）无 NO-CARRIER 标志 → 覆盖掉 wlan0 的 NO-CARRIER → 误报「单射频双连实锤」。
+修：只在 `if("wlan0".equals(cur))` 判定 + 新增 ifaceBytes() 读 /proc/net/dev 收发字节做第二判据。
+② **车机能不能开热点**：hostapd 二进制【存在】（/system/bin/hostapd 453KB + hostapd_cli，之前
+判"没编译"是 ls exit=1 被截断误导）；但 init.svc 34 个服务里无 softap/hostapd/wifi，hostapd.conf 不存在，
+netcfg 无 AP 接口 → 「有壳无魂」：ROM 刷了文件但 framework 不调它。车机当 AP 走不通，
+热点模式唯一可行 = 手机开热点→车机连（9-24 实测 100% 通）。
+③ 10-09 日志实锤无 root：`which su` 直接 IOException（su 二进制不存在，不是被拒）。
+④ wlan 速率低这次不是双连（wlan0 收发全 0，从没连过 AP）→ 大概率 GO 角色本身负担/对端手机侧。
+新增诊断段「开机自启清单 + 声音嫌疑」：PID 1200~2300 早期 App 全列 + media/radio/audio/tts
+关键词匹配包名标★正在运行。车机声音嫌疑：geelymediamanager / svradioservices / svmediaprovider /
+iflytek.tts / android.process.media；收音机本体 = com.telechips.android.tdmb(TDMBPlayer, 未运行)。
+⑤ 声音时间线必须开 v1.6.21 AudioMonitor 后再开机抓（无 root 时 boot audio 段直接跳过）。
+⑥ 10-09 当天重启 3 次（boottask.log 三条 BOOT_COMPLETED）。git 未提交。
+
+## 亿连「WiFi传输速率低」机制（反编译实锤，全项目通用结论）
+文案 `wifi_low_speed_tip`，弹出点 `f.a.k.l0.p3.w()`；监控线程 `Mirror_Presenter_Ping_Service`
+（`r0.o()`）每 2s `ECSDK.native_ping(ip,250)`，**单次 RTT>200ms 记1，连续3次(约6s)弹 Toast**，
+有一次正常即清零。★测的是时延不是带宽。监控只在 `ECTransportType.name().contains("WIFI")`
+（ANDROID_WIFI(2) 覆盖直连+热点）时启动 → **走USB永不弹**。★弹窗不断链（只 Toast+隐藏 View），
+"先提示后断"是同因两果（RTT劣化 + Ctrl/Data socket 超时同时）；断链走 native onDisconnect →
+`m.onMirrorDisconnected()` → `g0.i0(4)`；车机端 `onMirrorRequestReconnect()` 是空方法。
+详见 `Yilian/04_文档/亿连V7.0.1_直连低速断连_分析报告.md`。
+
+## BootTask v1.6.24（vc31，2026-10-10）：WLAN 速率低诊断 WifiRateProbe
+复刻亿连判定：每 2s ping 对端（ip neigh 找 192.168.49.x 排除 .1），30/120 秒可配，
+落全部 RTT 样本+p50/p95/max+超200次数+**最长连续 streak**（>=3 = 亿连必弹），配 /proc/net/wireless
+(RSSI/retry/missed beacon)+/proc/net/dev+CPU 做「空口烂 vs 车机烂」对照，输出缓解建议
+（含 /etc/ec.conf 存在性实测）。缓解优先级：①改用手机热点（车机 P2P GO→纯 STA）②手机保亮屏对照
+（息屏 Wi-Fi 进 PS,RTT 翻倍）③/etc/ec.conf 降 mirror_width/height（★本车机无此文件且无root，走不通）
+④直连必须车机2.4G档。日志 files/wifi_rate_probe.txt。构建通过、dex 五类齐全，未实机验证（设备未连）。git 未提交。
+

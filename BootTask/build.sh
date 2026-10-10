@@ -8,7 +8,7 @@ ANDROID_JAR="$LOGXFER/tools/android.jar"
 R8_JAR="$LOGXFER/tools/r8.jar"
 APKTOOL_JAR="$ROOT/tools/apktool.jar"
 APKSIGNER_JAR="$ROOT/tools/apksigner/apksigner.jar"
-OUT=${1:-"$PROJECT/dist/BootTask_v1.5.apk"}
+OUT=${1:-"$PROJECT/dist/BootTask_v1.6.22.apk"}
 
 for path in "$ANDROID_JAR" "$R8_JAR" "$APKTOOL_JAR" "$APKSIGNER_JAR" "$PROJECT/keys/boottask.p12"; do
     if [[ ! -e "$path" ]]; then
@@ -25,7 +25,8 @@ import shutil
 import sys
 
 shutil.copytree(sys.argv[1], sys.argv[2], ignore=shutil.ignore_patterns(
-    "build", "dist", "keys", "screenshots", "src", "README.md", "build.sh"))
+    "build", "dist", "keys", "screenshots", "src", "README.md",
+    "build.sh", "build_win.sh"))
 PY
 
 # 桌面图标名带版本号: 从 AndroidManifest 的 versionName 推导 app_name,
@@ -55,8 +56,28 @@ PY
 mkdir -p \
     "$WORK/classes" "$WORK/new" "$WORK/merged" "$WORK/assets/logxfer" \
     "$WORK/java/com/boottask" "$WORK/java/com/baidu/carlifevehicle/logxfer"
+# v1.6.22 修：清单从 2 个类补齐为全量（旧版只编 BootDiagnostics/MuteGuard，
+# v1.6.x 全部 Java 类都不在包里——本脚本此前只能打出残包）。与 build_win.sh 保持同步：
+# 新增 Java 文件时两处清单都要加（README「本次踩坑」条目）。
 cp "$PROJECT/src/com/boottask/BootDiagnostics.java" "$WORK/java/com/boottask/BootDiagnostics.java"
+cp "$PROJECT/src/com/boottask/AdvActions.java" "$WORK/java/com/boottask/AdvActions.java"
+cp "$PROJECT/src/com/boottask/MainActivity.java" "$WORK/java/com/boottask/MainActivity.java"
+cp "$PROJECT/src/com/boottask/MediaMute.java" "$WORK/java/com/boottask/MediaMute.java"
 cp "$PROJECT/src/com/boottask/MuteGuard.java" "$WORK/java/com/boottask/MuteGuard.java"
+cp "$PROJECT/src/com/boottask/QuickRepair.java" "$WORK/java/com/boottask/QuickRepair.java"
+cp "$PROJECT/src/com/boottask/NoRootFixes.java" "$WORK/java/com/boottask/NoRootFixes.java"
+cp "$PROJECT/src/com/boottask/P2pGuard.java" "$WORK/java/com/boottask/P2pGuard.java"
+cp "$PROJECT/src/com/boottask/HotspotProbe.java" "$WORK/java/com/boottask/HotspotProbe.java"
+cp "$PROJECT/src/com/boottask/AudioMonitor.java" "$WORK/java/com/boottask/AudioMonitor.java"
+cp "$PROJECT/src/com/boottask/BootAudioReceiver.java" "$WORK/java/com/boottask/BootAudioReceiver.java"
+cp "$PROJECT/src/com/boottask/UploadServer.java" "$WORK/java/com/boottask/UploadServer.java"
+cp "$PROJECT/src/com/boottask/ApkInstaller.java" "$WORK/java/com/boottask/ApkInstaller.java"
+cp "$PROJECT/src/com/boottask/ReceiveActivity.java" "$WORK/java/com/boottask/ReceiveActivity.java"
+cp "$PROJECT/src/com/boottask/AppManager.java" "$WORK/java/com/boottask/AppManager.java"
+cp "$PROJECT/src/com/boottask/FileOps.java" "$WORK/java/com/boottask/FileOps.java"
+cp "$PROJECT/src/com/boottask/ShareServer.java" "$WORK/java/com/boottask/ShareServer.java"
+cp "$PROJECT/src/com/boottask/FileManagerActivity.java" "$WORK/java/com/boottask/FileManagerActivity.java"
+cp "$PROJECT/src/com/boottask/FileShareActivity.java" "$WORK/java/com/boottask/FileShareActivity.java"
 cp "$LOGXFER/java/com/baidu/carlifevehicle/logxfer/LogDownloadActivity.java" \
     "$WORK/java/com/baidu/carlifevehicle/logxfer/LogDownloadActivity.java"
 cp "$LOGXFER/java/com/baidu/carlifevehicle/logxfer/LogHttpServer.java" \
@@ -92,7 +113,24 @@ javac -encoding UTF-8 -source 8 -target 8 \
     -classpath "$ANDROID_JAR" \
     -d "$WORK/classes" \
     "$WORK/java/com/boottask/BootDiagnostics.java" \
+    "$WORK/java/com/boottask/AdvActions.java" \
+    "$WORK/java/com/boottask/MainActivity.java" \
+    "$WORK/java/com/boottask/MediaMute.java" \
     "$WORK/java/com/boottask/MuteGuard.java" \
+    "$WORK/java/com/boottask/QuickRepair.java" \
+    "$WORK/java/com/boottask/NoRootFixes.java" \
+    "$WORK/java/com/boottask/P2pGuard.java" \
+    "$WORK/java/com/boottask/HotspotProbe.java" \
+    "$WORK/java/com/boottask/AudioMonitor.java" \
+    "$WORK/java/com/boottask/BootAudioReceiver.java" \
+    "$WORK/java/com/boottask/UploadServer.java" \
+    "$WORK/java/com/boottask/ApkInstaller.java" \
+    "$WORK/java/com/boottask/ReceiveActivity.java" \
+    "$WORK/java/com/boottask/AppManager.java" \
+    "$WORK/java/com/boottask/FileOps.java" \
+    "$WORK/java/com/boottask/ShareServer.java" \
+    "$WORK/java/com/boottask/FileManagerActivity.java" \
+    "$WORK/java/com/boottask/FileShareActivity.java" \
     "$WORK/java/com/baidu/carlifevehicle/logxfer/LogDownloadActivity.java" \
     "$WORK/java/com/baidu/carlifevehicle/logxfer/LogHttpServer.java" \
     "$WORK/java/com/baidu/carlifevehicle/logxfer/NetWatch.java"

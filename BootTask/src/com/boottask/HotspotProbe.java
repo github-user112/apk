@@ -286,6 +286,116 @@ public class HotspotProbe extends Service {
         }
     }
 
+    /**
+     * v1.6.26 一键攻坚（零 adb 闭环核心）：一个按钮自动走完全套判定，
+     * 每步输出落 hotspot_probe 日志，最后写【攻坚结论】——扫码日志包回来
+     * 就能看到全部过程，不需要 adb。
+     *
+     *   ① 反射 setWifiApEnabled → 等 8 秒 → 读 AP 状态；
+     *   ② ENABLED → 读 AP 配置 + netcfg 找 192.168.43.x：
+     *      有接口有 IP = 成功；有状态没 IP = 缺 DHCP 层，记明；
+     *   ③ 反射被拒/状态不动且有 root → Plan B：写 hostapd.conf → 起 hostapd
+     *      → 配 192.168.43.1 → 起 dnsmasq 发 DHCP；
+     *   ④ 无 root 反射也死 → 结论直接写「去开发者选项开 Root 再点一次」。
+     */
+    static String attackOnce(Context ctx) {
+        logFile(ctx, "⚔️ ===== 一键攻坚开始 =====");
+        // ① 反射路径（4.4 只需 CHANGE_WIFI_STATE，多数 ROM 直接成）
+        String r = ensureOn(ctx);
+        try {
+            Thread.sleep(8000L);   // 等 hostapd 走完 ENABLING
+        } catch (InterruptedException ignored) {
+        }
+        int st = apState(ctx);
+        logFile(ctx, "① 反射后 AP 状态=" + (st >= 0 ? apStateName(st) : "读不到"));
+        if (st == 13) {
+            String cfg = apConfig(ctx);
+            String netcfg = AdvActions.run(new String[]{"netcfg"}, 6000L, 16384);
+            boolean hasIp = netcfg != null && netcfg.indexOf("192.168.43.") >= 0;
+            logFile(ctx, "② AP 已 ENABLED，配置：" + cfg
+                    + "\nnetcfg：\n" + (netcfg == null ? "(无输出)" : netcfg.trim()));
+            String verdict = hasIp
+                    ? "【攻坚结论】✅ 反射路径成功且已有 192.168.43.x 地址——手机现在就能搜到并连上"
+                    : "【攻坚结论】⚠️ AP 已 ENABLED 但 netcfg 里没有 192.168.43.x——"
+                      + "热点信号应该已能搜到，但没有 DHCP，手机连上拿不到 IP。"
+                      + "下一步试 root 起 dnsmasq（开发者选项开 Root 后再来一发）";
+            logFile(ctx, verdict);
+            return verdict + "\n" + cfg;
+        }
+        // ③ Plan B：root + hostapd 手动起
+        if (FileOps.suOk()) {
+            String b = hostapdPlanB(ctx);
+            logFile(ctx, "【攻坚结论】" + b);
+            return b;
+        }
+        String dead = "【攻坚结论】❌ 反射路径失败（" + r + "）且无 root——"
+                + "请到车机 设置→开发者选项 把 Root 权限打开（eng 版有此项），"
+                + "再回本页点一次（将自动改走 hostapd 方案）";
+        logFile(ctx, dead);
+        return dead;
+    }
+
+    /**
+     * Plan B：root 下手动起完整热点栈。
+     * hostapd（AP 层）→ ifconfig 配网关地址（DHCP 服务端地址）→ dnsmasq（发 IP）。
+     * 每步 su 输出都落日志，失败也落——这份日志就是下次分析的全部依据。
+     */
+    private static String hostapdPlanB(Context ctx) {
+        try {
+            // 探测 AP 用网卡：bcmdhd 常见 wlan0 直接进 AP 模式，也可能是 ap0/wl0.1
+            String ifs = AdvActions.run(new String[]{"ls", "/sys/class/net"}, 5000L, 4096);
+            logFile(ctx, "③ Plan B：现有网卡 " + (ifs == null ? "(无)" : ifs.trim()));
+            String iface = "wlan0";
+            if (ifs != null) {
+                if (ifs.indexOf("ap0") >= 0) {
+                    iface = "ap0";
+                } else if (ifs.indexOf("wl0.1") >= 0) {
+                    iface = "wl0.1";
+                }
+            }
+            File local = new File(ctx.getFilesDir(), "boottask_hostapd.conf");
+            FileWriter w = new FileWriter(local, false);
+            w.write("interface=" + iface + "\n"
+                    + "driver=nl80211\n"
+                    + "ssid=AndroidAP\n"
+                    + "hw_mode=g\n"
+                    + "channel=6\n"
+                    + "wpa=2\n"
+                    + "wpa_passphrase=carlife123\n"
+                    + "wpa_key_mgmt=WPA-PSK\n"
+                    + "rsn_pairwise=CCMP\n");
+            w.close();
+            String conf = "/data/local/tmp/boottask_hostapd.conf";
+            String cp = FileOps.su("cp " + FileOps.q(local.getAbsolutePath()) + " " + conf);
+            logFile(ctx, "③ 上传 conf: " + (cp == null ? "ok" : cp));
+            String stop = FileOps.su("killall hostapd 2>/dev/null; sleep 1");
+            logFile(ctx, "③ 清理旧 hostapd: " + (stop == null ? "ok" : stop));
+            String hap = FileOps.su("hostapd -B " + conf + " 2>&1; sleep 2; ps | grep [h]ostapd");
+            logFile(ctx, "③ hostapd 启动: " + (hap == null ? "(无输出/失败)" : hap.trim()));
+            boolean up = hap != null && hap.indexOf("hostapd") >= 0;
+            if (!up) {
+                return "hostapd 没起来（日志里有 su 输出）——多半驱动不含 AP 功能或接口名不对，"
+                        + "把日志包发我再看";
+            }
+            String ip = FileOps.su("ifconfig " + iface + " 192.168.43.1 netmask 255.255.255.0 up 2>&1");
+            logFile(ctx, "④ 配 IP: " + (ip == null ? "ok" : ip.trim()));
+            String dn = FileOps.su("dnsmasq --interface=" + iface
+                    + " --dhcp-range=192.168.43.10,192.168.43.50,255.255.255.0,12h"
+                    + " --except-interface=lo 2>&1; sleep 1; ps | grep [d]nsmasq");
+            logFile(ctx, "④ dnsmasq 启动: " + (dn == null ? "(无输出/失败)" : dn.trim()));
+            boolean dhcp = dn != null && dn.indexOf("dnsmasq") >= 0;
+            String netcfg = AdvActions.run(new String[]{"netcfg"}, 6000L, 16384);
+            logFile(ctx, "⑤ netcfg：\n" + (netcfg == null ? "(无输出)" : netcfg.trim()));
+            return "✅ Plan B 起来了：SSID=AndroidAP 密码=carlife123（接口 "
+                    + iface + "，网关 192.168.43.1，DHCP "
+                    + (dhcp ? "已起，手机直接连" : "未起——手机连上需手动配 IP 192.168.43.2")
+                    + "）。注意：这会占用射频，投屏 P2P 会让路";
+        } catch (Throwable t) {
+            logFile(ctx, "Plan B 异常 " + t);
+            return "Plan B 异常：" + t + "（日志有详情，发我）";
+        }
+    }
+
     // ---------------------------------------------------------------- 日志
 
     static void logFile(Context ctx, String line) {

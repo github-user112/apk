@@ -450,12 +450,15 @@ UI 全部**代码构建**（不用布局 XML）；执行主体保持 smali，仅
 ## 四、构建
 
 ```bash
-bash BootTask/build.sh
+bash BootTask/build.sh          # Linux（本仓库 CI/开发机）
+bash BootTask/build_win.sh      # Windows Git Bash
 ```
 
-脚本在全新临时目录编译 smali，合并 CarLife 的 `LogDownloadActivity` / `LogHttpServer` 与
-BootTask 诊断类，注入未压缩二维码资源，最后仅做 v1 签名。默认产物：
-`BootTask/dist/BootTask_v1.3.apk`。
+两个脚本等价：全新临时目录编译**全部** Java 类（19 个，两处清单 cp+javac 同步维护——
+v1.6.22 修：旧 build.sh 只编 2 个类，Linux 侧此前必然打出残包），合并 apktool 的 smali dex，
+注入未压缩二维码资源，v1 签名 + verify。默认产物名跟随版本号。
+logxfer 是两工程共享外部源码（`02_补丁脚本/logxfer_src`），被移动/改名会让编译静默断掉——
+脚本已加提前断言。
 
 ## 五、安装与激活
 
@@ -576,3 +579,32 @@ v1.3 已通过 Java 编译、apktool 打包、反编译复核、ZIP 完整性与
 **实现要点**：
 - `P2pGuard.java`：START_STICKY 服务；`ip -f inet addr` 按 `数字: 接口名` 分段解析 inet；startService 是异步的，UI 点完按钮延迟 1.2s 再刷状态（否则读到旧值）；readLog/logFile 支持外部传 Context（守护没启动过时 sCtx 为 null）
 - 6.0+ ROM 上 disableNetwork 可能 SecurityException——捕获后写日志提示手动处理；车机 4.4 无此限制
+
+## v1.6.26 热点一键攻坚 + Linux build.sh 补全（零 adb 闭环）
+
+**背景**：10-09 车机日志分析后，「车机能不能开热点」一直没定论，每次都要连 adb 手动试；
+另外暴露 Linux `build.sh` 类清单不全的问题（只编 2 个类，Linux 侧此前必然打出缺类残包）。
+
+> 日志落盘路径问题（`hotspot_probe.txt` / `audio_monitor.txt` 进不了 zip）已在 **v1.6.25** 修复
+>（`migrateOldLog` 把历史日志搬进 `files/log/`），本版不再重复。
+
+**新增/修复**：
+
+- **一键攻坚按钮**（主界面热点分区，替代旧「尝试直接打开车机热点」）：
+  `HotspotProbe.attackOnce()` 一个按钮自动走完全套判定，全程落日志 + 弹窗结论：
+  1. 反射 `setWifiApEnabled(null,true)`（4.4 只需 CHANGE_WIFI_STATE）→ 等 8s → 读 AP 状态
+  2. ENABLED → 读 AP 配置（SSID/加密/密码）+ netcfg 查 192.168.43.x：
+     有 IP = ✅ 直接能连；无 IP = ⚠️ 缺 DHCP 层
+  3. 反射被拒且有 root → **Plan B**：探测网卡（ap0/wl0.1/wlan0）→ 写 wpa2 conf →
+     `hostapd -B` → `ifconfig <if> 192.168.43.1` → `dnsmasq` 发 DHCP → 回读 ps 确认
+  4. 无 root 且反射死 → 结论直接写「去开发者选项开 Root 再点一次」（eng 版有此项）
+  - 日志行以 `【攻坚结论】` 开头，扫码取 zip 后一眼定位；每步 su/hostapd 输出全落盘
+- **build.sh（Linux）修复**：类清单从 2 个补齐为全量 19 个，与 build_win.sh 对齐；
+  copytree 补排除 build_win.sh；默认产物名跟随版本号
+- **主界面 UI 重构**：分区卡片化 + 分隔线 + 层级标题，消除按钮堆叠（详见下方 UI 说明）
+
+**零 adb 工作流**：手机传 APK（18082 扫码上传+装）→ 车机开 BootTask 点「一键攻坚」→
+18081 扫码下载 boottask-logs.zip → 发回分析。全程不用 adb。
+
+**验证**：本机 Linux 构建；dex 含全部类 + 新字符串（一键攻坚/攻坚结论/hostapd/dnsmasq）；
+签名 v1 证书与旧版一致（CN=BootTask），versionCode 33 / 1.6.26。

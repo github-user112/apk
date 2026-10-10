@@ -330,7 +330,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
         root.addView(hsToggleButton, matchWrap());
 
         hsApButton = new Button(this);
-        hsApButton.setText("尝试直接打开车机热点（免 root）");
+        hsApButton.setText("一键攻坚：自动开热点（反射→root hostapd→结论落日志）");
         hsApButton.setOnClickListener(this);
         root.addView(hsApButton, matchWrap());
 
@@ -342,9 +342,9 @@ public class MainActivity extends Activity implements View.OnClickListener,
         root.addView(hsStatusText, hssLp);
 
         TextView hsHint = new TextView(this);
-        hsHint.setText("用法：先开蹲守，再去车机设置里打开热点（或点上面按钮）——状态每变一次，"
-                + "自动抓 getprop/netcfg/logcat 落日志。日志在 /sdcard/boottask/hotspot_probe.log，"
-                + "也可从手机文件管理页直接取走发我分析。");
+        hsHint.setText("用法：点上面「一键攻坚」自动走完 反射开热点→hostapd→DHCP 全套判定，"
+                + "结论直接弹窗+落日志；想抓变化过程就先开蹲守再去设置里手动开热点。"
+                + "日志已随 boottask-logs.zip 打包（18081 扫码下载），发我分析即可，全程不需要 adb。");
         hsHint.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
         hsHint.setTextColor(Color.rgb(120, 120, 120));
         LinearLayout.LayoutParams hshLp = matchWrap();
@@ -886,10 +886,13 @@ public class MainActivity extends Activity implements View.OnClickListener,
             return;
         }
         if (v == hsApButton) {
-            Toast.makeText(this, "正在尝试开热点…", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "一键攻坚进行中（约 15~30 秒，含 hostapd 启动等待）…",
+                    Toast.LENGTH_LONG).show();
             new Thread(new Runnable() {
                 public void run() {
-                    final String r = HotspotProbe.ensureOn(MainActivity.this);
+                    // v1.6.22：换成 attackOnce——反射失败且有 root 时自动改走 hostapd 方案，
+                    // 全程落日志，结论行以【攻坚结论】开头，扫码取日志即可远程判定
+                    final String r = HotspotProbe.attackOnce(MainActivity.this);
                     runOnUiThread(new Runnable() {
                         public void run() {
                             Toast.makeText(MainActivity.this, r, Toast.LENGTH_LONG).show();

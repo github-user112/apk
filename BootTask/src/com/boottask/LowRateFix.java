@@ -179,23 +179,26 @@ public final class LowRateFix {
                 String ssid = c.SSID == null ? "?" : c.SSID.replace("\"", "");
                 int id = c.networkId;
                 boolean done = false;
+                // v1.6.26：改「禁用优先」——removeNetwork 是永久删除，还原按钮恢复不了，
+                // 用户得重输密码；disableNetwork 同样掐断自动重连/后台扫描，但可逆。
+                // 只有禁用失败时才退化为删除（并在结果里说明）。
                 try {
-                    done = wm.removeNetwork(id);
+                    done = wm.disableNetwork(id);
+                    if (done) {
+                        disabled++;
+                        if (disabledIds.length() > 0) {
+                            disabledIds.append(',');
+                        }
+                        disabledIds.append(id);
+                    }
                 } catch (Throwable ignored) {
                     done = false;
                 }
-                if (done) {
-                    removed++;
-                } else {
-                    // 退化：禁用。禁用的网络不会参与自动重连/后台扫描关联
+                if (!done) {
                     try {
-                        done = wm.disableNetwork(id);
+                        done = wm.removeNetwork(id);
                         if (done) {
-                            disabled++;
-                            if (disabledIds.length() > 0) {
-                                disabledIds.append(',');
-                            }
-                            disabledIds.append(id);
+                            removed++;
                         }
                     } catch (Throwable ignored) {
                         done = false;
@@ -212,9 +215,13 @@ public final class LowRateFix {
             ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
                     .edit().putString(KEY_DISABLED, disabledIds.toString()).commit();
             StringBuilder r = new StringBuilder("[保存网络]共").append(all.size())
-                    .append("个:删").append(removed).append("/禁").append(disabled)
+                    .append("个:禁").append(disabled).append("/删").append(removed)
                     .append("/失败").append(failed)
                     .append(" (").append(names).append(")");
+            if (removed > 0) {
+                r.append(" ⚠ 禁用失败被删的 ").append(removed)
+                        .append(" 个无法自动还原，需在 设置→WLAN 重输密码");
+            }
             if (failed > 0) {
                 r.append(" ⚠ 失败的请去 设置→WLAN 手动\"取消保存\"");
             }

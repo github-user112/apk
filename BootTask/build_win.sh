@@ -52,33 +52,21 @@ PY
 mkdir -p \
     "$WORK/classes" "$WORK/merged" "$WORK/assets/logxfer" \
     "$WORK/java/com/boottask" "$WORK/java/com/baidu/carlifevehicle/logxfer"
-cp "$PROJECT/src/com/boottask/BootDiagnostics.java" "$WORK/java/com/boottask/BootDiagnostics.java"
-cp "$PROJECT/src/com/boottask/AdvActions.java" "$WORK/java/com/boottask/AdvActions.java"
-cp "$PROJECT/src/com/boottask/MainActivity.java" "$WORK/java/com/boottask/MainActivity.java"
-cp "$PROJECT/src/com/boottask/MediaMute.java" "$WORK/java/com/boottask/MediaMute.java"
-cp "$PROJECT/src/com/boottask/MuteGuard.java" "$WORK/java/com/boottask/MuteGuard.java"
-cp "$PROJECT/src/com/boottask/QuickRepair.java" "$WORK/java/com/boottask/QuickRepair.java"
-cp "$PROJECT/src/com/boottask/NoRootFixes.java" "$WORK/java/com/boottask/NoRootFixes.java"
-cp "$PROJECT/src/com/boottask/P2pGuard.java" "$WORK/java/com/boottask/P2pGuard.java"
-cp "$PROJECT/src/com/boottask/HotspotProbe.java" "$WORK/java/com/boottask/HotspotProbe.java"
-cp "$PROJECT/src/com/boottask/WifiRateProbe.java" "$WORK/java/com/boottask/WifiRateProbe.java"
-cp "$PROJECT/src/com/boottask/LowRateFix.java" "$WORK/java/com/boottask/LowRateFix.java"
-cp "$PROJECT/src/com/boottask/AudioMonitor.java" "$WORK/java/com/boottask/AudioMonitor.java"
-cp "$PROJECT/src/com/boottask/BootAudioReceiver.java" "$WORK/java/com/boottask/BootAudioReceiver.java"
-cp "$PROJECT/src/com/boottask/UploadServer.java" "$WORK/java/com/boottask/UploadServer.java"
-cp "$PROJECT/src/com/boottask/ApkInstaller.java" "$WORK/java/com/boottask/ApkInstaller.java"
-cp "$PROJECT/src/com/boottask/ReceiveActivity.java" "$WORK/java/com/boottask/ReceiveActivity.java"
-cp "$PROJECT/src/com/boottask/AppManager.java" "$WORK/java/com/boottask/AppManager.java"
-cp "$PROJECT/src/com/boottask/FileOps.java" "$WORK/java/com/boottask/FileOps.java"
-cp "$PROJECT/src/com/boottask/ShareServer.java" "$WORK/java/com/boottask/ShareServer.java"
-cp "$PROJECT/src/com/boottask/FileManagerActivity.java" "$WORK/java/com/boottask/FileManagerActivity.java"
-cp "$PROJECT/src/com/boottask/FileShareActivity.java" "$WORK/java/com/boottask/FileShareActivity.java"
-cp "$LOGXFER/java/com/baidu/carlifevehicle/logxfer/LogDownloadActivity.java" \
-    "$WORK/java/com/baidu/carlifevehicle/logxfer/LogDownloadActivity.java"
-cp "$LOGXFER/java/com/baidu/carlifevehicle/logxfer/NetWatch.java" \
-    "$WORK/java/com/baidu/carlifevehicle/logxfer/NetWatch.java"
-cp "$LOGXFER/java/com/baidu/carlifevehicle/logxfer/LogHttpServer.java" \
-    "$WORK/java/com/baidu/carlifevehicle/logxfer/LogHttpServer.java"
+# v1.6.26 根治：不再手工维护类清单——glob 全量拷贝 + 全量编译。
+cp "$PROJECT"/src/com/boottask/*.java "$WORK/java/com/boottask/"
+cp "$LOGXFER"/java/com/baidu/carlifevehicle/logxfer/*.java \
+    "$WORK/java/com/baidu/carlifevehicle/logxfer/"
+# logxfer_src 混装两工程源码：剔除 CarLife 专属类（Qr* 依赖 API17+ @JavascriptInterface，
+# BootTask 的 stub android.jar 没有；BtGuard/LogXferEntry/NoBtFallback/SessionLog 用不到）。
+# 详细说明见 build.sh 同位置注释。
+rm -f \
+    "$WORK/java/com/baidu/carlifevehicle/logxfer/QrBadge.java" \
+    "$WORK/java/com/baidu/carlifevehicle/logxfer/QrFallback.java" \
+    "$WORK/java/com/baidu/carlifevehicle/logxfer/QrFallbackActivity.java" \
+    "$WORK/java/com/baidu/carlifevehicle/logxfer/BtGuard.java" \
+    "$WORK/java/com/baidu/carlifevehicle/logxfer/LogXferEntry.java" \
+    "$WORK/java/com/baidu/carlifevehicle/logxfer/NoBtFallback.java" \
+    "$WORK/java/com/baidu/carlifevehicle/logxfer/SessionLog.java"
 
 python3 - "$WORK/java" <<'PY'
 import pathlib
@@ -104,33 +92,12 @@ text = replace_exact(text, "CarLife 车机日志下载", "开机任务日志下�
 activity.write_text(text, encoding="utf-8")
 PY
 
+# 全量编译（glob，见上方说明——不再手工列清单）
+# shellcheck disable=SC2046
 javac -encoding UTF-8 -source 8 -target 8 \
     -classpath "$ANDROID_JAR" \
     -d "$WORK/classes" \
-    "$WORK/java/com/boottask/BootDiagnostics.java" \
-    "$WORK/java/com/boottask/AdvActions.java" \
-    "$WORK/java/com/boottask/MainActivity.java" \
-    "$WORK/java/com/boottask/MediaMute.java" \
-    "$WORK/java/com/boottask/MuteGuard.java" \
-    "$WORK/java/com/boottask/QuickRepair.java" \
-    "$WORK/java/com/boottask/NoRootFixes.java" \
-    "$WORK/java/com/boottask/P2pGuard.java" \
-    "$WORK/java/com/boottask/HotspotProbe.java" \
-    "$WORK/java/com/boottask/WifiRateProbe.java" \
-    "$WORK/java/com/boottask/LowRateFix.java" \
-    "$WORK/java/com/boottask/AudioMonitor.java" \
-    "$WORK/java/com/boottask/BootAudioReceiver.java" \
-    "$WORK/java/com/boottask/UploadServer.java" \
-    "$WORK/java/com/boottask/ApkInstaller.java" \
-    "$WORK/java/com/boottask/ReceiveActivity.java" \
-    "$WORK/java/com/boottask/AppManager.java" \
-    "$WORK/java/com/boottask/FileOps.java" \
-    "$WORK/java/com/boottask/ShareServer.java" \
-    "$WORK/java/com/boottask/FileManagerActivity.java" \
-    "$WORK/java/com/boottask/FileShareActivity.java" \
-    "$WORK/java/com/baidu/carlifevehicle/logxfer/LogDownloadActivity.java" \
-    "$WORK/java/com/baidu/carlifevehicle/logxfer/NetWatch.java" \
-    "$WORK/java/com/baidu/carlifevehicle/logxfer/LogHttpServer.java"
+    $(find "$WORK/java" -name '*.java' | sort)
 
 CLASS_FILES=("$WORK"/classes/com/boottask/*.class "$WORK"/classes/com/baidu/carlifevehicle/logxfer/*.class)
 

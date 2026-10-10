@@ -3,7 +3,6 @@ package com.boottask;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
 
@@ -56,7 +55,6 @@ public class WifiRateProbe extends Service {
     private static volatile String sTarget = "";
 
     private volatile boolean mStop = false;
-    private final Handler mHandler = new Handler();
 
     public static boolean isRunning() {
         return sRunning;
@@ -102,7 +100,10 @@ public class WifiRateProbe extends Service {
         mStop = false;
         migrateOldLog();   // v1.6.25：把旧版写在 getFilesDir() 根的历史日志搬进 log/（打包器只收 log/）
         logFile("=== 速率低探测启动 ===");
-        mHandler.post(new Runnable() {
+        // v1.6.26 修 P0：原来 mHandler.post 会把 runProbe 跑在**主线程**上——
+        // pingLoop 阻塞最长 120 秒，App 直接冻结/ANR（点完按钮整页无响应）。
+        // 探测是纯后台任务（只写日志、不动 UI），改独立线程。
+        new Thread(new Runnable() {
             public void run() {
                 try {
                     runProbe();
@@ -114,7 +115,7 @@ public class WifiRateProbe extends Service {
                     stopSelf();
                 }
             }
-        });
+        }, "WifiRateProbe").start();
     }
 
     @Override
@@ -171,26 +172,46 @@ public class WifiRateProbe extends Service {
         // ---- ③ 缓解建议 ----
         advice(st);
 
-        sLast = readLog();
         logFile("");
         logFile("=== 探测结束 ===");
+        sLast = readLog();   // v1.6.26：放最后——原来在结束行之前取，UI 永远缺最后一行
         Log.i(TAG, "wifi rate probe done");
     }
 
-    /** 每 2 秒 ping 一次（和亿连同周期），返回统计 */
+    /**
+     * 每 2 秒 ping 一次（和亿连同周期），返回统计
+     * v1.6.26：失败样本按超时计——原来失败也拿墙钟当 RTT，会**假阴性**报「链路良好」。
+     */
     private RttStats pingLoop(String ip, int durSec) {
         RttStats st = new RttStats();
         long end = System.currentTimeMillis() + durSec * 1000L;
         int seq = 0;
+        boolean noPingLogged = false;
         logFile("  t(s)   RTT(ms)");
         while (System.currentTimeMillis() < end && !mStop) {
             long t0 = System.currentTimeMillis();
-            int r = pingOnce(ip);
-            long dt = System.currentTimeMillis() - t0;
+            int rtt = pingRtt(ip);
+            if (rtt == -2 && !noPingLogged) {
+                // ping 命令都执行不了（无此二进制）：继续按失败计，但把话说清楚
+                noPingLogged = true;
+                logFile("  ⚠ 本机 ping 命令不可用，后续样本全部按「失败」计——"
+                        + "结论会偏悲观，需换手段验证");
+            }
             seq++;
             st.total++;
-            st.add((int) dt);
-            boolean over = dt > 200;
+            boolean over;
+            if (rtt < 0) {
+                // -1 = ping 执行了但失败/无应答（rc!=0 或没解析出 time=）→ 按超时算
+                st.add(999);
+                st.timeout++;
+                over = true;
+            } else {
+                st.add(rtt);
+                over = rtt > 200;
+                if (rtt >= 250) {
+                    st.timeout++;   // 成功应答但超过 250ms 也算「超时级」劣化
+                }
+            }
             if (over) {
                 st.over200++;
                 st.streak++;
@@ -200,13 +221,11 @@ public class WifiRateProbe extends Service {
             } else {
                 st.streak = 0;
             }
-            if (dt >= 250) {
-                st.timeout++;
-            }
             // 前 30 次全打，之后每 5 次打一次（免日志爆炸）
             if (seq <= 30 || seq % 5 == 0) {
-                logFile("  " + (seq * 2) + "     " + dt + (over ? "  ← 超200" : "")
-                        + (r == 0 ? "" : "  (ping rc=" + r + ")"));
+                logFile("  " + (seq * 2) + "     "
+                        + (rtt < 0 ? "FAIL(超时)" : rtt + "ms")
+                        + (over && rtt >= 0 ? "  ← 超200" : ""));
             }
             long sleep = 2000L - (System.currentTimeMillis() - t0);
             if (sleep > 0) {
@@ -221,32 +240,61 @@ public class WifiRateProbe extends Service {
     }
 
     /**
-     * 用系统 ping（4.4 toolbox 有 ping，无 -c 也支持 -W）。
-     * 拿不到就退化为纯 socket 探测。
+     * 系统 ping 单次测 RTT（4.4 toolbox 有 ping）。
+     * @return >=0 实测 RTT 毫秒（优先解析输出 time=，拿不到退回进程总耗时）；
+     *         -1 = ping 执行了但失败（参数不支持 / 无应答）；
+     *         -2 = ping 根本执行不了（二进制不存在）
      */
-    private int pingOnce(String ip) {
-        // 优先系统 ping：输出里有 time= 就直接读
+    private int pingRtt(String ip) {
+        Process p;
+        long t0 = System.currentTimeMillis();
         try {
-            Process p = Runtime.getRuntime().exec(new String[]{"ping", "-c", "1", "-W", "1", ip});
-            p.waitFor();
+            p = Runtime.getRuntime().exec(new String[]{"ping", "-c", "1", "-W", "1", ip});
+        } catch (Throwable t) {
+            return -2;
+        }
+        try {
+            // 先读输出再 waitFor：避免管道缓冲区塞满导致死锁（虽然 ping -c1 输出很小）
+            StringBuilder sb = new StringBuilder();
             BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
             String line;
             while ((line = br.readLine()) != null) {
-                int i = line.indexOf("time=");
-                if (i >= 0) {
-                    // time=12.3 ms  → 只取小数毫秒（微秒换算太麻烦，够了）
-                    String sub = line.substring(i + 5).trim();
-                    int end = sub.indexOf(' ');
-                    if (end > 0) {
-                        sub = sub.substring(0, end);
-                    }
-                    break;
-                }
+                sb.append(line).append('\n');
             }
             br.close();
-            return 0;
+            int rc = p.waitFor();
+            String out = sb.toString();
+            // 优先解析 time=12.3 ms（真正的往返时延）
+            int i = out.indexOf("time=");
+            if (i >= 0) {
+                String sub = out.substring(i + 5).trim();
+                int sp = sub.indexOf(' ');
+                if (sp > 0) {
+                    sub = sub.substring(0, sp);
+                }
+                try {
+                    // 只取整数部分（"12.3"→12）；带小数的直接截断
+                    int dot = sub.indexOf('.');
+                    if (dot > 0) {
+                        sub = sub.substring(0, dot);
+                    }
+                    return Integer.parseInt(sub);
+                } catch (NumberFormatException ignored) {
+                    // 解析不了就落到下面按 rc 判
+                }
+            }
+            if (rc == 0) {
+                // rc=0 但没 time=（输出格式差异）：退回进程总耗时（含进程启动开销，够用）
+                return (int) (System.currentTimeMillis() - t0);
+            }
+            return -1;
         } catch (Throwable t) {
             return -1;
+        } finally {
+            try {
+                p.destroy();
+            } catch (Throwable ignored) {
+            }
         }
     }
 
@@ -262,7 +310,11 @@ public class WifiRateProbe extends Service {
             if (!t.startsWith("192.168.49.")) {
                 continue;
             }
-            String ip = t.substring(0, t.indexOf(' '));
+            int sp = t.indexOf(' ');
+            if (sp <= 0) {
+                continue;   // v1.6.26：无空格的畸形行 substring(-1) 会越界，跳过
+            }
+            String ip = t.substring(0, sp);
             if (ip.endsWith(".1")) {
                 continue;   // .1 是本机 GO
             }

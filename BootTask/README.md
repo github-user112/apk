@@ -185,7 +185,7 @@ FM 响但音量由 MCU 旋钮控制（L0-3 已把音量拧到 0），或每次�
      还原：删 /etc/ec.conf 重启亿连。
 - 修复动作带时间戳追加到 `files/log/repair_history.txt`，诊断快照新增「一键修复历史」段（扫码即可回溯做没做过修复）。
 - MuMu 实测：versionCode 13，0 崩溃；无 root 时优雅提示（"su 不可用，修复未执行"）且历史落盘。
-- ⚠ build_win.sh 两处清单都要加新 Java 文件（cp 段 + javac 文件列表）——本次踩坑。
+- ⚠ build_win.sh 两处清单都要加新 Java 文件（cp 段 + javac 文件列表）——本次踩坑。（v1.6.26 起已改 glob 全量编译，不再需要）
 
 ### v1.6.5（合并《亿连V7.0.1 排查手册》的四个日志源）
 
@@ -454,9 +454,10 @@ bash BootTask/build.sh          # Linux（本仓库 CI/开发机）
 bash BootTask/build_win.sh      # Windows Git Bash
 ```
 
-两个脚本等价：全新临时目录编译**全部** Java 类（19 个，两处清单 cp+javac 同步维护——
-v1.6.22 修：旧 build.sh 只编 2 个类，Linux 侧此前必然打出残包），合并 apktool 的 smali dex，
-注入未压缩二维码资源，v1 签名 + verify。默认产物名跟随版本号。
+两个脚本等价：全新临时目录 **glob 全量拷贝 + 全量编译**（v1.6.26 起不再手工维护类清单——
+「两处清单都要加新类」的坑反复复发，glob 后新增文件自动进包；logxfer 共享目录里的
+CarLife 专属类拷入后剔除，公共类若反向依赖被剔类会编译报错 fail-loud），
+合并 apktool 的 smali dex，注入未压缩二维码资源，v1 签名 + verify。默认产物名跟随版本号。
 logxfer 是两工程共享外部源码（`02_补丁脚本/logxfer_src`），被移动/改名会让编译静默断掉——
 脚本已加提前断言。
 
@@ -580,31 +581,47 @@ v1.3 已通过 Java 编译、apktool 打包、反编译复核、ZIP 完整性与
 - `P2pGuard.java`：START_STICKY 服务；`ip -f inet addr` 按 `数字: 接口名` 分段解析 inet；startService 是异步的，UI 点完按钮延迟 1.2s 再刷状态（否则读到旧值）；readLog/logFile 支持外部传 Context（守护没启动过时 sCtx 为 null）
 - 6.0+ ROM 上 disableNetwork 可能 SecurityException——捕获后写日志提示手动处理；车机 4.4 无此限制
 
-## v1.6.26 热点一键攻坚 + Linux build.sh 补全（零 adb 闭环）
+## v1.6.26 热点一键攻坚 + Bug 大修 + 主界面卡片化重构
 
-**背景**：10-09 车机日志分析后，「车机能不能开热点」一直没定论，每次都要连 adb 手动试；
-另外暴露 Linux `build.sh` 类清单不全的问题（只编 2 个类，Linux 侧此前必然打出缺类残包）。
+**背景**：rebase 上游 v1.6.22~25 后做了一轮全量代码审查（WifiRateProbe / LowRateFix /
+MainActivity / HotspotProbe / FileShareActivity / AudioMonitor / BootDiagnostics / P2pGuard），
+修掉 6 个真 bug，并把主界面从「40+ 个按钮平铺」重构成分区卡片。
 
-> 日志落盘路径问题（`hotspot_probe.txt` / `audio_monitor.txt` 进不了 zip）已在 **v1.6.25** 修复
->（`migrateOldLog` 把历史日志搬进 `files/log/`），本版不再重复。
+### 一、审查修出的 Bug（P0×1 / P1×2 / P2×3）
 
-**新增/修复**：
+| 级别 | 文件 | 问题 | 修法 |
+|---|---|---|---|
+| **P0** | WifiRateProbe | `mHandler.post(runProbe)` 把**最长 120 秒**的 ping 循环跑在**主线程**——点「开始测 RTT」整页冻结直到 ANR | 改独立线程 `new Thread(...).start()`（探测只写日志，不动 UI） |
+| **P1** | WifiRateProbe | `pingOnce` 丢弃 rc、解析出的 `time=` 没用上；ping 失败（参数不支持/无二进制）时拿墙钟当 RTT → **假阴性报「链路良好」** | 重写 `pingRtt()`：优先解析 `time=`；rc≠0 按超时计；二进制不存在返回 -2 并在日志里明说 |
+| **P1** | LowRateFix | `clearSavedNetworks` 先 `removeNetwork`（**永久删除**，还原按钮恢复不了，用户要重输密码），与「还原恢复全部网络」文案矛盾 | 改**禁用优先**（disableNetwork 可逆、同样掐断自动重连），禁用失败才删并在结果里警告 |
+| P2 | WifiRateProbe | `findPeer()` 对无空格畸形行 `substring(-1)` 越界 → 整轮探测被 catch 吞掉 | 加 `indexOf(' ')<=0` 跳过 |
+| P2 | WifiRateProbe | `sLast` 在「探测结束」行之前取，UI 永远缺最后一行 | 移到收尾日志之后 |
+| P2 | MainActivity | 合并冲突残留：`@Override` 被并进注释行；一键攻坚按钮连点会起两个线程抢 hostapd | 拆回独立行；运行中 `setEnabled(false)` |
 
-- **一键攻坚按钮**（主界面热点分区，替代旧「尝试直接打开车机热点」）：
-  `HotspotProbe.attackOnce()` 一个按钮自动走完全套判定，全程落日志 + 弹窗结论：
-  1. 反射 `setWifiApEnabled(null,true)`（4.4 只需 CHANGE_WIFI_STATE）→ 等 8s → 读 AP 状态
-  2. ENABLED → 读 AP 配置（SSID/加密/密码）+ netcfg 查 192.168.43.x：
-     有 IP = ✅ 直接能连；无 IP = ⚠️ 缺 DHCP 层
-  3. 反射被拒且有 root → **Plan B**：探测网卡（ap0/wl0.1/wlan0）→ 写 wpa2 conf →
-     `hostapd -B` → `ifconfig <if> 192.168.43.1` → `dnsmasq` 发 DHCP → 回读 ps 确认
-  4. 无 root 且反射死 → 结论直接写「去开发者选项开 Root 再点一次」（eng 版有此项）
-  - 日志行以 `【攻坚结论】` 开头，扫码取 zip 后一眼定位；每步 su/hostapd 输出全落盘
-- **build.sh（Linux）修复**：类清单从 2 个补齐为全量 19 个，与 build_win.sh 对齐；
-  copytree 补排除 build_win.sh；默认产物名跟随版本号
-- **主界面 UI 重构**：分区卡片化 + 分隔线 + 层级标题，消除按钮堆叠（详见下方 UI 说明）
+### 二、主界面 UI 卡片化重构
 
-**零 adb 工作流**：手机传 APK（18082 扫码上传+装）→ 车机开 BootTask 点「一键攻坚」→
-18081 扫码下载 boottask-logs.zip → 发回分析。全程不用 adb。
+- 新增 `card(root, title, desc, right?)` / `addIn(card, v)` 辅助方法：**10 个分区全部改为
+  「白底圆角卡片 + 左侧 4dp 色条标题 + 说明文字置顶」**，按钮/状态卡在卡片内部
+- 说明文字从「按钮堆完后面跟一段灰字」移到标题下方——先看这区是干嘛的，再看按钮
+- 去掉裸分隔线、每区 topMargin 统一 10dp、卡内统一 6dp
+- 状态类 TextView（守护/探测/RTT/修复/监控）保留原字段与刷新逻辑，仅入卡片
+- 页面仍由 ScrollView 包裹（车机 1024×600 矮屏可滚）
 
-**验证**：本机 Linux 构建；dex 含全部类 + 新字符串（一键攻坚/攻坚结论/hostapd/dnsmasq）；
-签名 v1 证书与旧版一致（CN=BootTask），versionCode 33 / 1.6.26。
+### 三、构建管线根治：类清单改 glob
+
+- 「cp 段 + javac 段两处清单都要加新类」的坑反复复发（build.sh 曾长期停在 v1.5 的 2 个类，
+  本版刚补 19 个又立刻漏掉上游新增的 LowRateFix/WifiRateProbe → javac 报错才暴露）
+- **build.sh / build_win.sh 双双改为 `*.java` glob 拷贝 + `find` 全量编译**：新增文件自动进包
+- logxfer 共享目录里 CarLife 专属类（Qr* 依赖 API17 `@JavascriptInterface`、BtGuard/
+  LogXferEntry/NoBtFallback/SessionLog 用不到）拷入后 `rm -f` 剔除；公共类若反向依赖被剔类
+  会编译报错（**fail-loud**，不会静默出残包）
+
+### 四、一键攻坚（沿用本版另一提交，rebase 到 1.6.25 之上）
+
+`HotspotProbe.attackOnce()`：反射 setWifiApEnabled → 读 AP 状态/配置/netcfg 192.168.43.x；
+反射死且有 root 走 Plan B（探测网卡 → hostapd → ifconfig → dnsmasq）；结论行 `【攻坚结论】`
+全程落日志。零 adb 工作流：手机传 APK（18082）→ 车机点一键攻坚 → 18081 扫码取 zip。
+
+**验证**：Linux 构建通过；dex 含全部类（boottask 21 类 + logxfer 公共 3 类，共 122 个引用），
+QrBadge/BtGuard/SessionLog 已剔除；新字符串（一键攻坚/热点探测与一键攻坚/attackOnce）全在；
+versionCode 33 / 1.6.26；v1 证书 SHA-256 与历史版本一致。

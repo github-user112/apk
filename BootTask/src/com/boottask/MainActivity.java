@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -37,6 +38,9 @@ public class MainActivity extends Activity implements View.OnClickListener,
     /** 运行时是 org.json.JSONArray；编译期不可见，只经反射触达 */
     private Object arr;
     private int pending;
+
+    /** v1.6.26 UI 重构：所有分区卡片标题左侧色条统一用这个主色 */
+    private static final int ACCENT = Color.rgb(47, 111, 237);
     private Button logButton;
     private Button fixPsButton;
     private Button fixYilianButton;
@@ -111,415 +115,235 @@ public class MainActivity extends Activity implements View.OnClickListener,
         root.addView(rootText, rootLp);
 
         // ---- 分区一：我的规则 ----
-        LinearLayout ruleHead = new LinearLayout(this);
-        ruleHead.setOrientation(LinearLayout.HORIZONTAL);
-        TextView ruleLabel = new TextView(this);
-        ruleLabel.setText("我的规则");
-        ruleLabel.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
-        ruleLabel.setTypeface(Typeface.DEFAULT_BOLD);
-        ruleLabel.setTextColor(Color.rgb(51, 51, 51));
-        ruleHead.addView(ruleLabel, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         countText = new TextView(this);
         countText.setText("");
         countText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
         countText.setTextColor(Color.rgb(140, 140, 140));
         countText.setGravity(Gravity.RIGHT | Gravity.CENTER_VERTICAL);
-        ruleHead.addView(countText, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, 0f));
-        LinearLayout.LayoutParams ruleHeadLp = matchWrap();
-        ruleHeadLp.topMargin = dip(20);
-        root.addView(ruleHead, ruleHeadLp);
+        LinearLayout cRule = card(root, "我的规则",
+                "开机 / 亮屏 / 解锁事件 → 自动执行动作；点规则可删除或停用", countText);
 
         Button addBtn = new Button(this);
         addBtn.setText("＋ 添加规则");
         addBtn.setOnClickListener(this);
-        LinearLayout.LayoutParams addLp = matchWrap();
-        addLp.topMargin = dip(8);
-        root.addView(addBtn, addLp);
+        addIn(cRule, addBtn, dip(8));
 
         ListView lv = new ListView(this);
         lv.setCacheColorHint(Color.TRANSPARENT);
         lv.setDivider(new ColorDrawable(Color.rgb(224, 224, 224)));
         lv.setDividerHeight(dip(1));
-        // v1.6.11：按钮变多后车机屏（常见 1024x600 / 800x480）放不下 —— 
-        // 整页改为 ScrollView 包裹，列表给固定高度（weight+ScrollView 会互相抢高度）
+        // 列表给固定高度（整页是 ScrollView，weight+ScrollView 会互相抢高度）
         LinearLayout.LayoutParams lvLp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, dip(150));
-        lvLp.topMargin = dip(8);
-        root.addView(lv, lvLp);
+        lvLp.topMargin = dip(6);
+        cRule.addView(lv, lvLp);
         this.lv = lv;
 
         // ---- 分区二：开机静音（v1.6.10 一键，无需手动配规则）----
-        TextView muteLabel = new TextView(this);
-        muteLabel.setText("开机静音");
-        muteLabel.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
-        muteLabel.setTypeface(Typeface.DEFAULT_BOLD);
-        muteLabel.setTextColor(Color.rgb(51, 51, 51));
-        LinearLayout.LayoutParams muteLp = matchWrap();
-        muteLp.topMargin = dip(12);
-        root.addView(muteLabel, muteLp);
+        LinearLayout cMute = card(root, "开机静音",
+                "FM 走 MCU 直连功放时静音管不到 → 用「抢占音源」抢回来。");
 
         muteNowButton = new Button(this);
         muteNowButton.setText("立即静音（马上验证能不能管住 FM）");
         muteNowButton.setOnClickListener(this);
-        LinearLayout.LayoutParams mnLp = matchWrap();
-        mnLp.topMargin = dip(6);
-        root.addView(muteNowButton, mnLp);
+        addIn(cMute, muteNowButton);
 
         claimButton = new Button(this);
         claimButton.setText("抢占音源：播 0.6 秒静音（FM 不受静音控制时用）");
         claimButton.setOnClickListener(this);
-        LinearLayout.LayoutParams cbLp = matchWrap();
-        cbLp.topMargin = dip(4);
-        root.addView(claimButton, cbLp);
+        addIn(cMute, claimButton);
 
         bootMuteButton = new Button(this);
         bootMuteButton.setText("设置开机自动静音（开机 15 秒后执行）");
         bootMuteButton.setOnClickListener(this);
-        LinearLayout.LayoutParams bmSetLp = matchWrap();
-        bmSetLp.topMargin = dip(4);
-        root.addView(bootMuteButton, bmSetLp);
+        addIn(cMute, bootMuteButton);
 
         bootMuteOffButton = new Button(this);
         bootMuteOffButton.setText("取消开机自动静音");
         bootMuteOffButton.setOnClickListener(this);
-        LinearLayout.LayoutParams bmOffLp = matchWrap();
-        bmOffLp.topMargin = dip(4);
-        root.addView(bootMuteOffButton, bmOffLp);
+        addIn(cMute, bootMuteOffButton);
 
         // ---- 分区三：免 root 也能做（v1.6.13）----
-        TextView nrLabel = new TextView(this);
-        nrLabel.setText("免 root 也能做（不提权、不改系统文件）");
-        nrLabel.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
-        nrLabel.setTypeface(Typeface.DEFAULT_BOLD);
-        nrLabel.setTextColor(Color.rgb(51, 51, 51));
-        LinearLayout.LayoutParams nrLp = matchWrap();
-        nrLp.topMargin = dip(16);
-        root.addView(nrLabel, nrLp);
-
-        TextView nrHint = new TextView(this);
-        nrHint.setText("车机没 root 时，下面这些照样有效；写 /etc/ec.conf 那类必须 root 的活，"
-                + "看最后一个按钮里的 adb 命令清单。");
-        nrHint.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
-        nrHint.setTextColor(Color.rgb(120, 120, 120));
-        LinearLayout.LayoutParams nrHintLp = matchWrap();
-        nrHintLp.topMargin = dip(4);
-        root.addView(nrHint, nrHintLp);
+        LinearLayout cNr = card(root, "免 root 工具",
+                "不提权、不改系统文件；写 /etc/ec.conf 那类必须 root 的活，"
+                        + "看最后一个按钮里的 adb 命令清单。");
 
         noRootWifiButton = new Button(this);
         noRootWifiButton.setText("高性能 WiFi 锁（免 root 版关省电）");
         noRootWifiButton.setOnClickListener(this);
-        LinearLayout.LayoutParams nwLp = matchWrap();
-        nwLp.topMargin = dip(6);
-        root.addView(noRootWifiButton, nwLp);
+        addIn(cNr, noRootWifiButton);
 
         noRootYilianButton = new Button(this);
         noRootYilianButton.setText("重启亿连 / 打开亿连设置（免 root）");
         noRootYilianButton.setOnClickListener(this);
-        LinearLayout.LayoutParams nyLp = matchWrap();
-        nyLp.topMargin = dip(4);
-        root.addView(noRootYilianButton, nyLp);
+        addIn(cNr, noRootYilianButton);
 
         noRootSettingsButton = new Button(this);
         noRootSettingsButton.setText("打开系统设置（蓝牙/WiFi/显示/开发者选项）");
         noRootSettingsButton.setOnClickListener(this);
-        LinearLayout.LayoutParams nsLp = matchWrap();
-        nsLp.topMargin = dip(4);
-        root.addView(noRootSettingsButton, nsLp);
+        addIn(cNr, noRootSettingsButton);
 
         adbSheetButton = new Button(this);
         adbSheetButton.setText("root 命令清单（电脑上 adb 执行，效果同上）");
         adbSheetButton.setOnClickListener(this);
-        LinearLayout.LayoutParams asLp = matchWrap();
-        asLp.topMargin = dip(4);
-        root.addView(adbSheetButton, asLp);
+        addIn(cNr, adbSheetButton);
 
         // ---- 分区四：文件管理（v1.6.15：手机遥控 + 车机本地）----
-        TextView rcvLabel = new TextView(this);
-        rcvLabel.setText("文件管理");
-        rcvLabel.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
-        rcvLabel.setTypeface(Typeface.DEFAULT_BOLD);
-        rcvLabel.setTextColor(Color.rgb(51, 51, 51));
-        LinearLayout.LayoutParams rcLp = matchWrap();
-        rcLp.topMargin = dip(16);
-        root.addView(rcvLabel, rcLp);
+        LinearLayout cFile = card(root, "文件管理",
+                "推荐第一条：车机只显示二维码，浏览/上传/下载/改名/删除/装 APK"
+                        + "全在手机浏览器里做（车机输入法太难受）。root 模式下能改 /system、/etc。");
 
         fileShareButton = new Button(this);
         fileShareButton.setText("📱 手机遥控车机文件（推荐·扫码）");
         fileShareButton.setOnClickListener(this);
-        LinearLayout.LayoutParams fsLp = matchWrap();
-        fsLp.topMargin = dip(6);
-        root.addView(fileShareButton, fsLp);
+        addIn(cFile, fileShareButton);
 
         fileMgrButton = new Button(this);
         fileMgrButton.setText("车机本地文件管理器");
         fileMgrButton.setOnClickListener(this);
-        LinearLayout.LayoutParams fmgrLp = matchWrap();
-        fmgrLp.topMargin = dip(4);
-        root.addView(fileMgrButton, fmgrLp);
+        addIn(cFile, fileMgrButton);
 
         recvButton = new Button(this);
         recvButton.setText("接收 APK 并安装（手机扫码上传）");
         recvButton.setOnClickListener(this);
-        LinearLayout.LayoutParams rcvLp = matchWrap();
-        rcvLp.topMargin = dip(4);
-        root.addView(recvButton, rcvLp);
-
-        TextView rcvHint = new TextView(this);
-        rcvHint.setText("推荐第一条：车机只显示二维码，浏览/上传/下载/改名/删除/装 APK"
-                + "全在手机浏览器里做（车机输入法太难受）。root 模式下能改 /system、/etc。");
-        rcvHint.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
-        rcvHint.setTextColor(Color.rgb(120, 120, 120));
-        LinearLayout.LayoutParams rcHintLp = matchWrap();
-        rcHintLp.topMargin = dip(4);
-        root.addView(rcvHint, rcHintLp);
+        addIn(cFile, recvButton);
 
         // ---- 分区四点五：直连保护（v1.6.17）----
-        TextView guardLabel = new TextView(this);
-        guardLabel.setText("直连保护（防热点双连断联）");
-        guardLabel.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
-        guardLabel.setTypeface(Typeface.DEFAULT_BOLD);
-        guardLabel.setTextColor(Color.rgb(51, 51, 51));
-        LinearLayout.LayoutParams gLp = matchWrap();
-        gLp.topMargin = dip(16);
-        root.addView(guardLabel, gLp);
+        LinearLayout cGuard = card(root, "直连保护（防热点双连断联）",
+                "原理：直连组活跃时若 wlan0 连上热点（单射频双连 → 速率低 → 断联），"
+                        + "自动断开并禁用该热点（配置保留）。用热点模式前先点恢复。免 root。");
 
         guardToggleButton = new Button(this);
         guardToggleButton.setOnClickListener(this);
-        root.addView(guardToggleButton, matchWrap());
+        addIn(cGuard, guardToggleButton);
 
         guardNowButton = new Button(this);
         guardNowButton.setText("立即检查并断开热点（单次）");
         guardNowButton.setOnClickListener(this);
-        root.addView(guardNowButton, matchWrap());
+        addIn(cGuard, guardNowButton);
 
         guardRestoreButton = new Button(this);
         guardRestoreButton.setText("恢复热点自动连接（热点模式前用）");
         guardRestoreButton.setOnClickListener(this);
-        root.addView(guardRestoreButton, matchWrap());
+        addIn(cGuard, guardRestoreButton);
 
         guardStatusText = new TextView(this);
         guardStatusText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
         guardStatusText.setTextColor(Color.rgb(90, 90, 90));
-        LinearLayout.LayoutParams gsLp = matchWrap();
-        gsLp.topMargin = dip(4);
-        root.addView(guardStatusText, gsLp);
+        addIn(cGuard, guardStatusText);
 
-        TextView guardHint = new TextView(this);
-        guardHint.setText("原理：直连组活跃时若 wlan0 连上热点（单射频双连 → 速率低 → 断联），"
-                + "自动断开并禁用该热点（配置保留）。用热点模式前先点恢复。免 root。");
-        guardHint.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
-        guardHint.setTextColor(Color.rgb(120, 120, 120));
-        LinearLayout.LayoutParams ghLp = matchWrap();
-        ghLp.topMargin = dip(4);
-        root.addView(guardHint, ghLp);
-
-        // ---- 分区四点七：热点探测蹲守（v1.6.20）----
-        TextView hsLabel = new TextView(this);
-        hsLabel.setText("热点探测（SoftAP 诊断蹲守）");
-        hsLabel.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
-        hsLabel.setTypeface(Typeface.DEFAULT_BOLD);
-        hsLabel.setTextColor(Color.rgb(51, 51, 51));
-        LinearLayout.LayoutParams hsLp = matchWrap();
-        hsLp.topMargin = dip(16);
-        root.addView(hsLabel, hsLp);
+        // ---- 分区四点七：热点探测蹲守（v1.6.20）+ 一键攻坚（v1.6.26）----
+        LinearLayout cHs = card(root, "热点探测与一键攻坚",
+                "点「一键攻坚」自动走完 反射开热点→hostapd→DHCP 全套判定，"
+                        + "结论直接弹窗+落日志；想抓变化过程就先开蹲守再去设置里手动开热点。"
+                        + "日志已随 boottask-logs.zip 打包（18081 扫码下载），全程不需要 adb。");
 
         hsToggleButton = new Button(this);
         hsToggleButton.setOnClickListener(this);
-        root.addView(hsToggleButton, matchWrap());
+        addIn(cHs, hsToggleButton);
 
         hsApButton = new Button(this);
         hsApButton.setText("一键攻坚：自动开热点（反射→root hostapd→结论落日志）");
         hsApButton.setOnClickListener(this);
-        root.addView(hsApButton, matchWrap());
+        addIn(cHs, hsApButton);
 
         hsStatusText = new TextView(this);
         hsStatusText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
         hsStatusText.setTextColor(Color.rgb(90, 90, 90));
-        LinearLayout.LayoutParams hssLp = matchWrap();
-        hssLp.topMargin = dip(4);
-        root.addView(hsStatusText, hssLp);
-
-        TextView hsHint = new TextView(this);
-        hsHint.setText("用法：点上面「一键攻坚」自动走完 反射开热点→hostapd→DHCP 全套判定，"
-                + "结论直接弹窗+落日志；想抓变化过程就先开蹲守再去设置里手动开热点。"
-                + "日志已随 boottask-logs.zip 打包（18081 扫码下载），发我分析即可，全程不需要 adb。");
-        hsHint.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
-        hsHint.setTextColor(Color.rgb(120, 120, 120));
-        LinearLayout.LayoutParams hshLp = matchWrap();
-        hshLp.topMargin = dip(4);
-        root.addView(hsHint, hshLp);
+        addIn(cHs, hsStatusText);
 
         // ---- 分区四点九：WLAN 速率低诊断（v1.6.24）----
-        TextView wrLabel = new TextView(this);
-        wrLabel.setText("WLAN 速率低诊断（复刻亿连判定）");
-        wrLabel.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
-        wrLabel.setTypeface(Typeface.DEFAULT_BOLD);
-        wrLabel.setTextColor(Color.rgb(51, 51, 51));
-        LinearLayout.LayoutParams wrLp = matchWrap();
-        wrLp.topMargin = dip(16);
-        root.addView(wrLabel, wrLp);
+        LinearLayout cWr = card(root, "WLAN 速率低诊断（复刻亿连判定）",
+                "亿连弹「WiFi传输速率低」的真实条件：每 2 秒 ping 一次对端，"
+                        + "单次往返 >200ms 记一次，连续 3 次（约 6 秒）就弹 —— 测的是延迟不是带宽。\n"
+                        + "★用法：投屏正常时点开始，然后正常使用导航；测完直接告诉你"
+                        + "「够不够触发弹窗」。");
 
         wrProbeButton = new Button(this);
         wrProbeButton.setText("开始测 RTT（120 秒）");
         wrProbeButton.setOnClickListener(this);
-        root.addView(wrProbeButton, matchWrap());
+        addIn(cWr, wrProbeButton);
 
         wrShortButton = new Button(this);
         wrShortButton.setText("短测 30 秒（快速验证）");
         wrShortButton.setOnClickListener(this);
-        root.addView(wrShortButton, matchWrap());
+        addIn(cWr, wrShortButton);
 
         wrStatusText = new TextView(this);
         wrStatusText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
         wrStatusText.setTextColor(Color.rgb(90, 90, 90));
-        LinearLayout.LayoutParams wrsLp = matchWrap();
-        wrsLp.topMargin = dip(4);
-        root.addView(wrStatusText, wrsLp);
-
-        TextView wrHint = new TextView(this);
-        wrHint.setText("亿连弹「WiFi传输速率低」的真实条件：每 2 秒 ping 一次对端，"
-                + "单次往返 >200ms 记一次，连续 3 次（约 6 秒）就弹 —— 测的是延迟不是带宽。"
-                + "本按钮在车机上复刻同一判定并记录全部样本，"
-                + "直接告诉你「够不够触发弹窗」。\n"
-                + "★用法：投屏正常时点开始，然后正常使用导航；再点一次短测对比。"
-                + "日志在手机文件管理页 /sdcard/boottask/ 可取（或日志下载页）。");
-        wrHint.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
-        wrHint.setTextColor(Color.rgb(120, 120, 120));
-        LinearLayout.LayoutParams wrhLp = matchWrap();
-        wrhLp.topMargin = dip(4);
-        root.addView(wrHint, wrhLp);
+        addIn(cWr, wrStatusText);
 
         // ---- 分区四点九五：低速断连一站式修复（v1.6.25）----
-        TextView lrfLabel = new TextView(this);
-        lrfLabel.setText("低速断连一站式修复（免 root）");
-        lrfLabel.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
-        lrfLabel.setTypeface(Typeface.DEFAULT_BOLD);
-        lrfLabel.setTextColor(Color.rgb(51, 51, 51));
-        LinearLayout.LayoutParams lrfLp = matchWrap();
-        lrfLp.topMargin = dip(16);
-        root.addView(lrfLabel, lrfLp);
+        LinearLayout cLrf = card(root, "低速断连一站式修复（免 root）",
+                "一键做完全部免 root 缓解：①关蓝牙（防 2.4G 争抢）②禁用已保存 WiFi 网络"
+                        + "（掐断后台扫描重连——头号嫌疑）③高性能 WiFi 锁 ④开直连保护（防热点双连）。"
+                        + "做完直接投屏 15 分钟：不弹「速率低」= 根因已消；还弹 = GO 负担，转手机热点模式。"
+                        + "「还原」恢复蓝牙与被禁用的网络。");
 
         lrfFixButton = new Button(this);
         lrfFixButton.setOnClickListener(this);
-        root.addView(lrfFixButton, matchWrap());
+        addIn(cLrf, lrfFixButton);
 
         lrfUndoButton = new Button(this);
         lrfUndoButton.setOnClickListener(this);
-        root.addView(lrfUndoButton, matchWrap());
+        addIn(cLrf, lrfUndoButton);
 
         lrfStatusText = new TextView(this);
         lrfStatusText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
         lrfStatusText.setTextColor(Color.rgb(90, 90, 90));
-        LinearLayout.LayoutParams lrfsLp = matchWrap();
-        lrfsLp.topMargin = dip(4);
-        root.addView(lrfStatusText, lrfsLp);
-
-        TextView lrfHint = new TextView(this);
-        lrfHint.setText("一键做完全部免 root 缓解：①关蓝牙（防 2.4G 争抢）②清/禁用已保存 WiFi 网络"
-                + "（掐断后台扫描重连——头号嫌疑）③高性能 WiFi 锁 ④开直连保护（防热点双连）。"
-                + "做完直接投屏 15 分钟：不弹「速率低」= 根因已消；还弹 = GO 负担，转手机热点模式。"
-                + "「还原」恢复蓝牙与全部网络。");
-        lrfHint.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
-        lrfHint.setTextColor(Color.rgb(120, 120, 120));
-        LinearLayout.LayoutParams lrfhLp = matchWrap();
-        lrfhLp.topMargin = dip(4);
-        root.addView(lrfHint, lrfhLp);
+        addIn(cLrf, lrfStatusText);
 
         // ---- 分区四点八：启动与声音监控（v1.6.21）----
-        TextView amLabel = new TextView(this);
-        amLabel.setText("启动与声音监控（抓自启收音机）");
-        amLabel.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
-        amLabel.setTypeface(Typeface.DEFAULT_BOLD);
-        amLabel.setTextColor(Color.rgb(51, 51, 51));
-        LinearLayout.LayoutParams amLp = matchWrap();
-        amLp.topMargin = dip(16);
-        root.addView(amLabel, amLp);
+        LinearLayout cAm = card(root, "启动与声音监控（抓自启收音机）",
+                "监控开机后每个新启动的进程 + 音频焦点/音量变化（谁在抢声音），"
+                        + "落日志 /sdcard/boottask/audio_monitor.log。设拦截目标后目标进程一冒头就杀"
+                        + "（免 root 只能杀非前台进程；若杀不掉会用静音兜底）。开机自动开始监控。");
 
         amToggleButton = new Button(this);
         amToggleButton.setOnClickListener(this);
-        root.addView(amToggleButton, matchWrap());
+        addIn(cAm, amToggleButton);
 
         amPickButton = new Button(this);
         amPickButton.setText("选择拦截目标（选多媒体/收音机）");
         amPickButton.setOnClickListener(this);
-        root.addView(amPickButton, matchWrap());
+        addIn(cAm, amPickButton);
 
         amClearButton = new Button(this);
         amClearButton.setText("清空拦截目标");
         amClearButton.setOnClickListener(this);
-        root.addView(amClearButton, matchWrap());
+        addIn(cAm, amClearButton);
 
         amStatusText = new TextView(this);
         amStatusText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
         amStatusText.setTextColor(Color.rgb(90, 90, 90));
-        LinearLayout.LayoutParams amsLp = matchWrap();
-        amsLp.topMargin = dip(4);
-        root.addView(amStatusText, amsLp);
-
-        TextView amHint = new TextView(this);
-        amHint.setText("监控开机后每个新启动的进程 + 音频焦点/音量变化（谁在抢声音），"
-                + "落日志 /sdcard/boottask/audio_monitor.log。设拦截目标后目标进程一冒头就杀"
-                + "（免 root 只能杀非前台进程；若杀不掉会用静音兜底）。开机自动开始监控。");
-        amHint.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
-        amHint.setTextColor(Color.rgb(120, 120, 120));
-        LinearLayout.LayoutParams amhLp = matchWrap();
-        amhLp.topMargin = dip(4);
-        root.addView(amHint, amhLp);
+        addIn(cAm, amStatusText);
 
         // ---- 分区五：诊断与日志 ----
-        View divider = new View(this);
-        divider.setBackgroundColor(Color.rgb(224, 224, 224));
-        LinearLayout.LayoutParams divLp = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, dip(1));
-        divLp.topMargin = dip(12);
-        divLp.bottomMargin = dip(12);
-        root.addView(divider, divLp);
-
-        TextView diagLabel = new TextView(this);
-        diagLabel.setText("诊断与日志");
-        diagLabel.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
-        diagLabel.setTypeface(Typeface.DEFAULT_BOLD);
-        diagLabel.setTextColor(Color.rgb(51, 51, 51));
-        root.addView(diagLabel, matchWrap());
+        LinearLayout cDiag = card(root, "诊断与日志（含一键修复）",
+                "打开下载页自动抓取快照：硬件 / 网络 / WiFi / 亿连运行时 / logcat。"
+                        + "修复菜单一次只改一组变量，测 15 分钟再下一项。");
 
         logButton = new Button(this);
         logButton.setText("下载日志（扫码用手机取走）");
         logButton.setOnClickListener(this);
-        LinearLayout.LayoutParams logLp = matchWrap();
-        logLp.topMargin = dip(8);
-        root.addView(logButton, logLp);
+        addIn(cDiag, logButton);
 
         // ---- v1.6.6 一键修复 ----
         fixPsButton = new Button(this);
         fixPsButton.setText("一键修复：关 WiFi 省电（需 root）");
         fixPsButton.setOnClickListener(this);
-        LinearLayout.LayoutParams fixLp = matchWrap();
-        fixLp.topMargin = dip(4);
-        root.addView(fixPsButton, fixLp);
+        addIn(cDiag, fixPsButton);
 
         fixYilianButton = new Button(this);
         fixYilianButton.setText("亿连修复菜单（降码率/对屏/软解/还原，需 root）");
         fixYilianButton.setOnClickListener(this);
-        LinearLayout.LayoutParams fixYLp = matchWrap();
-        fixYLp.topMargin = dip(4);
-        root.addView(fixYilianButton, fixYLp);
+        addIn(cDiag, fixYilianButton);
 
         fixSysButton = new Button(this);
         fixSysButton.setText("系统修复菜单（CPU降频/蓝牙抢频/WiFi扫描，需 root）");
         fixSysButton.setOnClickListener(this);
-        LinearLayout.LayoutParams fixSLp = matchWrap();
-        fixSLp.topMargin = dip(4);
-        root.addView(fixSysButton, fixSLp);
-
-        TextView hint = new TextView(this);
-        hint.setText("打开下载页自动抓取快照：硬件 / 网络 / WiFi / 亿连运行时 / logcat");
-        hint.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
-        hint.setTextColor(Color.rgb(140, 140, 140));
-        LinearLayout.LayoutParams hintLp = matchWrap();
-        hintLp.topMargin = dip(4);
-        root.addView(hint, hintLp);
+        addIn(cDiag, fixSysButton);
 
         android.widget.ScrollView scroller = new android.widget.ScrollView(this);
         scroller.setFillViewport(true);
@@ -704,7 +528,8 @@ public class MainActivity extends Activity implements View.OnClickListener,
         }
     }
 
-    // View.OnClickListener —— 添加按钮 / 下载日志按钮 / 一键修复按钮    @Override
+    // View.OnClickListener —— 添加按钮 / 下载日志按钮 / 一键修复按钮
+    @Override
     public void onClick(View v) {
         if (v == logButton) {
             // 快照抓取（su 探测 + logcat 可达 30s）由 LogActivity.onCreate 的后台线程执行，
@@ -888,13 +713,15 @@ public class MainActivity extends Activity implements View.OnClickListener,
         if (v == hsApButton) {
             Toast.makeText(this, "一键攻坚进行中（约 15~30 秒，含 hostapd 启动等待）…",
                     Toast.LENGTH_LONG).show();
+            hsApButton.setEnabled(false);   // v1.6.26：防止连点起两个线程抢 hostapd
             new Thread(new Runnable() {
                 public void run() {
-                    // v1.6.22：换成 attackOnce——反射失败且有 root 时自动改走 hostapd 方案，
+                    // 换成 attackOnce——反射失败且有 root 时自动改走 hostapd 方案，
                     // 全程落日志，结论行以【攻坚结论】开头，扫码取日志即可远程判定
                     final String r = HotspotProbe.attackOnce(MainActivity.this);
                     runOnUiThread(new Runnable() {
                         public void run() {
+                            hsApButton.setEnabled(true);
                             Toast.makeText(MainActivity.this, r, Toast.LENGTH_LONG).show();
                             updateHsUi();
                             hsStatusText.postDelayed(new Runnable() {
@@ -1275,5 +1102,76 @@ public class MainActivity extends Activity implements View.OnClickListener,
     private LinearLayout.LayoutParams matchWrap() {
         return new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+    }
+
+    // ---------------------------------------------------- v1.6.26 UI 重构：分区卡片
+
+    /**
+     * 建一个分区卡片：左侧 4dp 色条 + 加粗标题（可带右侧计数），说明文字紧跟标题，
+     * 内容（按钮/状态）用 addIn() 往里放。视觉上把「一屏 40 个平铺按钮」变成
+     * 「若干张白底圆角卡片」，扫一眼就知道哪些按钮属于同一组。
+     */
+    private LinearLayout card(LinearLayout root, String title, String desc) {
+        return card(root, title, desc, null);
+    }
+
+    private LinearLayout card(LinearLayout root, String title, String desc, View right) {
+        LinearLayout box = new LinearLayout(this);
+        box.setOrientation(LinearLayout.VERTICAL);
+        box.setPadding(dip(12), dip(10), dip(12), dip(12));
+
+        LinearLayout head = new LinearLayout(this);
+        head.setOrientation(LinearLayout.HORIZONTAL);
+        head.setGravity(Gravity.CENTER_VERTICAL);
+        View bar = new View(this);
+        bar.setBackgroundColor(ACCENT);
+        LinearLayout.LayoutParams barLp = new LinearLayout.LayoutParams(
+                dip(4), dip(16));
+        barLp.rightMargin = dip(8);
+        head.addView(bar, barLp);
+        TextView t = new TextView(this);
+        t.setText(title);
+        t.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
+        t.setTypeface(Typeface.DEFAULT_BOLD);
+        t.setTextColor(Color.rgb(34, 34, 34));
+        head.addView(t, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        if (right != null) {
+            head.addView(right, new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        }
+        box.addView(head, matchWrap());
+
+        if (desc != null && desc.length() > 0) {
+            TextView d = new TextView(this);
+            d.setText(desc);
+            d.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+            d.setTextColor(Color.rgb(122, 130, 144));
+            LinearLayout.LayoutParams dLp = matchWrap();
+            dLp.topMargin = dip(5);
+            box.addView(d, dLp);
+        }
+
+        GradientDrawable bg = new GradientDrawable();
+        bg.setColor(Color.WHITE);
+        bg.setCornerRadius(dip(10));
+        bg.setStroke(dip(1), Color.rgb(227, 231, 237));
+        box.setBackgroundDrawable(bg);   // setBackgroundDrawable：API<16 也安全
+
+        LinearLayout.LayoutParams boxLp = matchWrap();
+        boxLp.topMargin = dip(10);
+        root.addView(box, boxLp);
+        return box;
+    }
+
+    /** 往当前卡片里加一个控件（按钮/状态条），统一 6dp 上间距 */
+    private void addIn(LinearLayout card, View v) {
+        addIn(card, v, dip(6));
+    }
+
+    private void addIn(LinearLayout card, View v, int topMargin) {
+        LinearLayout.LayoutParams lp = matchWrap();
+        lp.topMargin = topMargin;
+        card.addView(v, lp);
     }
 }

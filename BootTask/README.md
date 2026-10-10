@@ -4,8 +4,8 @@
 
 - 包名：`com.boottask`
 - 最低版本：Android 2.2（API 8，实际按 4.4 编写）—— 兼容一切 4.x，**包括 4.4.2 车机**
-- 构建方式：执行主体为手写 smali；诊断与日志下载用一个小型 Java/D8 类合并进单 dex
-- 成品：`dist/BootTask_v1.6.12.apk`（**纯 v1 签名**，SHA-1 摘要，无 v2/v3 签名块）；v1.1~v1.6.11 同目录留档
+- 构建方式：v1.6 起全部 Java/D8 + apktool 合并进单 dex（`build.sh` Linux / `build_win.sh` Windows，v1.6.26 起类清单已改 glob）
+- 成品：`dist/BootTask_v1.6.27.apk`（**纯 v1 签名**，SHA-1 摘要，无 v2/v3 签名块）；历史版本同目录留档
 
 ### v1.6.10（开机静音一键化：不用手动配规则）
 
@@ -625,3 +625,31 @@ MainActivity / HotspotProbe / FileShareActivity / AudioMonitor / BootDiagnostics
 **验证**：Linux 构建通过；dex 含全部类（boottask 21 类 + logxfer 公共 3 类，共 122 个引用），
 QrBadge/BtGuard/SessionLog 已剔除；新字符串（一键攻坚/热点探测与一键攻坚/attackOnce）全在；
 versionCode 33 / 1.6.26；v1 证书 SHA-256 与历史版本一致。
+
+### v1.6.27（开机静音升级：日志里开机自启的软件直接关掉）
+
+用户需求原话：「日志里有开机打开的软件，开机静音这个功能直接把相关的软件关了，这样肯定静音了」。
+
+- **「🔇 开机静音：选日志里开机自启的软件直接关掉（可多选）」**（原「设置开机自动静音」按钮改造）：
+  1. 数据源 `AudioMonitor.bootCandidates()`：① 开机日志 `audio_monitor.txt` 里的
+     「🟢 新进程」行（带 HH:mm:ss 首现时间——就是日志里的「开机打开的软件」）
+     ② 当前 `ps` 里在跑的应用包名（补监控首轮建档之前就起来的漏网进程）；
+     已剔除无 `.` 的 native 守护进程、SystemUI、桌面、本程序自己
+  2. 多选弹窗（预勾当前目标）→ 保存为拦截目标 **+ 自动建 15 秒静音兜底规则**（双保险：
+     root 杀得掉就杀，杀不掉 15 秒静音保底）
+  3. 保存后**当场试杀一轮**（`AudioMonitor.killNow()`，后台线程过 su 授权）并弹结论
+- **拦截能力升级（AudioMonitor）**：
+  - 拦截目标单个 → **多个**（新 prefs 键 `blockPkgs` 逗号分隔，旧单目标键兼容读）
+  - **root 下 `am force-stop`**：免 root 的 `killBackgroundProcesses` 杀不了前台
+    （正在播的收音机恰恰是前台）；force-stop 前台也能杀，且应用进 stopped 状态
+    **下次开机不再自启**（手动打开才恢复）——这才是「肯定静音了」的关键
+  - 免 root 保持原路径：杀不掉 → 连续 2 轮存活仍触发 MuteGuard 静音兜底
+  - **取消按钮**一并清掉静音规则 + 关软件拦截
+- **附带修 P1（主线程 ANR 源）**：巡检 tick 原跑在 Service 主线程 Handler 上，
+  里面 ps(最长 6s)+dumpsys audio(最长 8s) 两次阻塞执行 —— 与 v1.6.26 修的
+  WifiRateProbe 同款问题。改独立线程 `AudioMonitor`，onDestroy interrupt 退出
+- 开机杀的时序：`BOOT_COMPLETED` → `BootAudioReceiver` 拉起服务 → 首轮 tick 即查杀
+  （不等新进程记录，先于监控启动的收音机也逃不掉）
+
+**验证**：Linux 构建 0 error；dex 含 blockPkgs / force-stop / bootCandidates / killNow /
+四个新界面文案；versionCode 34 / 1.6.27；v1 证书与历史一致。**实机未跑**（上车机点一遍即可）。

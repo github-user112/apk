@@ -139,9 +139,11 @@ public class MainActivity extends Activity implements View.OnClickListener,
         cRule.addView(lv, lvLp);
         this.lv = lv;
 
-        // ---- 分区二：开机静音（v1.6.10 一键，无需手动配规则）----
+        // ---- 分区二：开机静音（v1.6.10 一键 → v1.6.27 直接关软件）----
         LinearLayout cMute = card(root, "开机静音",
-                "FM 走 MCU 直连功放时静音管不到 → 用「抢占音源」抢回来。");
+                "FM 走 MCU 直连功放时静音管不到 → 直接把日志里开机自启的收音/多媒体软件关掉："
+                        + "root 用 force-stop（前台也能杀，且下次开机不再自启），"
+                        + "再叠 15 秒静音兜底，双保险。");
 
         muteNowButton = new Button(this);
         muteNowButton.setText("立即静音（马上验证能不能管住 FM）");
@@ -154,12 +156,12 @@ public class MainActivity extends Activity implements View.OnClickListener,
         addIn(cMute, claimButton);
 
         bootMuteButton = new Button(this);
-        bootMuteButton.setText("设置开机自动静音（开机 15 秒后执行）");
+        bootMuteButton.setText("🔇 开机静音：选日志里开机自启的软件直接关掉（可多选）");
         bootMuteButton.setOnClickListener(this);
         addIn(cMute, bootMuteButton);
 
         bootMuteOffButton = new Button(this);
-        bootMuteOffButton.setText("取消开机自动静音");
+        bootMuteOffButton.setText("取消开机静音（含关软件拦截）");
         bootMuteOffButton.setOnClickListener(this);
         addIn(cMute, bootMuteOffButton);
 
@@ -510,6 +512,91 @@ public class MainActivity extends Activity implements View.OnClickListener,
         }
     }
 
+    /**
+     * v1.6.27「开机静音 = 直接关软件」选择器：
+     * 数据源 AudioMonitor.bootCandidates() —— ① 开机日志里的「🟢 新进程」记录（带首现时间）
+     * ② 当前 ps 里在跑的应用（补监控建档前就起来的漏网）。多选保存为拦截目标，
+     * 同时保留 15 秒静音兜底规则，保存后当场试杀一轮（后台线程，killNow 可能要过 su 授权）。
+     */
+    private void showBootKillPicker() {
+        final java.util.LinkedHashMap<String, String> cands = AudioMonitor.bootCandidates(this);
+        if (cands.isEmpty()) {
+            Toast.makeText(this, "没拿到开机进程记录（日志为空且 ps 读取失败）——"
+                    + "先跑一次开机并等 1 分钟，或用「启动与声音监控」分区的单选按钮",
+                    Toast.LENGTH_LONG).show();
+            return;
+        }
+        final String[] pkgs = cands.keySet().toArray(new String[0]);
+        final boolean[] checked = new boolean[pkgs.length];
+        String[] cur = AudioMonitor.blockTargets(this);
+        for (int i = 0; i < pkgs.length; i++) {
+            for (int k = 0; k < cur.length; k++) {
+                if (pkgs[i].equals(cur[k])) {
+                    checked[i] = true;
+                    break;
+                }
+            }
+        }
+        CharSequence[] labels = new CharSequence[pkgs.length];
+        for (int i = 0; i < pkgs.length; i++) {
+            labels[i] = cands.get(pkgs[i]);
+        }
+        new AlertDialog.Builder(this)
+                .setTitle("开机会自动关掉勾选的软件（来源：开机日志 + 当前在跑）")
+                .setMultiChoiceItems(labels, checked,
+                        new DialogInterface.OnMultiChoiceClickListener() {
+                            public void onClick(DialogInterface d, int which, boolean isChecked) {
+                                checked[which] = isChecked;
+                            }
+                        })
+                .setPositiveButton("保存并立即试杀", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface d, int which) {
+                        StringBuilder csv = new StringBuilder();
+                        int n = 0;
+                        for (int i = 0; i < pkgs.length; i++) {
+                            if (checked[i]) {
+                                if (csv.length() > 0) {
+                                    csv.append(',');
+                                }
+                                csv.append(pkgs[i]);
+                                n++;
+                            }
+                        }
+                        AudioMonitor.setBlockTargets(MainActivity.this, csv.toString());
+                        removeMuteRules();
+                        boolean ok = addRule("boot", 15, "mute");   // 15 秒静音兜底（杀不掉时保底）
+                        if (!AudioMonitor.isRunning()) {
+                            startService(new Intent(MainActivity.this, AudioMonitor.class));
+                        }
+                        refresh();
+                        updateAmUi();
+                        if (n == 0) {
+                            Toast.makeText(MainActivity.this,
+                                    "未勾选软件，仅保留 15 秒开机静音兜底"
+                                            + (ok ? "" : "（静音规则设置失败，请看日志）"),
+                                    Toast.LENGTH_LONG).show();
+                            return;
+                        }
+                        Toast.makeText(MainActivity.this,
+                                "已保存 " + n + " 个拦截目标 + 15 秒静音兜底，立即试杀中…",
+                                Toast.LENGTH_LONG).show();
+                        new Thread(new Runnable() {
+                            public void run() {
+                                final String r = AudioMonitor.killNow(MainActivity.this);
+                                runOnUiThread(new Runnable() {
+                                    public void run() {
+                                        Toast.makeText(MainActivity.this, r, Toast.LENGTH_LONG).show();
+                                        updateAmUi();
+                                    }
+                                });
+                            }
+                        }).start();
+                    }
+                })
+                .setNegativeButton("取消", null)
+                .show();
+    }
+
     /** v1.6.21：接收 AppPickActivity 选中的拦截目标 */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -562,19 +649,21 @@ public class MainActivity extends Activity implements View.OnClickListener,
             return;
         }
         if (v == bootMuteButton) {
-            int n = removeMuteRules();
-            boolean ok = addRule("boot", 15, "mute");
-            Toast.makeText(this, ok
-                    ? ("已设置：开机 15 秒后静音" + (n > 0 ? "（替换了 " + n + " 条旧静音规则）" : ""))
-                    : "设置失败，请查看日志", Toast.LENGTH_LONG).show();
-            refresh();
+            showBootKillPicker();
             return;
         }
         if (v == bootMuteOffButton) {
+            boolean hadTgt = AudioMonitor.blockTarget(this) != null;
             int n = removeMuteRules();
-            Toast.makeText(this, n > 0 ? ("已取消，移除 " + n + " 条静音规则") : "当前没有静音规则",
-                    Toast.LENGTH_LONG).show();
+            AudioMonitor.clearBlockTarget(this);
             refresh();
+            updateAmUi();
+            Toast.makeText(this,
+                    (n > 0 || hadTgt)
+                            ? ("已取消：开机静音规则 " + n + " 条"
+                               + (hadTgt ? "，关软件拦截已清空" : ""))
+                            : "当前没有静音规则，也没有关软件拦截",
+                    Toast.LENGTH_LONG).show();
             return;
         }
         if (v == noRootWifiButton) {

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>传文件到车机</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;padding:18px;background:#101014;color:#E8E6F0;
+    font-family:-apple-system,'PingFang SC','Microsoft YaHei',Arial,sans-serif}
+  h1{font-size:19px;margin:4px 0 6px}
+  .sub{color:#9B98A8;font-size:13px;margin-bottom:18px;line-height:1.6}
+  .pick{display:block;background:#1B1A21;border:2px dashed #3A3846;border-radius:12px;
+    padding:26px 14px;text-align:center;color:#8FB2FF;font-size:15px;margin-bottom:14px}
+  #file{display:none}
+  .name{background:#1B1A21;border:1px solid #2A2833;border-radius:10px;padding:12px 14px;
+    font-size:14px;word-break:break-all;margin-bottom:14px;display:none}
+  .go{display:block;width:100%;background:#3B5BDB;color:#fff;border:0;border-radius:10px;
+    padding:15px;font-size:16px;font-weight:600}
+  .go:disabled{background:#3A3846;color:#8A8797}
+  .bar{height:8px;background:#2A2833;border-radius:4px;overflow:hidden;margin:14px 0 6px;display:none}
+  .bar i{display:block;height:100%;width:0;background:#3B5BDB}
+  .msg{color:#9B98A8;font-size:13px;min-height:20px;line-height:1.6}
+  .ok{color:#51CF66}.err{color:#FF6B6B}
+</style>
+</head>
+<body>
+  <h1>传文件到车机</h1>
+  <div class="sub">选一个 APK（或其它文件）传到车机。<br>
+    传完车机会自动安装；没开自动就到车机点「安装最新收到的 APK」。</div>
+
+  <label class="pick" id="pickLbl" for="file">＋ 选择文件</label>
+  <input type="file" id="file" name="file">
+  <div class="name" id="name"></div>
+  <div class="bar" id="bar"><i id="bari"></i></div>
+  <button class="go" id="go" disabled>上传到车机</button>
+  <div class="msg" id="msg"></div>
+
+<script>
+(function () {
+  var f = document.getElementById('file');
+  var nameBox = document.getElementById('name');
+  var go = document.getElementById('go');
+  var bar = document.getElementById('bar');
+  var bari = document.getElementById('bari');
+  var msg = document.getElementById('msg');
+  var cur = null;
+
+  function fmt(n) {
+    if (n < 1024) { return n + ' B'; }
+    if (n < 1048576) { return Math.round(n / 1024) + ' KB'; }
+    return (n / 1048576).toFixed(1) + ' MB';
+  }
+
+  f.addEventListener('change', function () {
+    if (!f.files || !f.files.length) { return; }
+    cur = f.files[0];
+    nameBox.style.display = 'block';
+    nameBox.textContent = cur.name + '（' + fmt(cur.size) + '）';
+    go.disabled = false;
+    msg.className = 'msg';
+    msg.textContent = '';
+  });
+
+  go.addEventListener('click', function () {
+    if (!cur) { return; }
+    go.disabled = true;
+    bar.style.display = 'block';
+    bari.style.width = '0%';
+    msg.className = 'msg';
+    msg.textContent = '上传中…';
+
+    var fd = new FormData();
+    fd.append('file', cur, cur.name);
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', '/upload', true);
+    xhr.upload.onprogress = function (e) {
+      if (e.lengthComputable) {
+        var p = Math.round(e.loaded * 100 / e.total);
+        bari.style.width = p + '%';
+        msg.textContent = '上传中… ' + p + '%（' + fmt(e.loaded) + ' / ' + fmt(e.total) + '）';
+      }
+    };
+    xhr.onload = function () {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        bari.style.width = '100%';
+        msg.className = 'msg ok';
+        msg.textContent = '上传成功，车机正在安装。';
+      } else {
+        msg.className = 'msg err';
+        msg.textContent = '上传失败（HTTP ' + xhr.status + '）';
+      }
+      go.disabled = false;
+    };
+    xhr.onerror = function () {
+      msg.className = 'msg err';
+      msg.textContent = '网络错误：手机和车机要在同一个网络里';
+      go.disabled = false;
+    };
+    xhr.send(fd);
+  });
+})();
+</script>
+</body>
+</html>

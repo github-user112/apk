@@ -97,3 +97,20 @@ iflytek.tts / android.process.media；收音机本体 = com.telechips.android.td
 （息屏 Wi-Fi 进 PS,RTT 翻倍）③/etc/ec.conf 降 mirror_width/height（★本车机无此文件且无root，走不通）
 ④直连必须车机2.4G档。日志 files/wifi_rate_probe.txt。构建通过、dex 五类齐全，未实机验证（设备未连）。git 未提交。
 
+
+## BootTask v1.6.26/v1.6.27（vc33/34，2026-10-10，已 push）
+v1.6.26（commit 376a6b68）：rebase 上游 5c4fbb27 后全量审查修 6 bug（P0 WifiRateProbe 探测挪
+独立线程、P1 pingRtt 重写/低速修复改 disable 可逆、P2 findPeer 守卫/@Override 拆行）+
+10 分区白色圆角卡片 UI 重构 + build 脚本类清单改 glob。v1.6.27（commit 31ffe74f）：开机静音
+升级——bootCandidates()（audio_monitor.txt「🟢 新进程」+ps 补漏）多选存 blockPkgs，root 下
+am force-stop（前台也杀+stopped 态开机不自启）+自动 15s 静音兜底+保存当场 killNow 试杀；
+AudioMonitor tick 挪独立线程（主线程 ANR 源）。均静态验证未实机。
+
+## 新工程 FileMgr v1.0.0（com.carfiles「车机文件管家」，vc1，2026-10-10）+ BootTask v1.6.28（vc35）
+文件功能整体拆出（用户要求）。FileMgr 三功能：18082 扫码上传安装、卸载软件双入口（新增车机屏
+AppListActivity + 搬家 fm.html 应用页，后端 AppManager）、文件管理含 U 盘（★FileOps.removableMounts()
+解析 /proc/mounts 探测 U 盘进 roots/快捷跳转/状态行）。搬家手法：sed 改 package/com.carfiles +
+BootDiagnostics.log→FLog.log（新类）；仍编 logxfer 三件套（localIps 依赖）。BootTask 删 3 按钮+
+7 类（FileOps/AdvActions 保留）+3 Activity+3 html，权限全保留，分区注释重排，README 标注。
+两包均与 BootTask 同证书 d2519f98；静态验证：BootTask 条目 12→9/7 类串消失，FileMgr 条目 11/
+无 com.boottask 残留。⚠ 升级顺序：先装 CarFiles_v1.0.0.apk 再升 BootTask 1.6.28（后者起无 18082）。

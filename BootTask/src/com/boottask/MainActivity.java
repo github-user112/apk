@@ -53,9 +53,6 @@ public class MainActivity extends Activity implements View.OnClickListener,
     private Button noRootYilianButton;
     private Button noRootSettingsButton;
     private Button adbSheetButton;
-    private Button recvButton;
-    private Button fileShareButton;
-    private Button fileMgrButton;
     private Button guardToggleButton;
     private Button guardNowButton;
     private Button guardRestoreButton;
@@ -190,27 +187,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
         adbSheetButton.setOnClickListener(this);
         addIn(cNr, adbSheetButton);
 
-        // ---- 分区四：文件管理（v1.6.15：手机遥控 + 车机本地）----
-        LinearLayout cFile = card(root, "文件管理",
-                "推荐第一条：车机只显示二维码，浏览/上传/下载/改名/删除/装 APK"
-                        + "全在手机浏览器里做（车机输入法太难受）。root 模式下能改 /system、/etc。");
-
-        fileShareButton = new Button(this);
-        fileShareButton.setText("📱 手机遥控车机文件（推荐·扫码）");
-        fileShareButton.setOnClickListener(this);
-        addIn(cFile, fileShareButton);
-
-        fileMgrButton = new Button(this);
-        fileMgrButton.setText("车机本地文件管理器");
-        fileMgrButton.setOnClickListener(this);
-        addIn(cFile, fileMgrButton);
-
-        recvButton = new Button(this);
-        recvButton.setText("接收 APK 并安装（手机扫码上传）");
-        recvButton.setOnClickListener(this);
-        addIn(cFile, recvButton);
-
-        // ---- 分区四点五：直连保护（v1.6.17）----
+        // ---- 分区四：直连保护（v1.6.17）----
         LinearLayout cGuard = card(root, "直连保护（防热点双连断联）",
                 "原理：直连组活跃时若 wlan0 连上热点（单射频双连 → 速率低 → 断联），"
                         + "自动断开并禁用该热点（配置保留）。用热点模式前先点恢复。免 root。");
@@ -234,7 +211,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
         guardStatusText.setTextColor(Color.rgb(90, 90, 90));
         addIn(cGuard, guardStatusText);
 
-        // ---- 分区四点七：热点探测蹲守（v1.6.20）+ 一键攻坚（v1.6.26）----
+        // ---- 分区五：热点探测蹲守（v1.6.20）+ 一键攻坚（v1.6.26）----
         LinearLayout cHs = card(root, "热点探测与一键攻坚",
                 "点「一键攻坚」自动走完 反射开热点→hostapd→DHCP 全套判定，"
                         + "结论直接弹窗+落日志；想抓变化过程就先开蹲守再去设置里手动开热点。"
@@ -254,7 +231,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
         hsStatusText.setTextColor(Color.rgb(90, 90, 90));
         addIn(cHs, hsStatusText);
 
-        // ---- 分区四点九：WLAN 速率低诊断（v1.6.24）----
+        // ---- 分区六：WLAN 速率低诊断（v1.6.24）----
         LinearLayout cWr = card(root, "WLAN 速率低诊断（复刻亿连判定）",
                 "亿连弹「WiFi传输速率低」的真实条件：每 2 秒 ping 一次对端，"
                         + "单次往返 >200ms 记一次，连续 3 次（约 6 秒）就弹 —— 测的是延迟不是带宽。\n"
@@ -276,7 +253,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
         wrStatusText.setTextColor(Color.rgb(90, 90, 90));
         addIn(cWr, wrStatusText);
 
-        // ---- 分区四点九五：低速断连一站式修复（v1.6.25）----
+        // ---- 分区七：低速断连一站式修复（v1.6.25）----
         LinearLayout cLrf = card(root, "低速断连一站式修复（免 root）",
                 "一键做完全部免 root 缓解：①关蓝牙（防 2.4G 争抢）②禁用已保存 WiFi 网络"
                         + "（掐断后台扫描重连——头号嫌疑）③高性能 WiFi 锁 ④开直连保护（防热点双连）。"
@@ -296,7 +273,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
         lrfStatusText.setTextColor(Color.rgb(90, 90, 90));
         addIn(cLrf, lrfStatusText);
 
-        // ---- 分区四点八：启动与声音监控（v1.6.21）----
+        // ---- 分区八：启动与声音监控（v1.6.21）----
         LinearLayout cAm = card(root, "启动与声音监控（抓自启收音机）",
                 "监控开机后每个新启动的进程 + 音频焦点/音量变化（谁在抢声音），"
                         + "落日志 /sdcard/boottask/audio_monitor.log。设拦截目标后目标进程一冒头就杀"
@@ -321,7 +298,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
         amStatusText.setTextColor(Color.rgb(90, 90, 90));
         addIn(cAm, amStatusText);
 
-        // ---- 分区五：诊断与日志 ----
+        // ---- 分区九：诊断与日志 ----
         LinearLayout cDiag = card(root, "诊断与日志（含一键修复）",
                 "打开下载页自动抓取快照：硬件 / 网络 / WiFi / 亿连运行时 / logcat。"
                         + "修复菜单一次只改一组变量，测 15 分钟再下一项。");
@@ -861,33 +838,6 @@ public class MainActivity extends Activity implements View.OnClickListener,
                     });
                 }
             }).start();
-            return;
-        }
-        if (v == recvButton) {            // ReceiveActivity 是 Java 类，编译期可见 —— 直接引用
-            UploadServer.init(this);
-            startActivity(new Intent(this, ReceiveActivity.class));
-            return;
-        }
-        if (v == fileShareButton) {
-            ShareServer.init(this);
-            ShareServer.setHome(null);
-            ShareServer.get().start();
-            if (!ShareServer.get().isRunning()) {
-                Toast.makeText(this, "端口 18083 起不来（可能被占用）", Toast.LENGTH_LONG).show();
-                return;
-            }
-            try {
-                startActivity(new Intent(this, FileShareActivity.class));
-            } catch (Throwable t) {
-                // Activity 拉不起来时别让服务带着 WakeLock 常驻
-                ShareServer.get().stop();
-                Toast.makeText(this, "打不开文件共享页：" + t, Toast.LENGTH_LONG).show();
-            }
-            return;
-        }
-        if (v == fileMgrButton) {
-            ShareServer.init(this);
-            startActivity(new Intent(this, FileManagerActivity.class));
             return;
         }
         if (v == fixSysButton) {

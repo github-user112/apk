@@ -8,7 +8,7 @@ ANDROID_JAR="$LOGXFER/tools/android.jar"
 R8_JAR="$LOGXFER/tools/r8.jar"
 APKTOOL_JAR="$ROOT/tools/apktool.jar"
 APKSIGNER_JAR="$ROOT/tools/apksigner/apksigner.jar"
-OUT=${1:-"$PROJECT/dist/BootTask_v1.6.27.apk"}
+OUT=${1:-"$PROJECT/dist/BootTask_v1.6.28.apk"}
 
 for path in "$ANDROID_JAR" "$R8_JAR" "$APKTOOL_JAR" "$APKSIGNER_JAR" "$PROJECT/keys/boottask.p12"; do
     if [[ ! -e "$path" ]]; then

@@ -12,7 +12,7 @@ ANDROID_JAR="$LOGXFER/tools/android.jar"
 R8_JAR="$LOGXFER/tools/r8.jar"
 APKTOOL_JAR="$ROOT/tools/apktool.jar"
 APKSIGNER_JAR="$ROOT/tools/apksigner/apksigner.jar"
-OUT=${1:-"$PROJECT/dist/BootTask_v1.6.25.apk"}
+OUT=${1:-"$PROJECT/dist/BootTask_v1.6.28.apk"}
 
 for path in "$ANDROID_JAR" "$R8_JAR" "$APKTOOL_JAR" "$APKSIGNER_JAR" "$PROJECT/keys/boottask.p12"; do
     if [[ ! -e "$path" ]]; then
@@ -21,8 +21,8 @@ for path in "$ANDROID_JAR" "$R8_JAR" "$APKTOOL_JAR" "$APKSIGNER_JAR" "$PROJECT/k
     fi
 done
 
-# logxfer 是两个工程共享的外部源码（ShareServer 靠 localIps() 跨包引用），
-# 这里被移动/改名会让编译静默断掉 —— 提前断言（v1.6.18 加）
+# logxfer 是多工程共享的外部源码（日志下载 LogHttpServer/LogDownloadActivity 在这里），
+# 被移动/改名会让编译静默断掉 —— 提前断言（v1.6.18 加）
 for lf in LogHttpServer.java NetWatch.java LogDownloadActivity.java; do
     if [[ ! -e "$LOGXFER/java/com/baidu/carlifevehicle/logxfer/$lf" ]]; then
         printf 'logxfer 共享源码缺失: %s（检查 02_补丁脚本/logxfer_src 是否被移动）\n' "$lf" >&2

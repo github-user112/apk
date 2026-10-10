@@ -5,7 +5,9 @@
 - 包名：`com.boottask`
 - 最低版本：Android 2.2（API 8，实际按 4.4 编写）—— 兼容一切 4.x，**包括 4.4.2 车机**
 - 构建方式：v1.6 起全部 Java/D8 + apktool 合并进单 dex（`build.sh` Linux / `build_win.sh` Windows，v1.6.26 起类清单已改 glob）
-- 成品：`dist/BootTask_v1.6.27.apk`（**纯 v1 签名**，SHA-1 摘要，无 v2/v3 签名块）；历史版本同目录留档
+- 成品：`dist/BootTask_v1.6.28.apk`（**纯 v1 签名**，SHA-1 摘要，无 v2/v3 签名块）；历史版本同目录留档
+- **v1.6.28 起文件功能已整体拆出**：文件管理 / 扫码传 APK / 卸载软件 → 独立 App
+  「车机文件管家」（`FileMgr/`，包名 `com.carfiles`），本 App 不再含文件功能
 
 ### v1.6.10（开机静音一键化：不用手动配规则）
 
@@ -514,6 +516,9 @@ v1.3 已通过 Java 编译、apktool 打包、反编译复核、ZIP 完整性与
 
 ## v1.6.14 手机传 APK 到车机（免 adb）
 
+> ⚠ **v1.6.28 起本功能已拆出**到独立 App「车机文件管家」（`FileMgr/`，`com.carfiles`），
+> 本 App 的 18082 上传服务与「接收 APK 并安装」页已移除；下面内容为历史记录。
+
 **入口**：主界面 →「传文件到车机」→「接收 APK 并安装」。
 
 **流程**：车机打开接收页（起 HTTP 18082，二维码指向 `http://<车机IP>:18082`）→ 手机连同一网络（直连/热点/WiFi 均可）扫码或手输地址 → 手机浏览器选 APK 上传 → 车机收到即自动安装（可关）。
@@ -534,6 +539,9 @@ v1.3 已通过 Java 编译、apktool 打包、反编译复核、ZIP 完整性与
 **测试技巧**：`adb forward tcp:18082 tcp:18082` 后在 PC 上 `curl -F "file=@x.apk" http://127.0.0.1:18082/upload` 即可模拟手机上传（注意 Git Bash 的代理环境变量会劫持 127.0.0.1，要 `--noproxy '*'`）。
 
 ## v1.6.15 文件管理器 + 应用管理（手机遥控）
+
+> ⚠ **v1.6.28 起本功能已拆出**到独立 App「车机文件管家」（`FileMgr/`，`com.carfiles`），
+> 本 App 已移除三个文件按钮与 7 个相关类（详见文末 v1.6.28 记录）；下面内容为历史记录。
 
 **入口**：主界面 →「文件管理器」/「传文件到车机」区。
 
@@ -653,3 +661,31 @@ versionCode 33 / 1.6.26；v1 证书 SHA-256 与历史版本一致。
 
 **验证**：Linux 构建 0 error；dex 含 blockPkgs / force-stop / bootCandidates / killNow /
 四个新界面文案；versionCode 34 / 1.6.27；v1 证书与历史一致。**实机未跑**（上车机点一遍即可）。
+
+### v1.6.28（文件管理整体拆分为独立 App「车机文件管家」）
+
+用户需求：「把文件管理这个功能，提取成一个新的 apk，原来的关于文件管理的不要了」。
+新 App 见同仓库 `FileMgr/`（包名 `com.carfiles`，应用名「车机文件管家」）：
+
+1. 扫码上传安装 APK（18082，原「接收 APK 并安装」原样搬家）
+2. 卸载软件（**新增**车机屏原生列表 `AppListActivity` + 手机 `fm.html` 应用页，双入口；
+   后端都是搬家过来的 `AppManager`：root 静默 `pm uninstall`，免 root 拉系统确认框）
+3. 文件管理**含 U 盘**（原「手机遥控车机文件」+「车机本地文件管理器」搬家，
+   `FileOps.removableMounts()` 解析 `/proc/mounts` 自动探测 U 盘/外置 SD 进 roots 和快捷跳转）
+
+本 App（BootTask）移除（用户选「彻底删干净」，不留提示）：
+
+- 主界面「文件管理」分区整块（3 个按钮 + onClick 三个分支 + 3 个字段）
+- 7 个类：`FileShareActivity` / `ShareServer` / `FileManagerActivity` / `ReceiveActivity` /
+  `UploadServer` / `ApkInstaller` / `AppManager` —— **`FileOps` / `AdvActions` 保留**
+  （规则执行、P2pGuard、NoRootFixes 都在用；AppManager 无其他引用者）
+- Manifest 3 个 Activity 条目 + `assets/logxfer/` 的 `fm/recv/upload.html`（3 个资产）
+- 权限逐个核对**全部保留**：WakeLock/MulticastLock→NoRootFixes、Bluetooth→LowRateFix/P2pGuard、
+  其余 WiFi/存储→现存代码
+- **保留**：日志下载 18081（`LogHttpServer`/`LogDownloadActivity` 是 logxfer 共享源码，不
+  属文件管理）、`FileOps`/`AdvActions`
+- 分区注释编号顺位重排（原「分区四」没了，四点五~五 顺位改成 四~九）
+
+**验证**：构建 0 error；条目级对比 12→9（正好少 3 个 html，无其他差异）；dex 里 7 个被删
+类串全部消失、`MainActivity`/`AudioMonitor` 在、无 `com.carfiles` 串；versionCode 35 /
+1.6.28；v1 证书与历史一致。**实机未跑**。

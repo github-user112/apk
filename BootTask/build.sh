@@ -8,7 +8,18 @@ ANDROID_JAR="$LOGXFER/tools/android.jar"
 R8_JAR="$LOGXFER/tools/r8.jar"
 APKTOOL_JAR="$ROOT/tools/apktool.jar"
 APKSIGNER_JAR="$ROOT/tools/apksigner/apksigner.jar"
-OUT=${1:-"$PROJECT/dist/BootTask_v1.6.28.apk"}
+OUT=${1:-}
+if [ -z "$OUT" ]; then
+    # v1.6.29：默认产物名直接从 AndroidManifest 的 versionName 推导。
+    # 以前这里写死 "BootTask_v1.6.28.apk"，升版本忘了同步就会**静默覆盖上一版成品**
+    # （已经踩过一次：git 恢复才没丢产物）。版本号一处说了算。
+    ver=$(sed -n 's/.*android:versionName="\([^"]*\)".*/\1/p' "$PROJECT/AndroidManifest.xml" | head -1)
+    if [ -z "$ver" ]; then
+        printf 'AndroidManifest.xml 里读不到 versionName，请显式传产物名: build.sh <out.apk>\n' >&2
+        exit 1
+    fi
+    OUT="$PROJECT/dist/BootTask_v${ver}.apk"
+fi
 
 for path in "$ANDROID_JAR" "$R8_JAR" "$APKTOOL_JAR" "$APKSIGNER_JAR" "$PROJECT/keys/boottask.p12"; do
     if [[ ! -e "$path" ]]; then

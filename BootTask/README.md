@@ -689,3 +689,26 @@ versionCode 33 / 1.6.26；v1 证书 SHA-256 与历史版本一致。
 **验证**：构建 0 error；条目级对比 12→9（正好少 3 个 html，无其他差异）；dex 里 7 个被删
 类串全部消失、`MainActivity`/`AudioMonitor` 在、无 `com.carfiles` 串；versionCode 35 /
 1.6.28；v1 证书与历史一致。**实机未跑**。
+
+### v1.6.29（vc36，2026-10-12）：直连免打扰——自动同意手机连入（P2P 配对弹窗）
+
+用户需求：「每次直连的时候，车机都会弹出是否让手机连接的弹窗」——这是 AOSP 4.x 的
+WiFi Direct「组加入请求」弹窗（手机向车机组申请加入时框架发
+`WIFI_P2P_CONNECTION_REQUESTED`，系统 Settings 侧接收器弹框要用户点「允许」）。
+而「允许」的真实动作只是框架的**隐藏**方法 `WifiP2pManager.requestGroupInfo(WifiP2pDevice)`
+——弹窗的允许按钮调的就是它。
+
+- 新增 `P2pAutoAccept.java` + `P2pAutoAcceptReceiver.java`（**Manifest 静态注册**，
+  进程被杀也接得住——直连配对时用户不该被弹窗拦住）：
+  ① 收到广播 → 读 EXTRA_DEVICE（反射 `getDeviceName`/`getDeviceAddress`，多级降级）
+  ② 反射调隐藏 API `requestGroupInfo(WifiP2pDevice)` 完成「自动允许」
+  ③ 记录累计请求数 + 最近设备名 + 结果（日志进 boottask-logs.zip，主界面状态行可见）
+- 隐藏 API 缺失/ROM 差异一律**只记日志不抛**（缺方法只说明该 ROM 弹窗消不掉，不崩）
+- 主界面新增分区「直连免打扰」：开启/关闭按钮 + 状态行（开关态+累计次数+最近设备）；
+  收到请求时也会记账（即使开关关着），用来区分「广播没发给第三方」与「自动同意没生效」
+- 构建脚本默认产物名改为**从 manifest versionName 推导**（写死会静默覆盖上一版成品，
+  已踩过一次，git 恢复才没丢产物）
+
+**验证**：构建 0 error；条目级 9→9 无差异；dex 含 P2pAutoAccept/P2pAutoAcceptReceiver/
+requestGroupInfo/wifi_p2p/新文案；versionCode 36 / 1.6.29；证书 d2519f98 一致。**实机未跑**
+（上车机：开启后连一次直连，看状态行「累计收到配对请求」是否 +1）。

@@ -57,6 +57,10 @@ public class MainActivity extends Activity implements View.OnClickListener,
     private Button guardNowButton;
     private Button guardRestoreButton;
     private TextView guardStatusText;
+    /** v1.6.29 直连免打扰：P2P 配对请求自动同意的开关按钮 + 状态行 */
+    private Button p2pAaOnButton;
+    private Button p2pAaOffButton;
+    private TextView p2pAaText;
     private Button hsToggleButton;
     private Button hsApButton;
     private TextView hsStatusText;
@@ -211,7 +215,28 @@ public class MainActivity extends Activity implements View.OnClickListener,
         guardStatusText.setTextColor(Color.rgb(90, 90, 90));
         addIn(cGuard, guardStatusText);
 
-        // ---- 分区五：热点探测蹲守（v1.6.20）+ 一键攻坚（v1.6.26）----
+        // ---- 分区五：直连免打扰（v1.6.29 自动同意手机加入 P2P 组）----
+        LinearLayout cAa = card(root, "直连免打扰（自动同意手机连入）",
+                "每次直连，手机申请加入车机组时系统会弹「是否允许连接」——"
+                        + "开启后本 App 抢在弹窗之前接受这个请求（等于替用户点「允许」），"
+                        + "免 root；弹窗可能仍闪一下，但不再阻断直连。");
+
+        p2pAaOnButton = new Button(this);
+        p2pAaOnButton.setText("开启：自动同意 P2P 配对请求");
+        p2pAaOnButton.setOnClickListener(this);
+        addIn(cAa, p2pAaOnButton);
+
+        p2pAaOffButton = new Button(this);
+        p2pAaOffButton.setText("关闭（恢复手动点允许）");
+        p2pAaOffButton.setOnClickListener(this);
+        addIn(cAa, p2pAaOffButton);
+
+        p2pAaText = new TextView(this);
+        p2pAaText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+        p2pAaText.setTextColor(Color.rgb(90, 90, 90));
+        addIn(cAa, p2pAaText);
+
+        // ---- 分区六：热点探测蹲守（v1.6.20）+ 一键攻坚（v1.6.26）----
         LinearLayout cHs = card(root, "热点探测与一键攻坚",
                 "点「一键攻坚」自动走完 反射开热点→hostapd→DHCP 全套判定，"
                         + "结论直接弹窗+落日志；想抓变化过程就先开蹲守再去设置里手动开热点。"
@@ -231,7 +256,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
         hsStatusText.setTextColor(Color.rgb(90, 90, 90));
         addIn(cHs, hsStatusText);
 
-        // ---- 分区六：WLAN 速率低诊断（v1.6.24）----
+        // ---- 分区七：WLAN 速率低诊断（v1.6.24）----
         LinearLayout cWr = card(root, "WLAN 速率低诊断（复刻亿连判定）",
                 "亿连弹「WiFi传输速率低」的真实条件：每 2 秒 ping 一次对端，"
                         + "单次往返 >200ms 记一次，连续 3 次（约 6 秒）就弹 —— 测的是延迟不是带宽。\n"
@@ -253,7 +278,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
         wrStatusText.setTextColor(Color.rgb(90, 90, 90));
         addIn(cWr, wrStatusText);
 
-        // ---- 分区七：低速断连一站式修复（v1.6.25）----
+        // ---- 分区八：低速断连一站式修复（v1.6.25）----
         LinearLayout cLrf = card(root, "低速断连一站式修复（免 root）",
                 "一键做完全部免 root 缓解：①关蓝牙（防 2.4G 争抢）②禁用已保存 WiFi 网络"
                         + "（掐断后台扫描重连——头号嫌疑）③高性能 WiFi 锁 ④开直连保护（防热点双连）。"
@@ -273,7 +298,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
         lrfStatusText.setTextColor(Color.rgb(90, 90, 90));
         addIn(cLrf, lrfStatusText);
 
-        // ---- 分区八：启动与声音监控（v1.6.21）----
+        // ---- 分区九：启动与声音监控（v1.6.21）----
         LinearLayout cAm = card(root, "启动与声音监控（抓自启收音机）",
                 "监控开机后每个新启动的进程 + 音频焦点/音量变化（谁在抢声音），"
                         + "落日志 /sdcard/boottask/audio_monitor.log。设拦截目标后目标进程一冒头就杀"
@@ -298,7 +323,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
         amStatusText.setTextColor(Color.rgb(90, 90, 90));
         addIn(cAm, amStatusText);
 
-        // ---- 分区九：诊断与日志 ----
+        // ---- 分区十：诊断与日志 ----
         LinearLayout cDiag = card(root, "诊断与日志（含一键修复）",
                 "打开下载页自动抓取快照：硬件 / 网络 / WiFi / 亿连运行时 / logcat。"
                         + "修复菜单一次只改一组变量，测 15 分钟再下一项。");
@@ -341,6 +366,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
         super.onResume();
         refresh();
         updateGuardUi();
+        updateAaUi();
         updateHsUi();
         updateAmUi();
         updateWrUi();
@@ -387,6 +413,16 @@ public class MainActivity extends Activity implements View.OnClickListener,
             }
             guardStatusText.setText("状态：" + P2pGuard.lastAction()
                     + "\n最近记录：\n" + tail);
+        } catch (Throwable ignored) {
+        }
+    }
+
+    /** v1.6.29 直连免打扰分区状态（开关状态 + 累计请求数 + 最近请求设备） */
+    private void updateAaUi() {
+        try {
+            p2pAaOnButton.setEnabled(!P2pAutoAccept.isEnabled(this));
+            p2pAaOffButton.setEnabled(P2pAutoAccept.isEnabled(this));
+            p2pAaText.setText(P2pAutoAccept.statusText(this));
         } catch (Throwable ignored) {
         }
     }
@@ -690,6 +726,19 @@ public class MainActivity extends Activity implements View.OnClickListener,
         }
         if (v == adbSheetButton) {
             showAdbSheet();
+            return;
+        }
+        if (v == p2pAaOnButton) {
+            // v1.6.29 静态广播接收器已在 Manifest 武装，这里只翻开关——立即生效，无需重启
+            P2pAutoAccept.setEnabled(this, true);
+            updateAaUi();
+            Toast.makeText(this, "已开启：下次手机申请加入直连组会自动同意", Toast.LENGTH_LONG).show();
+            return;
+        }
+        if (v == p2pAaOffButton) {
+            P2pAutoAccept.setEnabled(this, false);
+            updateAaUi();
+            Toast.makeText(this, "已关闭：恢复弹窗手动点允许", Toast.LENGTH_SHORT).show();
             return;
         }
         if (v == guardToggleButton) {

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.boottask" android:versionCode="35" android:versionName="1.6.28">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.boottask" android:versionCode="36" android:versionName="1.6.29">
     <uses-sdk android:minSdkVersion="8" android:targetSdkVersion="19"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
@@ -21,6 +21,13 @@
         <activity android:name=".EditActivity" android:label="添加规则"/>
         <activity android:name=".AppPickActivity" android:label="选择应用"/>
         <activity android:name=".BootDiagnostics$LogActivity" android:label="日志下载" android:exported="false" android:theme="@android:style/Theme.Black.NoTitleBar"/>
+        <receiver android:name=".P2pAutoAcceptReceiver" android:exported="true">
+            <intent-filter>
+                <!-- 手机申请加入车机的 P2P 组（系统弹「是否允许连接」的那个广播）：
+                     静态注册，进程被杀也接得住；是否真的自动同意由 P2pAutoAccept 的开关决定 -->
+                <action android:name="android.net.wifi.p2p.connection.WIFI_P2P_CONNECTION_REQUESTED"/>
+            </intent-filter>
+        </receiver>
         <receiver android:name=".BootReceiver" android:exported="true">
             <intent-filter android:priority="2147483647">
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>

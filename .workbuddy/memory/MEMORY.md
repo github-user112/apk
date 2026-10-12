@@ -114,3 +114,10 @@ BootDiagnostics.log→FLog.log（新类）；仍编 logxfer 三件套（localIps
 7 类（FileOps/AdvActions 保留）+3 Activity+3 html，权限全保留，分区注释重排，README 标注。
 两包均与 BootTask 同证书 d2519f98；静态验证：BootTask 条目 12→9/7 类串消失，FileMgr 条目 11/
 无 com.boottask 残留。⚠ 升级顺序：先装 CarFiles_v1.0.0.apk 再升 BootTask 1.6.28（后者起无 18082）。
+
+## BootTask v1.6.29（vc36，2026-10-12）：直连免打扰（P2P 配对弹窗自动同意）
+新增 P2pAutoAccept + P2pAutoAcceptReceiver（Manifest 静态注册）：收到
+WIFI_P2P_CONNECTION_REQUESTED 后反射调隐藏 API `WifiP2pManager.requestGroupInfo(WifiP2pDevice)`
+= 替用户点「允许」；缺方法只记日志不抛。主界面新增「直连免打扰」分区（开关+累计请求数状态行）。
+**构建脚本根治**：默认产物名改为从 manifest versionName 推导——写死会静默覆盖上一版成品
+（已踩两次，git restore 抢救）。静态验证通过（条目 9→9、dex 七串、vc36），实机未跑。

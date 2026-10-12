@@ -25,10 +25,12 @@ import java.util.List;
  *
  * <p>安全纪律（无障碍能点任何界面，误点代价很大）：
  * ① 只在开关打开时动作；**不碰自己的窗口**（包名相同直接放行）；
- * ② 必须同时看到 P2P 场景特征文本才点，且看到拒绝类文案（取消/拒绝/不允许…）立刻放弃——
- *    宁可让用户自己点，也不替用户做可能错的选择；
+ * ② 必须同时看到 P2P 场景特征文本才点。拒绝类文案（取消/拒绝）**不构成放弃理由**——
+ *    配对弹窗本来就是「允许/拒绝」双按钮，那正是本服务要自动点「允许」的场景；
+ *    拒绝词只用于修正同意按钮判定（isAcceptText 里排掉「不允许连接」这种）。
+ *    v1.6.30 原版把拒绝词当整窗放弃条件，带「取消」的弹窗永远点不了，已修（v1.6.31）；
  * ③ 同意按钮判定是「排除优先 + 短文本精确匹配」，"不允许连接" 不会因为含"允许"被点；
- * ④ 冷却 3 秒防连点；
+ * ④ 冷却 3 秒防连点；高频日志（无特征跳过/冷却）10 秒节流防刷爆诊断日志；
  * ⑤ 全程落日志（含为什么没点），不抛异常——回调里抛异常会让系统禁用本服务。
  *
  * <p>4.4 适配：{@code AccessibilityEvent.getText()/getSource()/getClassName()}
@@ -40,6 +42,7 @@ public class P2pDialogClicker extends AccessibilityService {
     /** 同意类按钮文案（中英都覆盖，车机 ROM 文案不统一）。 */
     private static final String[] ACCEPT_TEXT = {
             "确定", "允许", "同意", "接受", "连接", "配对", "继续", "好", "是",
+            "允许连接", "始终允许", "接受并连接",
             "OK", "Allow", "Accept", "Connect", "Pair", "Continue", "Yes", "Agree"
     };
     /** 拒绝类文案——命中即放弃点击。 */
@@ -123,13 +126,9 @@ public class P2pDialogClicker extends AccessibilityService {
         } catch (Throwable t) {
             BootDiagnostics.log(this, "P2pDialogClicker: scan failed " + t);
         } finally {
+            // root 也在 nodes 里（collect 第一个 add），recycleAll 已回收——
+            // 不要再 recycle 一次，4.4 上二次 recycle 会抛 IllegalStateException
             recycleAll(nodes);
-            if (root != null) {
-                try {
-                    root.recycle();
-                } catch (Throwable ignored) {
-                }
-            }
         }
     }
 
@@ -168,17 +167,19 @@ public class P2pDialogClicker extends AccessibilityService {
         }
         boolean scene = false;
         AccessibilityNodeInfo accept = null;
+        String rejectSeen = null;
         for (int i = 0; i < nodes.size(); i++) {
             AccessibilityNodeInfo n = nodes.get(i);
             String text = textOf(n);
             if (text.length() == 0) {
                 continue;
             }
-            // 纪律②：看到拒绝类文案 → 需要用户自己判断，不碰
-            if (containsAny(text, REJECT_TEXT)) {
-                BootDiagnostics.log(this, "P2pDialogClicker: 见拒绝文案「" + brief(text)
-                        + "」，不点（pkg=" + winPkg + "）");
-                return;
+            // 拒绝类文案只记录不放弃：P2P 配对弹窗 = 「允许/拒绝」双按钮，
+            // 恰恰是本服务要自动点「允许」的目标场景（v1.6.30 原版在这里整窗
+            // 放弃，等于带「取消」的弹窗永远不点，功能照旧空转——v1.6.31 修）。
+            // 拒绝词真正的用途在 isAcceptText()：防止「不允许连接」被当成「允许」点掉。
+            if (rejectSeen == null && containsAny(text, REJECT_TEXT)) {
+                rejectSeen = brief(text);
             }
             if (!scene && containsAny(text, SCENE_TEXT)) {
                 scene = true;
@@ -188,19 +189,21 @@ public class P2pDialogClicker extends AccessibilityService {
             }
         }
         if (!scene) {
-            BootDiagnostics.log(this, "P2pDialogClicker: 窗口无 P2P 特征，跳过（pkg=" + winPkg + "）");
+            // v1.6.31：这里在 TYPE_WINDOW_CONTENT_CHANGED 下高频触发，不节流会把
+            // 诊断日志整个刷掉。同原因 10 秒只记一条。
+            logThrottled("P2pDialogClicker: 窗口无 P2P 特征，跳过（pkg=" + winPkg + "）");
             return;
         }
         if (accept == null) {
             P2pAutoAccept.noteMiss(this);
-            BootDiagnostics.log(this, "P2pDialogClicker: 有配对特征但没有可点的同意按钮"
+            logThrottled("P2pDialogClicker: 有配对特征但没有可点的同意按钮"
                     + "（pkg=" + winPkg + "）");
             return;
         }
         // 纪律④：冷却
         long now = android.os.SystemClock.elapsedRealtime();
         if (lastClickAt != 0 && now - lastClickAt < COOLDOWN_MS) {
-            BootDiagnostics.log(this, "P2pDialogClicker: 冷却中（距上次 "
+            logThrottled("P2pDialogClicker: 冷却中（距上次 "
                     + (now - lastClickAt) + "ms），本次不点");
             return;
         }
@@ -216,12 +219,26 @@ public class P2pDialogClicker extends AccessibilityService {
             lastClickAt = now;
             P2pAutoAccept.noteClicked(this, label, winPkg);
             BootDiagnostics.log(this, "P2pDialogClicker: 已自动点「" + brief(label)
-                    + "」（pkg=" + winPkg + "）");
+                    + "」（pkg=" + winPkg + "，窗内见拒绝词：" + rejectSeen + "）");
         } else {
             P2pAutoAccept.noteMiss(this);
-            BootDiagnostics.log(this, "P2pDialogClicker: click 返回 false（按钮不可点，pkg="
+            logThrottled("P2pDialogClicker: click 返回 false（按钮不可点，pkg="
                     + winPkg + "）");
         }
+    }
+
+    /** 同 key 10 秒内只落一条，防高频事件刷爆诊断日志（v1.6.31）。 */
+    private static String sLogKey = "";
+    private static long sLogAt;
+
+    private void logThrottled(String msg) {
+        long now = android.os.SystemClock.elapsedRealtime();
+        if (msg.equals(sLogKey) && now - sLogAt < 10000L) {
+            return;
+        }
+        sLogKey = msg;
+        sLogAt = now;
+        BootDiagnostics.log(this, msg);
     }
 
     // ------------------------------------------------------------------ 小工具

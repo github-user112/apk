@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.boottask" android:versionCode="36" android:versionName="1.6.29">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.boottask" android:versionCode="37" android:versionName="1.6.30">
     <uses-sdk android:minSdkVersion="8" android:targetSdkVersion="19"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
@@ -21,13 +21,18 @@
         <activity android:name=".EditActivity" android:label="添加规则"/>
         <activity android:name=".AppPickActivity" android:label="选择应用"/>
         <activity android:name=".BootDiagnostics$LogActivity" android:label="日志下载" android:exported="false" android:theme="@android:style/Theme.Black.NoTitleBar"/>
-        <receiver android:name=".P2pAutoAcceptReceiver" android:exported="true">
+        <!-- v1.6.30 直连免打扰：无障碍服务自动点掉 P2P 配对弹窗。
+             v1.6.29 那个 WIFI_P2P_CONNECTION_REQUESTED 接收器已删（4.4 framework 里
+             没有这个 action，接收器永不触发，见 P2pAutoAccept 类注释）。 -->
+        <service android:name=".P2pDialogClicker" android:label="开机任务·直连自动允许"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
+            android:exported="true">
             <intent-filter>
-                <!-- 手机申请加入车机的 P2P 组（系统弹「是否允许连接」的那个广播）：
-                     静态注册，进程被杀也接得住；是否真的自动同意由 P2pAutoAccept 的开关决定 -->
-                <action android:name="android.net.wifi.p2p.connection.WIFI_P2P_CONNECTION_REQUESTED"/>
+                <action android:name="android.accessibilityservice.AccessibilityService"/>
             </intent-filter>
-        </receiver>
+            <meta-data android:name="android.accessibilityservice"
+                android:resource="@xml/accessibility_service"/>
+        </service>
         <receiver android:name=".BootReceiver" android:exported="true">
             <intent-filter android:priority="2147483647">
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>

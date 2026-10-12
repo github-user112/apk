@@ -57,9 +57,11 @@ public class MainActivity extends Activity implements View.OnClickListener,
     private Button guardNowButton;
     private Button guardRestoreButton;
     private TextView guardStatusText;
-    /** v1.6.29 直连免打扰：P2P 配对请求自动同意的开关按钮 + 状态行 */
+    /** v1.6.29 直连免打扰：P2P 配对弹窗自动点掉的开关按钮 + 状态行 */
     private Button p2pAaOnButton;
     private Button p2pAaOffButton;
+    private Button p2pAaSettingsButton;
+    private Button p2pAaTestButton;
     private TextView p2pAaText;
     private Button hsToggleButton;
     private Button hsApButton;
@@ -215,14 +217,14 @@ public class MainActivity extends Activity implements View.OnClickListener,
         guardStatusText.setTextColor(Color.rgb(90, 90, 90));
         addIn(cGuard, guardStatusText);
 
-        // ---- 分区五：直连免打扰（v1.6.29 自动同意手机加入 P2P 组）----
-        LinearLayout cAa = card(root, "直连免打扰（自动同意手机连入）",
+        // ---- 分区五：直连免打扰（v1.6.30 无障碍自动点配对弹窗）----
+        LinearLayout cAa = card(root, "直连免打扰（自动点掉配对弹窗）",
                 "每次直连，手机申请加入车机组时系统会弹「是否允许连接」——"
-                        + "开启后本 App 抢在弹窗之前接受这个请求（等于替用户点「允许」），"
-                        + "免 root；弹窗可能仍闪一下，但不再阻断直连。");
+                        + "开启后本 App 用无障碍服务自动点掉它（等同手点「允许」），"
+                        + "不点别处任何按钮。⚠ 必须先在系统里启用本服务，见下面两个按钮。");
 
         p2pAaOnButton = new Button(this);
-        p2pAaOnButton.setText("开启：自动同意 P2P 配对请求");
+        p2pAaOnButton.setText("开启：自动点掉 P2P 配对弹窗");
         p2pAaOnButton.setOnClickListener(this);
         addIn(cAa, p2pAaOnButton);
 
@@ -230,6 +232,16 @@ public class MainActivity extends Activity implements View.OnClickListener,
         p2pAaOffButton.setText("关闭（恢复手动点允许）");
         p2pAaOffButton.setOnClickListener(this);
         addIn(cAa, p2pAaOffButton);
+
+        p2pAaSettingsButton = new Button(this);
+        p2pAaSettingsButton.setText("① 去系统设置里启用无障碍服务（必需）");
+        p2pAaSettingsButton.setOnClickListener(this);
+        addIn(cAa, p2pAaSettingsButton, dip(10));
+
+        p2pAaTestButton = new Button(this);
+        p2pAaTestButton.setText("② 立刻测试一次（弹窗在时点此按钮验证）");
+        p2pAaTestButton.setOnClickListener(this);
+        addIn(cAa, p2pAaTestButton);
 
         p2pAaText = new TextView(this);
         p2pAaText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
@@ -729,16 +741,36 @@ public class MainActivity extends Activity implements View.OnClickListener,
             return;
         }
         if (v == p2pAaOnButton) {
-            // v1.6.29 静态广播接收器已在 Manifest 武装，这里只翻开关——立即生效，无需重启
+            // v1.6.30 无障碍服务已在 Manifest 声明；开关只是授权本 App 允许它动手
             P2pAutoAccept.setEnabled(this, true);
             updateAaUi();
-            Toast.makeText(this, "已开启：下次手机申请加入直连组会自动同意", Toast.LENGTH_LONG).show();
+            if (!P2pAutoAccept.isAccessibilityServiceEnabled(this)) {
+                Toast.makeText(this, "已开开关，但无障碍服务还没在系统里启用——"
+                        + "请点「① 去系统设置里启用无障碍服务」", Toast.LENGTH_LONG).show();
+            } else {
+                Toast.makeText(this, "已开启：下次手机申请连入会自动点「允许」", Toast.LENGTH_LONG).show();
+            }
             return;
         }
         if (v == p2pAaOffButton) {
             P2pAutoAccept.setEnabled(this, false);
             updateAaUi();
             Toast.makeText(this, "已关闭：恢复弹窗手动点允许", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (v == p2pAaSettingsButton) {
+            // v1.6.30 无障碍服务必须由用户在系统里手动启用，系统不会给应用自动开
+            try {
+                startActivity(P2pAutoAccept.settingsIntent());
+            } catch (Throwable t) {
+                Toast.makeText(this, "打不开系统辅助功能设置页：" + t, Toast.LENGTH_LONG).show();
+            }
+            return;
+        }
+        if (v == p2pAaTestButton) {
+            // 弹窗在场时点这个 = 手动触发一次扫描，用来验证文案规则是否匹配
+            Toast.makeText(this, P2pDialogClicker.selfTest(), Toast.LENGTH_LONG).show();
+            updateAaUi();
             return;
         }
         if (v == guardToggleButton) {

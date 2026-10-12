@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  v1.6.30 直连免打扰：无障碍服务配置。
+
+  ⚠ 4.4 兼容性：minSdk 8 声明的是本工程基线，但 AccessibilityService 要 API 14+、
+  TYPE_WINDOW_CONTENT_CHANGED 要 API 17+。这些值写在 res/xml 里会在低版本设备上被忽略
+  （aapt 会照常打进 manifest，运行时老系统不认就当没这服务），本项目实际只跑 4.4 车机，
+  不为了兼容 2.x 而降级 numPad/flags 写法。
+-->
+<accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
+    android:accessibilityEventTypes="typeWindowStateChanged|typeWindowContentChanged"
+    android:accessibilityFeedbackType="feedbackGeneric"
+    android:accessibilityFlags="flagIncludeNotImportantViews"
+    android:canRetrieveWindowContent="true"
+    android:description="@string/accessibility_desc"
+    android:notificationTimeout="200"/>

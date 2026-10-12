@@ -54,13 +54,20 @@ if match is None:
     raise SystemExit("AndroidManifest.xml 缺少 android:versionName")
 values = project / "res" / "values"
 values.mkdir(parents=True, exist_ok=True)
-(values / "strings.xml").write_text(
-    '<?xml version="1.0" encoding="utf-8"?>\n'
-    '<resources>\n'
-    '    <string name="app_name">\u5f00\u673a\u4efb\u52a1 %s</string>\n'
-    '</resources>\n' % match.group(1),
-    encoding="utf-8",
-)
+# v1.6.30：除 app_name 外还要保留无障碍服务描述串（被 res/xml/accessibility_service.xml
+# 引用）。这里只替换 app_name 那一行，不整文件重写——整写会把别的字符串冲掉。
+strings = values / "strings.xml"
+if not strings.exists():
+    strings.write_text(
+        '<?xml version="1.0" encoding="utf-8"?>\n<resources>\n</resources>\n',
+        encoding="utf-8")
+text = strings.read_text(encoding="utf-8")
+line = '    <string name="app_name">\u5f00\u673a\u4efb\u52a1 %s</string>' % match.group(1)
+if 'name="app_name"' in text:
+    text = re.sub(r'<string name="app_name">[^<]*</string>', line, text, count=1)
+else:
+    text = text.replace("<resources>", "<resources>\n" + line, 1)
+strings.write_text(text, encoding="utf-8")
 print("app_name -> \u5f00\u673a\u4efb\u52a1 %s" % match.group(1))
 PY
 

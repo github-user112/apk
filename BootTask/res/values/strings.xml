@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">开机任务 1.5</string>
+    <!-- v1.6.30：无障碍服务描述串（被 res/xml/accessibility_service.xml 引用，
+         会在系统「辅助功能」列表里显示给用户看）。build.sh 只替换 app_name 一行，
+         不会冲掉本串。 -->
+    <string name="accessibility_desc">开机任务直连免打扰：自动点掉手机的「是否允许连接」弹窗。仅在您开启本 App 的「直连免打扰」开关并连一次直连时才会动作，其他界面不点。</string>
+    <!-- 主界面分区里「开启无障碍设置」按钮文案 -->
+    <string name="a11y_open_settings">去系统设置里启用无障碍服务</string>
 </resources>

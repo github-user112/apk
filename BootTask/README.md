@@ -712,3 +712,45 @@ WiFi Direct「组加入请求」弹窗（手机向车机组申请加入时框架
 **验证**：构建 0 error；条目级 9→9 无差异；dex 含 P2pAutoAccept/P2pAutoAcceptReceiver/
 requestGroupInfo/wifi_p2p/新文案；versionCode 36 / 1.6.29；证书 d2519f98 一致。**实机未跑**
 （上车机：开启后连一次直连，看状态行「累计收到配对请求」是否 +1）。
+
+### v1.6.30（vc37，2026-10-12）：直连免打扰改用**无障碍自动点弹窗**（修 v1.6.29 的 P0）
+
+**v1.6.29 的功能是无效的，写错了。** 那版假设 framework 有
+`WIFI_P2P_CONNECTION_REQUESTED` 广播 + 隐藏方法 `WifiP2pManager.requestGroupInfo(WifiP2pDevice)`，
+并把来源写成"标准做法"。用 **android-all 4.4 全量 jar（含 @hide）**逐项复核，三条全错：
+
+| v1.6.29 假设 | 4.4 framework 实测 |
+|---|---|
+| `WIFI_P2P_CONNECTION_REQUESTED` 广播 | **不存在**，P2P 只有 6 个标准 action（STATE/PEERS/CONNECTION/DISCOVERY/THIS_DEVICE/PERSISTENT_GROUPS） |
+| `requestGroupInfo(WifiP2pDevice)` | **不存在**，只有 `requestGroupInfo(Channel, GroupInfoListener)`（查组信息，不收设备） |
+| `EXTRA_WIFI_P2P_DEVICE` = `...extra.WIFI_P2P_DEVICE` | 真值是 `wifiP2pDevice`（key 也写错了） |
+| `acceptGroupInvitation` | 不存在 |
+
+后果：接收器永不触发，`accept()` 必抛 NoSuchMethodException——不崩（防御写得好）但**功能静默无效**。
+
+**这版的正解（用户提出的方案，已采纳）**：4.4 上唯一能拿到"弹窗出现了"的合法途径是
+**无障碍服务**（系统弹窗也在可访问性树里）。
+
+- 新增 `P2pDialogClicker extends AccessibilityService`：
+  收 `TYPE_WINDOW_STATE_CHANGED` / `TYPE_WINDOW_CONTENT_CHANGED` →
+  `getRootInActiveWindow()` 遍历 → 命中"确定/允许/连接/OK…"同意按钮 → `performAction(ACTION_CLICK)`
+- 删掉假的 `P2pAutoAcceptReceiver`（含那个不存在的广播 action）
+- `P2pAutoAccept` 退化为开关 + 计数 + 状态（不再自己做动作）
+- **误点防护是硬约束**（无障碍能点任何界面，代价很大）：
+  ① 不碰自己的窗口；② 必须同时出现 P2P 场景特征文本才点；③ 见到"取消/拒绝/不允许"立刻放弃；
+  ④ 同意按钮判定"排除优先 + 短文本精确匹配"（"不允许连接"不会因含"允许"被点）；
+  ⑤ 3 秒冷却防连点；⑥ 全程落日志（含为什么没点）
+- 主界面分区：开启/关闭 + **①去系统设置启用无障碍服务**（必须用户在系统里手开，系统不给自动开）
+  + **②立刻测试一次**（弹窗在场时点它验证文案规则是否匹配）+ 状态行（已点 N 次/错过 M 次/无障碍服务启用态）
+- `build.sh` / `build_win.sh` 的 app_name 改法从"整文件重写"改成"只替换那一行"，
+  不再冲掉 `res/values/strings.xml` 里的 `accessibility_desc`（BootTask/FileMgr 同步）
+- 4.4 兼容注意：`AccessibilityEvent.getText()/getSource()` 在 stub 里声明在父类
+  `AccessibilityRecord` 上，本类一律用 `getRootInActiveWindow()` 重新取树，绕开编译坑
+
+**验证**：构建 0 error；aapt2 真编译了 `res/xml/accessibility_service.xml`（属性名都对，
+若编错 aapt2 会报错）；条目 9→11（+xml +无变化）；dex 含新类且**已无** `P2pAutoAcceptReceiver`
+与 `WIFI_P2P_CONNECTION_REQUESTED` 残留；resources.arsc 里 app_name=开机任务 1.6.30 +
+accessibility_desc 都在；versionCode 37 / 1.6.30；证书 d2519f98 一致。**实机未跑**。
+
+> ⚠ 装之前先在系统「设置→辅助功能」里手动启用「开机任务·直连自动允许」，
+> 不然开关打开也不生效（状态行会显示"未启用"）。

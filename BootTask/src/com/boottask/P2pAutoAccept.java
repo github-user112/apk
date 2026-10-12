@@ -3,47 +3,43 @@ package com.boottask;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.view.accessibility.AccessibilityManager;
+import android.accessibilityservice.AccessibilityServiceInfo;
 
-import java.lang.reflect.Method;
+import java.util.List;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
 /**
- * v1.6.29 直连免打扰：手机请求加入车机的 P2P 组时，替用户点掉系统的「是否允许连接」弹窗。
+ * v1.6.30 直连免打扰：开关 + 状态 + 计数（**不再自己做点击动作**）。
  *
- * <p>原理（AOSP 4.4 的标准做法）：
- * 手机（peer）向车机组（车机是 GO）申请加入时，框架会发一个有序广播
- * {@code android.net.wifi.p2p.connection.WIFI_P2P_CONNECTION_REQUESTED}，
- * EXTRA 里带着请求方设备。系统 Settings 的接收器收到后弹那个框；
- * 而「允许」的真正动作是框架的<b>隐藏</b>方法
- * {@code WifiP2pManager.requestGroupInfo(WifiP2pDevice)}——弹窗的「允许」按钮调的就是它。
- * 所以本工程自己注册一个 Manifest 接收器抢先拿到这个广播，直接调该方法，
- * 弹窗的「允许」就没有必要再由用户点（有些 ROM 的厂商弹窗仍会闪一下，
- * 但连接请求已经解决，不再阻断直连）。
+ * <p><b>v1.6.29 的教训（别再犯）</b>：那一版假设 framework 有
+ * {@code WIFI_P2P_CONNECTION_REQUESTED} 广播、隐藏方法
+ * {@code WifiP2pManager.requestGroupInfo(WifiP2pDevice)}、EXTRA 键
+ * {@code android.net.wifi.p2p.extra.WIFI_P2P_DEVICE}。经 android-all 4.4 全量 jar
+ * （含 @hide）复核：**三者全部不存在**，接收器永不触发、accept() 必抛
+ * NoSuchMethodException —— 功能静默无效，注释里的"标准做法"是没验证就写的。
+ * 真正的做法是 {@link P2pDialogClicker}（无障碍服务）去点弹窗。
  *
- * <p>纪律：
- * ① 隐藏 API 全走反射——stub android.jar 里根本没有 {@code requestGroupInfo(WifiP2pDevice)}
- *    和 {@code EXTRA_DEVICE}，直接引用编不过（也不该编）；
- * ② 反射失败只记日志不抛——ROM 差异大，缺方法不能把接收器搞崩；
- * ③ 收到请求就先累加「seen」计数（哪怕开关是关的），这样「一次都没收到」
- *    就能立刻区分「系统没把广播发给第三方」还是「自动同意没生效」；
- * ④ 只在开关打开时才调同意（关着就是纯记录，不打扰）。
+ * <p>本类现在只负责三件事：
+ * ① 开关（prefs），P2pDialogClicker 每次动作前都来问一句；
+ * ② 状态行文案——包括**无障碍服务是否已被用户在系统里启用**（没启用就等于没开）；
+ * ③ 计数与最近结果（点了哪个按钮 / 点了几次 / 错过几次），供事后看日志。
  */
 public final class P2pAutoAccept {
 
-    /** WIFI_P2P_CONNECTION_REQUESTED 广播里的设备 extra key（API16+ 常量的字面值）。 */
-    private static final String EXTRA_DEVICE = "android.net.wifi.p2p.extra.WIFI_P2P_DEVICE";
-
     private static final String PREF = "p2p_auto_accept";
     private static final String K_ON = "on";
-    private static final String K_SEEN = "seen";
+    private static final String K_CLICKED = "clicked";
+    private static final String K_MISS = "miss";
     private static final String K_LAST = "last";
+    private static final String K_LAST_AT = "lastAt";
 
     private P2pAutoAccept() {
     }
 
-    // ------------------------------------------------------------------ 开关与状态
+    // ------------------------------------------------------------------ 开关
 
     public static boolean isEnabled(Context c) {
         try {
@@ -61,10 +57,47 @@ public final class P2pAutoAccept {
         BootDiagnostics.log(c, "P2pAutoAccept: switch -> " + (on ? "on" : "off"));
     }
 
-    /** 累计收到过的配对请求数（不含开关状态）——用于判断广播到底发没发到本 App。 */
-    public static int seen(Context c) {
+    // ------------------------------------------------------------------ 计数（由无障碍服务上报）
+
+    public static void noteClicked(Context c, String label, String pkg) {
         try {
-            return prefs(c).getInt(K_SEEN, 0);
+            prefs(c).edit()
+                    .putInt(K_CLICKED, clicked(c) + 1)
+                    .putString(K_LAST, "已点「" + label + "」（" + pkg + "）")
+                    .putString(K_LAST_AT, now())
+                    .commit();
+        } catch (Throwable t) {
+        }
+    }
+
+    public static void noteMiss(Context c) {
+        try {
+            prefs(c).edit().putInt(K_MISS, miss(c) + 1).commit();
+        } catch (Throwable t) {
+        }
+    }
+
+    /** 无障碍服务连上/断开时记一笔，方便判断"开了没生效"还是"服务压根没启用"。 */
+    public static void noteServiceState(Context c, boolean on) {
+        try {
+            prefs(c).edit().putString(K_LAST, on ? "无障碍服务已连接" : "无障碍服务已断开")
+                    .putString(K_LAST_AT, now()).commit();
+        } catch (Throwable t) {
+        }
+        BootDiagnostics.log(c, "P2pAutoAccept: accessibility service " + (on ? "connected" : "destroyed"));
+    }
+
+    public static int clicked(Context c) {
+        try {
+            return prefs(c).getInt(K_CLICKED, 0);
+        } catch (Throwable t) {
+            return 0;
+        }
+    }
+
+    public static int miss(Context c) {
+        try {
+            return prefs(c).getInt(K_MISS, 0);
         } catch (Throwable t) {
             return 0;
         }
@@ -79,106 +112,97 @@ public final class P2pAutoAccept {
         }
     }
 
-    /** 主界面状态行文案。 */
-    public static String statusText(Context c) {
-        if (!isEnabled(c)) {
-            return "状态：已关闭（每次直连都要在弹窗上点「允许」）";
+    public static String lastAt(Context c) {
+        try {
+            String s = prefs(c).getString(K_LAST_AT, "");
+            return s == null ? "" : s;
+        } catch (Throwable t) {
+            return "";
         }
-        StringBuilder sb = new StringBuilder("状态：已开启 · 累计收到配对请求 ");
-        sb.append(seen(c)).append(" 次");
+    }
+
+    // ------------------------------------------------------------------ 无障碍服务是否真的开着
+
+    /**
+     * 查系统里启用的无障碍服务列表里有没有我们这个。
+     *
+     * <p>4.4 的 {@code AccessibilityServiceInfo} 没有 {@code getServiceInfo()}（那是
+     * {@code ServiceInfo} 包装，晚版本才有），只有 {@code getId()}（形如
+     * {@code com.boottask/com.boottask.P2pDialogClicker}）和公开字段 {@code packageNames}。
+     * 两个都判：getId 后半段等类名，或 packageNames 含本包名。
+     */
+    public static boolean isAccessibilityServiceEnabled(Context c) {
+        try {
+            AccessibilityManager am = (AccessibilityManager)
+                    c.getSystemService(Context.ACCESSIBILITY_SERVICE);
+            if (am == null || !am.isEnabled()) {
+                return false;
+            }
+            List<AccessibilityServiceInfo> list =
+                    am.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_GENERIC);
+            if (list == null) {
+                return false;
+            }
+            String cls = P2pDialogClicker.class.getName();
+            String pkg = c.getPackageName();
+            for (int i = 0; i < list.size(); i++) {
+                AccessibilityServiceInfo info = list.get(i);
+                if (info == null) {
+                    continue;
+                }
+                try {
+                    String id = info.getId();
+                    if (id != null && id.endsWith(cls)) {
+                        return true;
+                    }
+                } catch (Throwable ignored) {
+                }
+                try {
+                    String[] pns = info.packageNames;
+                    if (pns != null) {
+                        for (int k = 0; k < pns.length; k++) {
+                            if (pkg.equals(pns[k])) {
+                                return true;
+                            }
+                        }
+                    }
+                } catch (Throwable ignored) {
+                }
+            }
+        } catch (Throwable t) {
+            BootDiagnostics.log(c, "P2pAutoAccept: query accessibility failed " + t);
+        }
+        return false;
+    }
+
+    /** 把用户送到系统「辅助功能」设置页去开服务。 */
+    public static Intent settingsIntent() {
+        return new Intent("android.settings.ACCESSIBILITY_SETTINGS");
+    }
+
+    // ------------------------------------------------------------------ 状态行
+
+    public static String statusText(Context c) {
+        StringBuilder sb = new StringBuilder();
+        boolean on = isEnabled(c);
+        sb.append("开关：").append(on ? "已开启" : "已关闭");
+        sb.append("　无障碍服务：").append(isAccessibilityServiceEnabled(c)
+                ? "已在系统里启用" : "未启用（开关开了也不生效！）");
+        sb.append("\n已自动点击 ").append(clicked(c)).append(" 次");
+        if (miss(c) > 0) {
+            sb.append("，错过 ").append(miss(c)).append(" 次");
+        }
         String l = last(c);
         if (l.length() > 0) {
-            sb.append("（最近：").append(l).append("）");
+            sb.append("；最近：").append(lastAt(c)).append(" ").append(l);
         }
-        if (seen(c) == 0) {
-            sb.append("　※ 还没收到过：连一次直连再回来看；仍为 0 说明");
-            sb.append("该 ROM 不把请求广播给第三方 App，需换另一方案");
+        if (clicked(c) == 0 && on && isAccessibilityServiceEnabled(c)) {
+            sb.append("\n※ 还没有点击记录：连一次直连，回来看这里；日志在 boottask-logs.zip");
         }
         return sb.toString();
     }
 
-    // ------------------------------------------------------------------ 核心
-
-    /**
-     * 收到 WIFI_P2P_CONNECTION_REQUESTED 的处理入口（接收器调用）。
-     * 无论开关开关与否都会记 seen/设备名，方便事后看日志判读。
-     */
-    public static void onConnectionRequested(Context c, Intent in) {
-        if (c == null || in == null) {
-            return;
-        }
-        Object dev = null;
-        try {
-            dev = in.getParcelableExtra(EXTRA_DEVICE);
-        } catch (Throwable t) {
-        }
-        String who = describe(dev);
-        try {
-            prefs(c).edit().putInt(K_SEEN, seen(c) + 1)
-                    .putString(K_LAST, now() + " " + who).commit();
-        } catch (Throwable t) {
-        }
-        if (!isEnabled(c)) {
-            BootDiagnostics.log(c, "P2pAutoAccept: request seen but switch off: " + who);
-            return;
-        }
-        String r = accept(c, dev);
-        BootDiagnostics.log(c, "P2pAutoAccept: " + who + " -> " + r);
-    }
-
-    /** 调隐藏 API requestGroupInfo(WifiP2pDevice) —— 等价于用户在弹窗上点「允许」。 */
-    private static String accept(Context c, Object dev) {
-        if (dev == null) {
-            return "no EXTRA_DEVICE（ROM 没带设备信息，放弃自动同意）";
-        }
-        Object mgr;
-        try {
-            mgr = c.getSystemService("wifi_p2p");
-        } catch (Throwable t) {
-            return "getSystemService(wifi_p2p) failed: " + t;
-        }
-        if (mgr == null) {
-            return "wifi_p2p service null（WiFi 没开？）";
-        }
-        try {
-            Class<?> devCls = Class.forName("android.net.wifi.p2p.WifiP2pDevice");
-            Method m = mgr.getClass().getMethod("requestGroupInfo", devCls);
-            m.invoke(mgr, dev);
-            return "已自动同意（requestGroupInfo）";
-        } catch (NoSuchMethodException e) {
-            // 部分 ROM 只有无参的 requestGroupInfo（那是查组信息，不等于同意），不瞎调
-            return "该 ROM 没有隐藏接口 requestGroupInfo(WifiP2pDevice)（弹窗消不掉）";
-        } catch (Throwable t) {
-            return "自动同意失败：" + t;
-        }
-    }
-
-    /** 反射取设备名/地址；各 ROM getter 命名不一，逐个降级，最后退到 toString。 */
-    private static String describe(Object dev) {
-        if (dev == null) {
-            return "设备未知(EXTRA_DEVICE 为空)";
-        }
-        String name = firstString(dev, new String[]{"getDeviceName", "getName"});
-        String addr = firstString(dev, new String[]{"getDeviceAddress", "getAddress"});
-        if (name == null && addr == null) {
-            String s = String.valueOf(dev);
-            return s.length() > 120 ? s.substring(0, 120) + "…" : s;
-        }
-        return (name == null ? "(无名字)" : name) + (addr == null ? "" : " @" + addr);
-    }
-
-    private static String firstString(Object dev, String[] getters) {
-        for (int i = 0; i < getters.length; i++) {
-            try {
-                Object v = dev.getClass().getMethod(getters[i]).invoke(dev);
-                if (v != null && String.valueOf(v).length() > 0) {
-                    return String.valueOf(v);
-                }
-            } catch (Throwable ignored) {
-            }
-        }
-        return null;
-    }
+    // ------------------------------------------------------------------ 小工具
 
     private static String now() {
         try {

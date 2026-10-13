@@ -1,0 +1,85 @@
+evidence_id: ev_7f1764b46ee0a171eabe8d880570aa73bffdf6f898a72073b88cbd293061e88e
+subject:
+  name: 亿连手机互联V7.0.1.apk
+  digest:
+    sha256: c95ba50c05ef94a3883e2dc387aeda80525bd380cd528f813330da92de1cd362
+  format: apk
+  architecture: null
+  local_path: /home/opc/workspace/apk/Yilian/03_原始APK/亿连手机互联V7.0.1.apk
+provider:
+  id: jadx
+  name: JADX headless
+  version: 0.7.1
+analysis_profile: null
+predicate_type: rea.analysis
+operation: inspect_android_class
+parameters:
+  path: /home/opc/workspace/apk/Yilian/03_原始APK/亿连手机互联V7.0.1.apk
+  class_name: net.easyconn.broadcast.StdBroadcastManager
+raw_result:
+  server:
+    name: rea-jadx-bridge
+    version: "1"
+  bridge_sha256: 5a5a4e32264fbe597a329d7ad4b06a6266b7b31243e86b0263dbddcecaf351a1
+  jar_sha256: 6e5eacf500b64292bfb73c49797c1958f6ee44646e43e868039ae7feb573ff75
+  loaded:
+    state: LOADED
+    apk_path: /tmp/rea-android-acTMqB/target.apk
+    class_count: 3299
+    resource_count: 1501
+    threads: 1
+    resources: full
+  calls[3]:
+    - operation: rea_jvm_status
+      input:
+      response:
+        content[1]{type,text}:
+          text,"{\"engine_reported_version\":\"0.7.1\",\"metadata_scope\":\"parsed_members\",\"max_heap_bytes\":6018826240,\"java_version\":\"21.0.12.1\",\"available_processors\":4}"
+        isError: false
+    - operation: load_apk
+      input:
+        path: /tmp/rea-android-acTMqB/target.apk
+        threads: 1
+        resources: full
+      response:
+        content[1]{type,text}:
+          text,"{\"state\":\"LOADED\",\"apk_path\":\"/tmp/rea-android-acTMqB/target.apk\",\"class_count\":3299,\"raw_class_count\":3299,\"resource_count\":1501,\"load_duration_ms\":5354,\"decompile_timeout_ms\":90000,\"threads\":1,\"code_cache_size\":64,\"resources\":\"full\"}"
+    - operation: get_class_summary
+      input:
+        class_name: net.easyconn.broadcast.StdBroadcastManager
+      response:
+        content[1]{type,text}:
+          text,"{\"name\":\"StdBroadcastManager\",\"full_name\":\"net.easyconn.broadcast.StdBroadcastManager\",\"field_count\":10,\"fields\":[{\"def_pos\":0,\"name\":\"BROADCAST_EAP_DEVICE_ATTACHED\",\"type\":\"java.lang.String\"},{\"def_pos\":0,\"name\":\"BROADCAST_EAP_DEVICE_DETACHED\",\"type\":\"java.lang.String\"},{\"def_pos\":0,\"name\":\"BROADCAST_EAP_DEVICE_INFO\",\"type\":\"java.lang.String\"},{\"def_pos\":0,\"name\":\"BROADCAST_EAP_DEVICE_PATH\",\"type\":\"java.lang.String\"},{\"def_pos\":0,\"name\":\"BROADCAST_EAP_LAUNCH_APP\",\"type\":\"java.lang.String\"},{\"def_pos\":0,\"name\":\"EAP_DEV_PATH\",\"type\":\"java.lang.String\"},{\"def_pos\":0,\"name\":\"EAP_INFO_ExtAcceProtocolName\",\"type\":\"java.lang.String\"},{\"def_pos\":0,\"name\":\"EAP_INFO_ExtAcceProtocolValue\",\"type\":\"java.lang.String\"},{\"def_pos\":0,\"name\":\"EAP_INFO_TransCompName\",\"type\":\"java.lang.String\"},{\"def_pos\":0,\"name\":\"EAP_INFO_TransCompValue\",\"type\":\"java.lang.String\"}],\"methods\":[{\"is_constructor\":true,\"name\":\"\\u003cinit\\u003e\",\"def_pos\":0,\"signature\":\"\\u003cinit\\u003e(android.content.Context): void\"},{\"is_constructor\":false,\"name\":\"launchApp\",\"def_pos\":0,\"signature\":\"launchApp(): void\"},{\"is_constructor\":false,\"name\":\"onActionRegister\",\"def_pos\":0,\"signature\":\"onActionRegister(android.content.IntentFilter): void\"},{\"is_constructor\":false,\"name\":\"onReceive\",\"def_pos\":0,\"signature\":\"onReceive(android.content.Context, android.content.Intent): boolean\"}],\"method_count\":4,\"inner_class_count\":0,\"inner_classes\":[]}"
+        isError: false
+normalized_result:
+  engine:
+    name: jadx-headless-mcp
+    version: 0.7.1
+    artifact_sha256: 6e5eacf500b64292bfb73c49797c1958f6ee44646e43e868039ae7feb573ff75
+    source_revision: 5844800a486d2248fa949b74c9896285f5b54de2
+    worker_count: 1
+    heap_limit_mib: 5740
+  class_name: net.easyconn.broadcast.StdBroadcastManager
+  methods[4]{name,reported_signature,overload_index,is_constructor,dex_descriptor}:
+    <init>,"<init>(android.content.Context): void",0,true,null
+    launchApp,"launchApp(): void",0,false,null
+    onActionRegister,"onActionRegister(android.content.IntentFilter): void",0,false,null
+    onReceive,"onReceive(android.content.Context, android.content.Intent): boolean",0,false,null
+  fields[10]{name,reported_type}:
+    BROADCAST_EAP_DEVICE_ATTACHED,java.lang.String
+    BROADCAST_EAP_DEVICE_DETACHED,java.lang.String
+    BROADCAST_EAP_DEVICE_INFO,java.lang.String
+    BROADCAST_EAP_DEVICE_PATH,java.lang.String
+    BROADCAST_EAP_LAUNCH_APP,java.lang.String
+    EAP_DEV_PATH,java.lang.String
+    EAP_INFO_ExtAcceProtocolName,java.lang.String
+    EAP_INFO_ExtAcceProtocolValue,java.lang.String
+    EAP_INFO_TransCompName,java.lang.String
+    EAP_INFO_TransCompValue,java.lang.String
+  inner_classes: []
+confidence: observed
+authority: shipped-artifact
+environment: null
+limitations[4]: Static decompiler observations do not establish runtime behavior; the APK is never executed.,Method signatures use provider display types; exact DEX descriptors and instruction offsets are unavailable. Overload indices are local to this engine and artifact.,"Class inventories use parsed metadata before code generation, including synthetic members that may be omitted from decompiled source. Source positions remain unknown.","Manifest summary fields are extracted by the upstream engine; decoded XML is retained for verification. APK signatures, split APKs, native libraries and Android runtime capture are not verified by this provider."
+locations: []
+evidence_links: []

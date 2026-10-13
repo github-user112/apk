@@ -1,0 +1,199 @@
+evidence_id: ev_60d0f07cbfa4d2abb97cb448efcec528ab37d5bb45f70ef2cde38fce56549a3a
+subject:
+  name: 亿连手机互联V7.0.1.apk
+  digest:
+    sha256: c95ba50c05ef94a3883e2dc387aeda80525bd380cd528f813330da92de1cd362
+  format: apk
+  architecture: null
+  local_path: /home/opc/workspace/apk/Yilian/03_原始APK/亿连手机互联V7.0.1.apk
+provider:
+  id: jadx
+  name: JADX headless
+  version: 0.7.1
+analysis_profile: null
+predicate_type: rea.analysis
+operation: inspect_android_class
+parameters:
+  path: /home/opc/workspace/apk/Yilian/03_原始APK/亿连手机互联V7.0.1.apk
+  class_name: f.a.i.i.q
+raw_result:
+  server:
+    name: rea-jadx-bridge
+    version: "1"
+  bridge_sha256: 5a5a4e32264fbe597a329d7ad4b06a6266b7b31243e86b0263dbddcecaf351a1
+  jar_sha256: 6e5eacf500b64292bfb73c49797c1958f6ee44646e43e868039ae7feb573ff75
+  loaded:
+    state: LOADED
+    apk_path: /tmp/rea-android-N1b4e3/target.apk
+    class_count: 3299
+    resource_count: 1501
+    threads: 1
+    resources: full
+  calls[3]:
+    - operation: rea_jvm_status
+      input:
+      response:
+        content[1]{type,text}:
+          text,"{\"available_processors\":4,\"java_version\":\"21.0.12.1\",\"max_heap_bytes\":6018826240,\"metadata_scope\":\"parsed_members\",\"engine_reported_version\":\"0.7.1\"}"
+        isError: false
+    - operation: load_apk
+      input:
+        path: /tmp/rea-android-N1b4e3/target.apk
+        threads: 1
+        resources: full
+      response:
+        content[1]{type,text}:
+          text,"{\"state\":\"LOADED\",\"apk_path\":\"/tmp/rea-android-N1b4e3/target.apk\",\"class_count\":3299,\"raw_class_count\":3299,\"resource_count\":1501,\"load_duration_ms\":5703,\"decompile_timeout_ms\":90000,\"threads\":1,\"code_cache_size\":64,\"resources\":\"full\"}"
+    - operation: get_class_summary
+      input:
+        class_name: f.a.i.i.q
+      response:
+        content[1]{type,text}:
+          text,"{\"name\":\"q\",\"inner_classes\":[\"f.a.i.i.q.a\",\"f.a.i.i.q.b\",\"f.a.i.i.q.c\",\"f.a.i.i.q.d\",\"f.a.i.i.q.e\"],\"inner_class_count\":5,\"method_count\":73,\"methods\":[{\"signature\":\"\\u003cclinit\\u003e(): void\",\"def_pos\":0,\"name\":\"\\u003cclinit\\u003e\",\"is_constructor\":false},{\"signature\":\"\\u003cinit\\u003e(android.content.Context): void\",\"def_pos\":0,\"name\":\"\\u003cinit\\u003e\",\"is_constructor\":true},{\"signature\":\"A(android.os.Message): void\",\"def_pos\":0,\"name\":\"A\",\"is_constructor\":false},{\"signature\":\"B(android.os.Message): void\",\"def_pos\":0,\"name\":\"B\",\"is_constructor\":false},{\"signature\":\"C(): void\",\"def_pos\":0,\"name\":\"C\",\"is_constructor\":false},{\"signature\":\"D(): void\",\"def_pos\":0,\"name\":\"D\",\"is_constructor\":false},{\"signature\":\"E(): int\",\"def_pos\":0,\"name\":\"E\",\"is_constructor\":false},{\"signature\":\"F(): java.lang.String\",\"def_pos\":0,\"name\":\"F\",\"is_constructor\":false},{\"signature\":\"G(): java.lang.String\",\"def_pos\":0,\"name\":\"G\",\"is_constructor\":false},{\"signature\":\"H(): net.easyconn.ecsdk.ECTypes$ECTransportType\",\"def_pos\":0,\"name\":\"H\",\"is_constructor\":false},{\"signature\":\"I(): long\",\"def_pos\":0,\"name\":\"I\",\"is_constructor\":false},{\"signature\":\"J(): java.lang.String\",\"def_pos\":0,\"name\":\"J\",\"is_constructor\":false},{\"signature\":\"K(android.os.Message): void\",\"def_pos\":0,\"name\":\"K\",\"is_constructor\":false},{\"signature\":\"L(java.lang.String, boolean): void\",\"def_pos\":0,\"name\":\"L\",\"is_constructor\":false},{\"signature\":\"M(): void\",\"def_pos\":0,\"name\":\"M\",\"is_constructor\":false},{\"signature\":\"N(boolean): void\",\"def_pos\":0,\"name\":\"N\",\"is_constructor\":false},{\"signature\":\"O(boolean, boolean): void\",\"def_pos\":0,\"name\":\"O\",\"is_constructor\":false},{\"signature\":\"P(boolean): void\",\"def_pos\":0,\"name\":\"P\",\"is_constructor\":false},{\"signature\":\"Q(boolean): void\",\"def_pos\":0,\"name\":\"Q\",\"is_constructor\":false},{\"signature\":\"R(): void\",\"def_pos\":0,\"name\":\"R\",\"is_constructor\":false},{\"signature\":\"S(net.easyconn.ecsdk.ECTypes$ECAppPage): void\",\"def_pos\":0,\"name\":\"S\",\"is_constructor\":false},{\"signature\":\"T(int): void\",\"def_pos\":0,\"name\":\"T\",\"is_constructor\":false},{\"signature\":\"U(android.hardware.usb.UsbDevice): boolean\",\"def_pos\":0,\"name\":\"U\",\"is_constructor\":false},{\"signature\":\"V(net.easyconn.ecsdk.ECTypes$ECTransportType): void\",\"def_pos\":0,\"name\":\"V\",\"is_constructor\":false},{\"signature\":\"W(): int\",\"def_pos\":0,\"name\":\"W\",\"is_constructor\":false},{\"signature\":\"X(int): int\",\"def_pos\":0,\"name\":\"X\",\"is_constructor\":false},{\"signature\":\"Y(): int\",\"def_pos\":0,\"name\":\"Y\",\"is_constructor\":false},{\"signature\":\"Z(): void\",\"def_pos\":0,\"name\":\"Z\",\"is_constructor\":false},{\"signature\":\"a(f.a.i.i.q, android.os.Message): boolean\",\"def_pos\":0,\"name\":\"a\",\"is_constructor\":false},{\"signature\":\"a0(): void\",\"def_pos\":0,\"name\":\"a0\",\"is_constructor\":false},{\"signature\":\"b(f.a.i.i.q, android.os.Message): boolean\",\"def_pos\":0,\"name\":\"b\",\"is_constructor\":false},{\"signature\":\"b0(net.easyconn.ecsdk.ECTypes$ECBtnCode, net.easyconn.ecsdk.ECTypes$ECBtnEventType): void\",\"def_pos\":0,\"name\":\"b0\",\"is_constructor\":false},{\"signature\":\"c(f.a.i.i.q): boolean\",\"def_pos\":0,\"name\":\"c\",\"is_constructor\":false},{\"signature\":\"c0(net.easyconn.ecsdk.ECTypes$ECCarStatusType, net.easyconn.ecsdk.ECTypes$ECCarStatusValue): void\",\"def_pos\":0,\"name\":\"c0\",\"is_constructor\":false},{\"signature\":\"d(f.a.i.i.q, android.os.Message): boolean\",\"def_pos\":0,\"name\":\"d\",\"is_constructor\":false},{\"signature\":\"d0(android.os.Message): boolean\",\"def_pos\":0,\"name\":\"d0\",\"is_constructor\":false},{\"signature\":\"e(f.a.i.i.q, android.os.Message): boolean\",\"def_pos\":0,\"name\":\"e\",\"is_constructor\":false},{\"signature\":\"e0(boolean): void\",\"def_pos\":0,\"name\":\"e0\",\"is_constructor\":false},{\"signature\":\"f(f.a.i.i.q, android.os.Message): void\",\"def_pos\":0,\"name\":\"f\",\"is_constructor\":false},{\"signature\":\"f0(boolean): void\",\"def_pos\":0,\"name\":\"f0\",\"is_constructor\":false},{\"signature\":\"g(f.a.i.i.q, android.os.Message): void\",\"def_pos\":0,\"name\":\"g\",\"is_constructor\":false},{\"signature\":\"g0(boolean): void\",\"def_pos\":0,\"name\":\"g0\",\"is_constructor\":false},{\"signature\":\"h(f.a.i.i.q, java.lang.String): void\",\"def_pos\":0,\"name\":\"h\",\"is_constructor\":false},{\"signature\":\"h0(f.a.i.h.c): void\",\"def_pos\":0,\"name\":\"h0\",\"is_constructor\":false},{\"signature\":\"i(f.a.i.i.q, java.lang.Object[]): void\",\"def_pos\":0,\"name\":\"i\",\"is_constructor\":false},{\"signature\":\"i0(boolean): void\",\"def_pos\":0,\"name\":\"i0\",\"is_constructor\":false},{\"signature\":\"j(f.a.i.i.q, java.lang.String[], int): void\",\"def_pos\":0,\"name\":\"j\",\"is_constructor\":false},{\"signature\":\"j0(f.a.i.h.d): void\",\"def_pos\":0,\"name\":\"j0\",\"is_constructor\":false},{\"signature\":\"k(f.a.i.i.q): void\",\"def_pos\":0,\"name\":\"k\",\"is_constructor\":false},{\"signature\":\"k0(): void\",\"def_pos\":0,\"name\":\"k0\",\"is_constructor\":false},{\"signature\":\"l(f.a.i.i.q, net.easyconn.ecsdk.ECTypes$ECSystemKeyCode): void\",\"def_pos\":0,\"name\":\"l\",\"is_constructor\":false},{\"signature\":\"l0(): boolean\",\"def_pos\":0,\"name\":\"l0\",\"is_constructor\":false},{\"signature\":\"m(f.a.i.i.q): void\",\"def_pos\":0,\"name\":\"m\",\"is_constructor\":false},{\"signature\":\"m0(): boolean\",\"def_pos\":0,\"name\":\"m0\",\"is_constructor\":false},{\"signature\":\"n(f.a.i.i.q): void\",\"def_pos\":0,\"name\":\"n\",\"is_constructor\":false},{\"signature\":\"n0(java.lang.String[], int): void\",\"def_pos\":0,\"name\":\"n0\",\"is_constructor\":false},{\"signature\":\"o(f.a.i.i.q, android.os.Message): boolean\",\"def_pos\":0,\"name\":\"o\",\"is_constructor\":false},{\"signature\":\"o0(): void\",\"def_pos\":0,\"name\":\"o0\",\"is_constructor\":false},{\"signature\":\"onReceive(net.easyconn.ecsdk.ECCustomProtocol$ECCustomData): void\",\"def_pos\":0,\"name\":\"onReceive\",\"is_constructor\":false},{\"signature\":\"p(f.a.i.i.q, java.lang.String): void\",\"def_pos\":0,\"name\":\"p\",\"is_constructor\":false},{\"signature\":\"p0(boolean): boolean\",\"def_pos\":0,\"name\":\"p0\",\"is_constructor\":false},{\"signature\":\"q(f.a.i.i.q, int, int): void\",\"def_pos\":0,\"name\":\"q\",\"is_constructor\":false},{\"signature\":\"q0(net.easyconn.ecsdk.ECTypes$ECNetLinkInfo): void\",\"def_pos\":0,\"name\":\"q0\",\"is_constructor\":false},{\"signature\":\"r(f.a.i.i.q, int, int): void\",\"def_pos\":0,\"name\":\"r\",\"is_constructor\":false},{\"signature\":\"r0(java.lang.String): void\",\"def_pos\":0,\"name\":\"r0\",\"is_constructor\":false},{\"signature\":\"s(f.a.i.i.q, android.os.Message): void\",\"def_pos\":0,\"name\":\"s\",\"is_constructor\":false},{\"signature\":\"t(f.a.i.i.q, android.os.Message): void\",\"def_pos\":0,\"name\":\"t\",\"is_constructor\":false},{\"signature\":\"u(f.a.i.i.q, java.lang.String): void\",\"def_pos\":0,\"name\":\"u\",\"is_constructor\":false},{\"signature\":\"v(f.a.i.i.q, android.os.Message): void\",\"def_pos\":0,\"name\":\"v\",\"is_constructor\":false},{\"signature\":\"w(f.a.i.i.q, android.os.Message): void\",\"def_pos\":0,\"name\":\"w\",\"is_constructor\":false},{\"signature\":\"x(f.a.i.i.q, android.os.Message): boolean\",\"def_pos\":0,\"name\":\"x\",\"is_constructor\":false},{\"signature\":\"y(net.easyconn.ecsdk.ECTypes$ECTransportType, net.easyconn.ecsdk.IUsbDevice): void\",\"def_pos\":0,\"name\":\"y\",\"is_constructor\":false},{\"signature\":\"z(java.lang.String, java.lang.String, net.easyconn.ecsdk.ECTypes$ECOTAUpdateCheckMode): void\",\"def_pos\":0,\"name\":\"z\",\"is_constructor\":false}],\"fields\":[{\"type\":\"f.a.i.p.e\",\"name\":\"A\",\"def_pos\":0},{\"type\":\"boolean\",\"name\":\"B\",\"def_pos\":0},{\"type\":\"f.a.i.h.g\",\"name\":\"C\",\"def_pos\":0},{\"type\":\"java.util.Map\\u003cjava.lang.Integer, f.a.i.i.x\\u003e\",\"name\":\"D\",\"def_pos\":0},{\"type\":\"f.a.i.i.q$e\",\"name\":\"E\",\"def_pos\":0},{\"type\":\"android.net.wifi.p2p.WifiP2pDevice\",\"name\":\"F\",\"def_pos\":0},{\"type\":\"boolean\",\"name\":\"G\",\"def_pos\":0},{\"type\":\"f.a.i.h.i\",\"name\":\"H\",\"def_pos\":0},{\"type\":\"boolean\",\"name\":\"I\",\"def_pos\":0},{\"type\":\"net.easyconn.ecsdk.ECTypes$ECNetLinkInfo\",\"name\":\"J\",\"def_pos\":0},{\"type\":\"f.a.i.h.d\",\"name\":\"K\",\"def_pos\":0},{\"type\":\"f.a.i.h.e\",\"name\":\"L\",\"def_pos\":0},{\"type\":\"f.a.i.h.c\",\"name\":\"M\",\"def_pos\":0},{\"type\":\"android.hardware.usb.UsbDevice\",\"name\":\"N\",\"def_pos\":0},{\"type\":\"boolean\",\"name\":\"O\",\"def_pos\":0},{\"type\":\"int\",\"name\":\"P\",\"def_pos\":0},{\"type\":\"int\",\"name\":\"Q\",\"def_pos\":0},{\"type\":\"net.easyconn.netlink.service.NetLinkService\",\"name\":\"R\",\"def_pos\":0},{\"type\":\"boolean\",\"name\":\"S\",\"def_pos\":0},{\"type\":\"boolean\",\"name\":\"T\",\"def_pos\":0},{\"type\":\"int\",\"name\":\"U\",\"def_pos\":0},{\"type\":\"boolean\",\"name\":\"V\",\"def_pos\":0},{\"type\":\"int\",\"name\":\"W\",\"def_pos\":0},{\"type\":\"int\",\"name\":\"X\",\"def_pos\":0},{\"type\":\"boolean\",\"name\":\"Y\",\"def_pos\":0},{\"type\":\"boolean\",\"name\":\"Z\",\"def_pos\":0},{\"type\":\"android.content.Context\",\"name\":\"a\",\"def_pos\":0},{\"type\":\"net.easyconn.ecsdk.ECTypes$ECAppPage\",\"name\":\"a0\",\"def_pos\":0},{\"type\":\"f.a.i.i.m\",\"name\":\"b\",\"def_pos\":0},{\"type\":\"int\",\"name\":\"b0\",\"def_pos\":0},{\"type\":\"boolean\",\"name\":\"c0\",\"def_pos\":0},{\"type\":\"android.net.wifi.WifiManager\",\"name\":\"f2898c\",\"def_pos\":0},{\"type\":\"f.a.i.i.n\",\"name\":\"f2899d\",\"def_pos\":0},{\"type\":\"android.os.HandlerThread\",\"name\":\"f2900e\",\"def_pos\":0},{\"type\":\"android.os.HandlerThread\",\"name\":\"f2901f\",\"def_pos\":0},{\"type\":\"android.os.HandlerThread\",\"name\":\"f2902g\",\"def_pos\":0},{\"type\":\"android.os.HandlerThread\",\"name\":\"h\",\"def_pos\":0},{\"type\":\"f.a.i.i.e\",\"name\":\"i\",\"def_pos\":0},{\"type\":\"boolean\",\"name\":\"j\",\"def_pos\":0},{\"type\":\"boolean\",\"name\":\"k\",\"def_pos\":0},{\"type\":\"boolean\",\"name\":\"l\",\"def_pos\":0},{\"type\":\"boolean\",\"name\":\"m\",\"def_pos\":0},{\"type\":\"boolean\",\"name\":\"n\",\"def_pos\":0},{\"type\":\"int\",\"name\":\"o\",\"def_pos\":0},{\"type\":\"java.lang.String\",\"name\":\"p\",\"def_pos\":0},{\"type\":\"android.os.Handler\",\"name\":\"q\",\"def_pos\":0},{\"type\":\"android.os.Handler\",\"name\":\"r\",\"def_pos\":0},{\"type\":\"android.os.Handler\",\"name\":\"s\",\"def_pos\":0},{\"type\":\"android.os.Handler\",\"name\":\"t\",\"def_pos\":0},{\"type\":\"f.a.i.i.q$c\",\"name\":\"u\",\"def_pos\":0},{\"type\":\"android.content.SharedPreferences\",\"name\":\"v\",\"def_pos\":0},{\"type\":\"java.lang.String\",\"name\":\"w\",\"def_pos\":0},{\"type\":\"java.lang.String\",\"name\":\"x\",\"def_pos\":0},{\"type\":\"int\",\"name\":\"y\",\"def_pos\":0},{\"type\":\"int\",\"name\":\"z\",\"def_pos\":0}],\"field_count\":55,\"full_name\":\"f.a.i.i.q\"}"
+        isError: false
+normalized_result:
+  engine:
+    name: jadx-headless-mcp
+    version: 0.7.1
+    artifact_sha256: 6e5eacf500b64292bfb73c49797c1958f6ee44646e43e868039ae7feb573ff75
+    source_revision: 5844800a486d2248fa949b74c9896285f5b54de2
+    worker_count: 1
+    heap_limit_mib: 5740
+  class_name: f.a.i.i.q
+  methods[73]{name,reported_signature,overload_index,is_constructor,dex_descriptor}:
+    <clinit>,"<clinit>(): void",0,false,null
+    <init>,"<init>(android.content.Context): void",0,true,null
+    A,"A(android.os.Message): void",0,false,null
+    B,"B(android.os.Message): void",0,false,null
+    C,"C(): void",0,false,null
+    D,"D(): void",0,false,null
+    E,"E(): int",0,false,null
+    F,"F(): java.lang.String",0,false,null
+    G,"G(): java.lang.String",0,false,null
+    H,"H(): net.easyconn.ecsdk.ECTypes$ECTransportType",0,false,null
+    I,"I(): long",0,false,null
+    J,"J(): java.lang.String",0,false,null
+    K,"K(android.os.Message): void",0,false,null
+    L,"L(java.lang.String, boolean): void",0,false,null
+    M,"M(): void",0,false,null
+    N,"N(boolean): void",0,false,null
+    O,"O(boolean, boolean): void",0,false,null
+    P,"P(boolean): void",0,false,null
+    Q,"Q(boolean): void",0,false,null
+    R,"R(): void",0,false,null
+    S,"S(net.easyconn.ecsdk.ECTypes$ECAppPage): void",0,false,null
+    T,"T(int): void",0,false,null
+    U,"U(android.hardware.usb.UsbDevice): boolean",0,false,null
+    V,"V(net.easyconn.ecsdk.ECTypes$ECTransportType): void",0,false,null
+    W,"W(): int",0,false,null
+    X,"X(int): int",0,false,null
+    Y,"Y(): int",0,false,null
+    Z,"Z(): void",0,false,null
+    a,"a(f.a.i.i.q, android.os.Message): boolean",0,false,null
+    a0,"a0(): void",0,false,null
+    b,"b(f.a.i.i.q, android.os.Message): boolean",0,false,null
+    b0,"b0(net.easyconn.ecsdk.ECTypes$ECBtnCode, net.easyconn.ecsdk.ECTypes$ECBtnEventType): void",0,false,null
+    c,"c(f.a.i.i.q): boolean",0,false,null
+    c0,"c0(net.easyconn.ecsdk.ECTypes$ECCarStatusType, net.easyconn.ecsdk.ECTypes$ECCarStatusValue): void",0,false,null
+    d,"d(f.a.i.i.q, android.os.Message): boolean",0,false,null
+    d0,"d0(android.os.Message): boolean",0,false,null
+    e,"e(f.a.i.i.q, android.os.Message): boolean",0,false,null
+    e0,"e0(boolean): void",0,false,null
+    f,"f(f.a.i.i.q, android.os.Message): void",0,false,null
+    f0,"f0(boolean): void",0,false,null
+    g,"g(f.a.i.i.q, android.os.Message): void",0,false,null
+    g0,"g0(boolean): void",0,false,null
+    h,"h(f.a.i.i.q, java.lang.String): void",0,false,null
+    h0,"h0(f.a.i.h.c): void",0,false,null
+    i,"i(f.a.i.i.q, java.lang.Object[]): void",0,false,null
+    i0,"i0(boolean): void",0,false,null
+    j,"j(f.a.i.i.q, java.lang.String[], int): void",0,false,null
+    j0,"j0(f.a.i.h.d): void",0,false,null
+    k,"k(f.a.i.i.q): void",0,false,null
+    k0,"k0(): void",0,false,null
+    l,"l(f.a.i.i.q, net.easyconn.ecsdk.ECTypes$ECSystemKeyCode): void",0,false,null
+    l0,"l0(): boolean",0,false,null
+    m,"m(f.a.i.i.q): void",0,false,null
+    m0,"m0(): boolean",0,false,null
+    n,"n(f.a.i.i.q): void",0,false,null
+    n0,"n0(java.lang.String[], int): void",0,false,null
+    o,"o(f.a.i.i.q, android.os.Message): boolean",0,false,null
+    o0,"o0(): void",0,false,null
+    onReceive,"onReceive(net.easyconn.ecsdk.ECCustomProtocol$ECCustomData): void",0,false,null
+    p,"p(f.a.i.i.q, java.lang.String): void",0,false,null
+    p0,"p0(boolean): boolean",0,false,null
+    q,"q(f.a.i.i.q, int, int): void",0,false,null
+    q0,"q0(net.easyconn.ecsdk.ECTypes$ECNetLinkInfo): void",0,false,null
+    r,"r(f.a.i.i.q, int, int): void",0,false,null
+    r0,"r0(java.lang.String): void",0,false,null
+    s,"s(f.a.i.i.q, android.os.Message): void",0,false,null
+    t,"t(f.a.i.i.q, android.os.Message): void",0,false,null
+    u,"u(f.a.i.i.q, java.lang.String): void",0,false,null
+    v,"v(f.a.i.i.q, android.os.Message): void",0,false,null
+    w,"w(f.a.i.i.q, android.os.Message): void",0,false,null
+    x,"x(f.a.i.i.q, android.os.Message): boolean",0,false,null
+    y,"y(net.easyconn.ecsdk.ECTypes$ECTransportType, net.easyconn.ecsdk.IUsbDevice): void",0,false,null
+    z,"z(java.lang.String, java.lang.String, net.easyconn.ecsdk.ECTypes$ECOTAUpdateCheckMode): void",0,false,null
+  fields[55]{name,reported_type}:
+    A,f.a.i.p.e
+    B,boolean
+    C,f.a.i.h.g
+    D,"java.util.Map<java.lang.Integer, f.a.i.i.x>"
+    E,f.a.i.i.q$e
+    F,android.net.wifi.p2p.WifiP2pDevice
+    G,boolean
+    H,f.a.i.h.i
+    I,boolean
+    J,net.easyconn.ecsdk.ECTypes$ECNetLinkInfo
+    K,f.a.i.h.d
+    L,f.a.i.h.e
+    M,f.a.i.h.c
+    N,android.hardware.usb.UsbDevice
+    O,boolean
+    P,int
+    Q,int
+    R,net.easyconn.netlink.service.NetLinkService
+    S,boolean
+    T,boolean
+    U,int
+    V,boolean
+    W,int
+    X,int
+    Y,boolean
+    Z,boolean
+    a,android.content.Context
+    a0,net.easyconn.ecsdk.ECTypes$ECAppPage
+    b,f.a.i.i.m
+    b0,int
+    c0,boolean
+    f2898c,android.net.wifi.WifiManager
+    f2899d,f.a.i.i.n
+    f2900e,android.os.HandlerThread
+    f2901f,android.os.HandlerThread
+    f2902g,android.os.HandlerThread
+    h,android.os.HandlerThread
+    i,f.a.i.i.e
+    j,boolean
+    k,boolean
+    l,boolean
+    m,boolean
+    n,boolean
+    o,int
+    p,java.lang.String
+    q,android.os.Handler
+    r,android.os.Handler
+    s,android.os.Handler
+    t,android.os.Handler
+    u,f.a.i.i.q$c
+    v,android.content.SharedPreferences
+    w,java.lang.String
+    x,java.lang.String
+    y,int
+    z,int
+  inner_classes[5]: f.a.i.i.q.a,f.a.i.i.q.b,f.a.i.i.q.c,f.a.i.i.q.d,f.a.i.i.q.e
+confidence: observed
+authority: shipped-artifact
+environment: null
+limitations[4]: Static decompiler observations do not establish runtime behavior; the APK is never executed.,Method signatures use provider display types; exact DEX descriptors and instruction offsets are unavailable. Overload indices are local to this engine and artifact.,"Class inventories use parsed metadata before code generation, including synthetic members that may be omitted from decompiled source. Source positions remain unknown.","Manifest summary fields are extracted by the upstream engine; decoded XML is retained for verification. APK signatures, split APKs, native libraries and Android runtime capture are not verified by this provider."
+locations: []
+evidence_links: []

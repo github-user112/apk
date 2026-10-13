@@ -1,0 +1,84 @@
+evidence_id: ev_22cc7ac374c410a1644be5460eab219f71c970d47704e9177ddfd0530d8804e4
+subject:
+  name: 亿连手机互联V7.0.1.apk
+  digest:
+    sha256: c95ba50c05ef94a3883e2dc387aeda80525bd380cd528f813330da92de1cd362
+  format: apk
+  architecture: null
+  local_path: /home/opc/workspace/apk/Yilian/03_原始APK/亿连手机互联V7.0.1.apk
+provider:
+  id: jadx
+  name: JADX headless
+  version: 0.7.1
+analysis_profile: null
+predicate_type: rea.analysis
+operation: trace_android_references
+parameters:
+  path: /home/opc/workspace/apk/Yilian/03_原始APK/亿连手机互联V7.0.1.apk
+  class_name: net.easyconn.netlink.service.NetLinkService
+  method_name: native_startDnsProxy
+raw_result:
+  server:
+    name: rea-jadx-bridge
+    version: "1"
+  bridge_sha256: 5a5a4e32264fbe597a329d7ad4b06a6266b7b31243e86b0263dbddcecaf351a1
+  jar_sha256: 6e5eacf500b64292bfb73c49797c1958f6ee44646e43e868039ae7feb573ff75
+  loaded:
+    state: LOADED
+    apk_path: /tmp/rea-android-pa1iEg/target.apk
+    class_count: 3299
+    resource_count: 1501
+    threads: 1
+    resources: full
+  calls[4]:
+    - operation: rea_jvm_status
+      input:
+      response:
+        content[1]{type,text}:
+          text,"{\"engine_reported_version\":\"0.7.1\",\"available_processors\":4,\"java_version\":\"21.0.12.1\",\"max_heap_bytes\":6018826240,\"metadata_scope\":\"parsed_members\"}"
+        isError: false
+    - operation: load_apk
+      input:
+        path: /tmp/rea-android-pa1iEg/target.apk
+        threads: 1
+        resources: full
+      response:
+        content[1]{type,text}:
+          text,"{\"state\":\"LOADED\",\"apk_path\":\"/tmp/rea-android-pa1iEg/target.apk\",\"class_count\":3299,\"raw_class_count\":3299,\"resource_count\":1501,\"load_duration_ms\":3525,\"decompile_timeout_ms\":90000,\"threads\":1,\"code_cache_size\":64,\"resources\":\"full\"}"
+    - operation: get_class_summary
+      input:
+        class_name: net.easyconn.netlink.service.NetLinkService
+      response:
+        content[1]{type,text}:
+          text,"{\"fields\":[{\"name\":\"a\",\"def_pos\":0,\"type\":\"f.a.i.p.a\"},{\"name\":\"b\",\"def_pos\":0,\"type\":\"net.easyconn.netlink.service.NetLinkService$b\"},{\"name\":\"f3204c\",\"def_pos\":0,\"type\":\"boolean\"},{\"name\":\"f3205d\",\"def_pos\":0,\"type\":\"boolean\"},{\"name\":\"f3206e\",\"def_pos\":0,\"type\":\"boolean\"},{\"name\":\"f3207f\",\"def_pos\":0,\"type\":\"boolean\"},{\"name\":\"f3208g\",\"def_pos\":0,\"type\":\"f.a.i.h.f\"},{\"name\":\"h\",\"def_pos\":0,\"type\":\"java.lang.String\"},{\"name\":\"i\",\"def_pos\":0,\"type\":\"android.os.IBinder\"},{\"name\":\"j\",\"def_pos\":0,\"type\":\"boolean\"},{\"name\":\"k\",\"def_pos\":0,\"type\":\"boolean\"},{\"name\":\"l\",\"def_pos\":0,\"type\":\"java.lang.String\"},{\"name\":\"m\",\"def_pos\":0,\"type\":\"android.content.BroadcastReceiver\"},{\"name\":\"n\",\"def_pos\":0,\"type\":\"android.os.ParcelFileDescriptor\"},{\"name\":\"o\",\"def_pos\":0,\"type\":\"f.a.i.p.c\"}],\"field_count\":15,\"full_name\":\"net.easyconn.netlink.service.NetLinkService\",\"name\":\"NetLinkService\",\"inner_classes\":[\"net.easyconn.netlink.service.NetLinkService.a\",\"net.easyconn.netlink.service.NetLinkService.b\",\"net.easyconn.netlink.service.NetLinkService.c\"],\"inner_class_count\":3,\"method_count\":24,\"methods\":[{\"is_constructor\":false,\"signature\":\"\\u003cclinit\\u003e(): void\",\"def_pos\":0,\"name\":\"\\u003cclinit\\u003e\"},{\"is_constructor\":true,\"signature\":\"\\u003cinit\\u003e(): void\",\"def_pos\":0,\"name\":\"\\u003cinit\\u003e\"},{\"is_constructor\":false,\"signature\":\"a(): void\",\"def_pos\":0,\"name\":\"a\"},{\"is_constructor\":false,\"signature\":\"b(): void\",\"def_pos\":0,\"name\":\"b\"},{\"is_constructor\":false,\"signature\":\"c(): void\",\"def_pos\":0,\"name\":\"c\"},{\"is_constructor\":false,\"signature\":\"d(): void\",\"def_pos\":0,\"name\":\"d\"},{\"is_constructor\":false,\"signature\":\"e(java.lang.String): void\",\"def_pos\":0,\"name\":\"e\"},{\"is_constructor\":false,\"signature\":\"f(): void\",\"def_pos\":0,\"name\":\"f\"},{\"is_constructor\":false,\"signature\":\"g(boolean): void\",\"def_pos\":0,\"name\":\"g\"},{\"is_constructor\":false,\"signature\":\"h(): boolean\",\"def_pos\":0,\"name\":\"h\"},{\"is_constructor\":false,\"signature\":\"i(): void\",\"def_pos\":0,\"name\":\"i\"},{\"is_constructor\":false,\"signature\":\"j(): void\",\"def_pos\":0,\"name\":\"j\"},{\"is_constructor\":false,\"signature\":\"k(): void\",\"def_pos\":0,\"name\":\"k\"},{\"is_constructor\":false,\"signature\":\"l(): void\",\"def_pos\":0,\"name\":\"l\"},{\"is_constructor\":false,\"signature\":\"native_startDnsProxy(java.lang.String, int, java.lang.String, int): int\",\"def_pos\":0,\"name\":\"native_startDnsProxy\"},{\"is_constructor\":false,\"signature\":\"native_stopDnsProxy(): int\",\"def_pos\":0,\"name\":\"native_stopDnsProxy\"},{\"is_constructor\":false,\"signature\":\"onBind(android.content.Intent): android.os.IBinder\",\"def_pos\":0,\"name\":\"onBind\"},{\"is_constructor\":false,\"signature\":\"onCreate(): void\",\"def_pos\":0,\"name\":\"onCreate\"},{\"is_constructor\":false,\"signature\":\"onDestroy(): void\",\"def_pos\":0,\"name\":\"onDestroy\"},{\"is_constructor\":false,\"signature\":\"onRebind(android.content.Intent): void\",\"def_pos\":0,\"name\":\"onRebind\"},{\"is_constructor\":false,\"signature\":\"onRevoke(): void\",\"def_pos\":0,\"name\":\"onRevoke\"},{\"is_constructor\":false,\"signature\":\"onStart(): void\",\"def_pos\":0,\"name\":\"onStart\"},{\"is_constructor\":false,\"signature\":\"onStartCommand(android.content.Intent, int, int): int\",\"def_pos\":0,\"name\":\"onStartCommand\"},{\"is_constructor\":false,\"signature\":\"onUnbind(android.content.Intent): boolean\",\"def_pos\":0,\"name\":\"onUnbind\"}]}"
+        isError: false
+    - operation: get_xrefs_to_method
+      input:
+        class_name: net.easyconn.netlink.service.NetLinkService
+        method_name: native_startDnsProxy
+        limit: 2147483647
+        resolve_line: false
+      response:
+        content[1]{type,text}:
+          text,"{\"items\":[{\"kind\":\"method\",\"name\":\"run\",\"full_name\":\"net.easyconn.netlink.service.NetLinkService.b.run\",\"containing_class\":\"net.easyconn.netlink.service.NetLinkService.b\",\"top_class\":\"net.easyconn.netlink.service.NetLinkService\",\"def_pos\":0}],\"total\":1,\"resolve_line\":false,\"target\":\"net.easyconn.netlink.service.NetLinkService.native_startDnsProxy\",\"count\":1}"
+        isError: false
+normalized_result:
+  engine:
+    name: jadx-headless-mcp
+    version: 0.7.1
+    artifact_sha256: 6e5eacf500b64292bfb73c49797c1958f6ee44646e43e868039ae7feb573ff75
+    source_revision: 5844800a486d2248fa949b74c9896285f5b54de2
+    worker_count: 1
+    heap_limit_mib: 5740
+  class_name: net.easyconn.netlink.service.NetLinkService
+  method_name: native_startDnsProxy
+  total: 1
+  references[1]{kind,name,reported_full_name,containing_class,top_class,source_line,dex_offset}:
+    method,run,net.easyconn.netlink.service.NetLinkService.b.run,net.easyconn.netlink.service.NetLinkService.b,net.easyconn.netlink.service.NetLinkService,null,null
+  coverage: complete
+confidence: observed
+authority: shipped-artifact
+environment: null
+limitations[4]: Static decompiler observations do not establish runtime behavior; the APK is never executed.,Method signatures use provider display types; exact DEX descriptors and instruction offsets are unavailable. Overload indices are local to this engine and artifact.,"Class inventories use parsed metadata before code generation, including synthetic members that may be omitted from decompiled source. Source positions remain unknown.","Manifest summary fields are extracted by the upstream engine; decoded XML is retained for verification. APK signatures, split APKs, native libraries and Android runtime capture are not verified by this provider."
+locations: []
+evidence_links: []

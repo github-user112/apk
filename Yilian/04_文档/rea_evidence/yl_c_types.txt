@@ -1,0 +1,81 @@
+evidence_id: ev_87c06250cdc603b5ed4394c54b94ae4de877b7ec361f0c9beefe7a0276fa69f7
+subject:
+  name: 亿连手机互联V7.0.1.apk
+  digest:
+    sha256: c95ba50c05ef94a3883e2dc387aeda80525bd380cd528f813330da92de1cd362
+  format: apk
+  architecture: null
+  local_path: /home/opc/workspace/apk/Yilian/03_原始APK/亿连手机互联V7.0.1.apk
+provider:
+  id: jadx
+  name: JADX headless
+  version: 0.7.1
+analysis_profile: null
+predicate_type: rea.analysis
+operation: inspect_android_class
+parameters:
+  path: /home/opc/workspace/apk/Yilian/03_原始APK/亿连手机互联V7.0.1.apk
+  class_name: net.easyconn.ecsdk.ECTypes
+raw_result:
+  server:
+    name: rea-jadx-bridge
+    version: "1"
+  bridge_sha256: 5a5a4e32264fbe597a329d7ad4b06a6266b7b31243e86b0263dbddcecaf351a1
+  jar_sha256: 6e5eacf500b64292bfb73c49797c1958f6ee44646e43e868039ae7feb573ff75
+  loaded:
+    state: LOADED
+    apk_path: /tmp/rea-android-4Sf0O9/target.apk
+    class_count: 3299
+    resource_count: 1501
+    threads: 1
+    resources: full
+  calls[3]:
+    - operation: rea_jvm_status
+      input:
+      response:
+        content[1]{type,text}:
+          text,"{\"engine_reported_version\":\"0.7.1\",\"available_processors\":4,\"java_version\":\"21.0.12.1\",\"max_heap_bytes\":6018826240,\"metadata_scope\":\"parsed_members\"}"
+        isError: false
+    - operation: load_apk
+      input:
+        path: /tmp/rea-android-4Sf0O9/target.apk
+        threads: 1
+        resources: full
+      response:
+        content[1]{type,text}:
+          text,"{\"state\":\"LOADED\",\"apk_path\":\"/tmp/rea-android-4Sf0O9/target.apk\",\"class_count\":3299,\"raw_class_count\":3299,\"resource_count\":1501,\"load_duration_ms\":7821,\"decompile_timeout_ms\":90000,\"threads\":1,\"code_cache_size\":64,\"resources\":\"full\"}"
+    - operation: get_class_summary
+      input:
+        class_name: net.easyconn.ecsdk.ECTypes
+      response:
+        content[1]{type,text}:
+          text,"{\"fields\":[{\"name\":\"EC_ERR_APP_AUTH_FAIL\",\"def_pos\":0,\"type\":\"int\"},{\"name\":\"EC_ERR_APP_AUTH_PENDING\",\"def_pos\":0,\"type\":\"int\"},{\"name\":\"EC_ERR_APP_NOT_STARTED\",\"def_pos\":0,\"type\":\"int\"},{\"name\":\"EC_ERR_AUTH_FAIL\",\"def_pos\":0,\"type\":\"int\"},{\"name\":\"EC_ERR_INVAL_OP\",\"def_pos\":0,\"type\":\"int\"},{\"name\":\"EC_ERR_INVAL_PARAM\",\"def_pos\":0,\"type\":\"int\"},{\"name\":\"EC_ERR_OP_FAIL\",\"def_pos\":0,\"type\":\"int\"},{\"name\":\"EC_ERR_PERMISSION_DENIED\",\"def_pos\":0,\"type\":\"int\"},{\"name\":\"EC_OK\",\"def_pos\":0,\"type\":\"int\"}],\"field_count\":9,\"full_name\":\"net.easyconn.ecsdk.ECTypes\",\"name\":\"ECTypes\",\"inner_classes\":[\"net.easyconn.ecsdk.ECTypes.EBTClientInfo\",\"net.easyconn.ecsdk.ECTypes.EBTNetInfo\",\"net.easyconn.ecsdk.ECTypes.EBTRequestBuildNetRly\",\"net.easyconn.ecsdk.ECTypes.ECAppHudSupportFunction\",\"net.easyconn.ecsdk.ECTypes.ECAppMusicInfo\",\"net.easyconn.ecsdk.ECTypes.ECAppPage\",\"net.easyconn.ecsdk.ECTypes.ECAppPageStatus\",\"net.easyconn.ecsdk.ECTypes.ECAudioCardDevice\",\"net.easyconn.ecsdk.ECTypes.ECAudioChannelType\",\"net.easyconn.ecsdk.ECTypes.ECAudioFormatType\",\"net.easyconn.ecsdk.ECTypes.ECAudioInfo\",\"net.easyconn.ecsdk.ECTypes.ECAudioType\",\"net.easyconn.ecsdk.ECTypes.ECAuthFailedCode\",\"net.easyconn.ecsdk.ECTypes.ECAuthSuccessCode\",\"net.easyconn.ecsdk.ECTypes.ECAuthentication\",\"net.easyconn.ecsdk.ECTypes.ECBTCallData\",\"net.easyconn.ecsdk.ECTypes.ECBTCallDataType\",\"net.easyconn.ecsdk.ECTypes.ECBTCallDataUploadState\",\"net.easyconn.ecsdk.ECTypes.ECBTCallRecordsType\",\"net.easyconn.ecsdk.ECTypes.ECBTServiceTransportType\",\"net.easyconn.ecsdk.ECTypes.ECBluetoothPolicy\",\"net.easyconn.ecsdk.ECTypes.ECBtnCode\",\"net.easyconn.ecsdk.ECTypes.ECBtnEventType\",\"net.easyconn.ecsdk.ECTypes.ECCallType\",\"net.easyconn.ecsdk.ECTypes.ECCarAuthQueryType\",\"net.easyconn.ecsdk.ECTypes.ECCarAuthType\",\"net.easyconn.ecsdk.ECTypes.ECCarCmd\",\"net.easyconn.ecsdk.ECTypes.ECCarCmdEFFECTType\",\"net.easyconn.ecsdk.ECTypes.ECCarDescription\",\"net.easyconn.ecsdk.ECTypes.ECCarStatusType\",\"net.easyconn.ecsdk.ECTypes.ECCarStatusValue\",\"net.easyconn.ecsdk.ECTypes.ECConfig\",\"net.easyconn.ecsdk.ECTypes.ECDevice\",\"net.easyconn.ecsdk.ECTypes.ECDisplayRotation\",\"net.easyconn.ecsdk.ECTypes.ECDrivingStatus\",\"net.easyconn.ecsdk.ECTypes.ECErrorStatusCode\",\"net.easyconn.ecsdk.ECTypes.ECFlavor\",\"net.easyconn.ecsdk.ECTypes.ECForwardInfo\",\"net.easyconn.ecsdk.ECTypes.ECGPSInfo\",\"net.easyconn.ecsdk.ECTypes.ECGearType\",\"net.easyconn.ecsdk.ECTypes.ECHeadLightStatus\",\"net.easyconn.ecsdk.ECTypes.ECHudLaneGuidancePictureInfo\",\"net.easyconn.ecsdk.ECTypes.ECHudRoadJunctionPictureInfo\",\"net.easyconn.ecsdk.ECTypes.ECIconFormat\",\"net.easyconn.ecsdk.ECTypes.ECIconInfo\",\"net.easyconn.ecsdk.ECTypes.ECInputImeOptions\",\"net.easyconn.ecsdk.ECTypes.ECInputInfo\",\"net.easyconn.ecsdk.ECTypes.ECInputType\",\"net.easyconn.ecsdk.ECTypes.ECLogLevel\",\"net.easyconn.ecsdk.ECTypes.ECLogModule\",\"net.easyconn.ecsdk.ECTypes.ECLogOutputType\",\"net.easyconn.ecsdk.ECTypes.ECMInstBaseInfo\",\"net.easyconn.ecsdk.ECTypes.ECMediaLevel\",\"net.easyconn.ecsdk.ECTypes.ECMicFeature\",\"net.easyconn.ecsdk.ECTypes.ECMicType\",\"net.easyconn.ecsdk.ECTypes.ECMirrorConfig\",\"net.easyconn.ecsdk.ECTypes.ECMirrorFeature\",\"net.easyconn.ecsdk.ECTypes.ECMirrorMode\",\"net.easyconn.ecsdk.ECTypes.ECMirrorSize\",\"net.easyconn.ecsdk.ECTypes.ECMirrorViewConfig\",\"net.easyconn.ecsdk.ECTypes.ECMusicInfoCover\",\"net.easyconn.ecsdk.ECTypes.ECMusicStatus\",\"net.easyconn.ecsdk.ECTypes.ECNaviCameraType\",\"net.easyconn.ecsdk.ECTypes.ECNaviIcon\",\"net.easyconn.ecsdk.ECTypes.ECNaviStatus\",\"net.easyconn.ecsdk.ECTypes.ECNavigationHudInfo\",\"net.easyconn.ecsdk.ECTypes.ECNetInterfaceInfo\",\"net.easyconn.ecsdk.ECTypes.ECNetLinkInfo\",\"net.easyconn.ecsdk.ECTypes.ECOTAUpdateCheckMode\",\"net.easyconn.ecsdk.ECTypes.ECOTAUpdateErrorCode\",\"net.easyconn.ecsdk.ECTypes.ECOTAUpdateSoftware\",\"net.easyconn.ecsdk.ECTypes.ECOptions\",\"net.easyconn.ecsdk.ECTypes.ECPageInfo\",\"net.easyconn.ecsdk.ECTypes.ECPageInstallAction\",\"net.easyconn.ecsdk.ECTypes.ECPageInstallResult\",\"net.easyconn.ecsdk.ECTypes.ECPageInstallState\",\"net.easyconn.ecsdk.ECTypes.ECPageType\",\"net.easyconn.ecsdk.ECTypes.ECParallelWorldAudioSource\",\"net.easyconn.ecsdk.ECTypes.ECParallelWorldCache\",\"net.easyconn.ecsdk.ECTypes.ECPhoneBlueState\",\"net.easyconn.ecsdk.ECTypes.ECPhoneNotification\",\"net.easyconn.ecsdk.ECTypes.ECProductType\",\"net.easyconn.ecsdk.ECTypes.ECQRInfo\",\"net.easyconn.ecsdk.ECTypes.ECQrAction\",\"net.easyconn.ecsdk.ECTypes.ECRoundScreenMirrorPos\",\"net.easyconn.ecsdk.ECTypes.ECSEPrameter\",\"net.easyconn.ecsdk.ECTypes.ECScreenDirection\",\"net.easyconn.ecsdk.ECTypes.ECScreenType\",\"net.easyconn.ecsdk.ECTypes.ECSensorErrorType\",\"net.easyconn.ecsdk.ECTypes.ECSensorType\",\"net.easyconn.ecsdk.ECTypes.ECSpeechEngineType\",\"net.easyconn.ecsdk.ECTypes.ECStatusMessage\",\"net.easyconn.ecsdk.ECTypes.ECSupportConnect\",\"net.easyconn.ecsdk.ECTypes.ECSupportFunction\",\"net.easyconn.ecsdk.ECTypes.ECSystemKeyCode\",\"net.easyconn.ecsdk.ECTypes.ECTimeInfo\",\"net.easyconn.ecsdk.ECTypes.ECTouchEventData\",\"net.easyconn.ecsdk.ECTypes.ECTouchEventType\",\"net.easyconn.ecsdk.ECTypes.ECTouchMode\",\"net.easyconn.ecsdk.ECTypes.ECTransportCommConfig\",\"net.easyconn.ecsdk.ECTypes.ECTransportInfo\",\"net.easyconn.ecsdk.ECTypes.ECTransportType\",\"net.easyconn.ecsdk.ECTypes.ECTurnIndicatorStatus\",\"net.easyconn.ecsdk.ECTypes.ECVRTextInfo\",\"net.easyconn.ecsdk.ECTypes.ECVRTextType\",\"net.easyconn.ecsdk.ECTypes.ECVideoInfo\",\"net.easyconn.ecsdk.ECTypes.ECVideoType\",\"net.easyconn.ecsdk.ECTypes.ECVideoViewArea\",\"net.easyconn.ecsdk.ECTypes.ECVirtualInstStateData\"],\"inner_class_count\":109,\"method_count\":1,\"methods\":[{\"name\":\"\\u003cinit\\u003e\",\"is_constructor\":true,\"signature\":\"\\u003cinit\\u003e(): void\",\"def_pos\":0}]}"
+        isError: false
+normalized_result:
+  engine:
+    name: jadx-headless-mcp
+    version: 0.7.1
+    artifact_sha256: 6e5eacf500b64292bfb73c49797c1958f6ee44646e43e868039ae7feb573ff75
+    source_revision: 5844800a486d2248fa949b74c9896285f5b54de2
+    worker_count: 1
+    heap_limit_mib: 5740
+  class_name: net.easyconn.ecsdk.ECTypes
+  methods[1]{name,reported_signature,overload_index,is_constructor,dex_descriptor}:
+    <init>,"<init>(): void",0,true,null
+  fields[9]{name,reported_type}:
+    EC_ERR_APP_AUTH_FAIL,int
+    EC_ERR_APP_AUTH_PENDING,int
+    EC_ERR_APP_NOT_STARTED,int
+    EC_ERR_AUTH_FAIL,int
+    EC_ERR_INVAL_OP,int
+    EC_ERR_INVAL_PARAM,int
+    EC_ERR_OP_FAIL,int
+    EC_ERR_PERMISSION_DENIED,int
+    EC_OK,int
+  inner_classes[109]: net.easyconn.ecsdk.ECTypes.EBTClientInfo,net.easyconn.ecsdk.ECTypes.EBTNetInfo,net.easyconn.ecsdk.ECTypes.EBTRequestBuildNetRly,net.easyconn.ecsdk.ECTypes.ECAppHudSupportFunction,net.easyconn.ecsdk.ECTypes.ECAppMusicInfo,net.easyconn.ecsdk.ECTypes.ECAppPage,net.easyconn.ecsdk.ECTypes.ECAppPageStatus,net.easyconn.ecsdk.ECTypes.ECAudioCardDevice,net.easyconn.ecsdk.ECTypes.ECAudioChannelType,net.easyconn.ecsdk.ECTypes.ECAudioFormatType,net.easyconn.ecsdk.ECTypes.ECAudioInfo,net.easyconn.ecsdk.ECTypes.ECAudioType,net.easyconn.ecsdk.ECTypes.ECAuthFailedCode,net.easyconn.ecsdk.ECTypes.ECAuthSuccessCode,net.easyconn.ecsdk.ECTypes.ECAuthentication,net.easyconn.ecsdk.ECTypes.ECBTCallData,net.easyconn.ecsdk.ECTypes.ECBTCallDataType,net.easyconn.ecsdk.ECTypes.ECBTCallDataUploadState,net.easyconn.ecsdk.ECTypes.ECBTCallRecordsType,net.easyconn.ecsdk.ECTypes.ECBTServiceTransportType,net.easyconn.ecsdk.ECTypes.ECBluetoothPolicy,net.easyconn.ecsdk.ECTypes.ECBtnCode,net.easyconn.ecsdk.ECTypes.ECBtnEventType,net.easyconn.ecsdk.ECTypes.ECCallType,net.easyconn.ecsdk.ECTypes.ECCarAuthQueryType,net.easyconn.ecsdk.ECTypes.ECCarAuthType,net.easyconn.ecsdk.ECTypes.ECCarCmd,net.easyconn.ecsdk.ECTypes.ECCarCmdEFFECTType,net.easyconn.ecsdk.ECTypes.ECCarDescription,net.easyconn.ecsdk.ECTypes.ECCarStatusType,net.easyconn.ecsdk.ECTypes.ECCarStatusValue,net.easyconn.ecsdk.ECTypes.ECConfig,net.easyconn.ecsdk.ECTypes.ECDevice,net.easyconn.ecsdk.ECTypes.ECDisplayRotation,net.easyconn.ecsdk.ECTypes.ECDrivingStatus,net.easyconn.ecsdk.ECTypes.ECErrorStatusCode,net.easyconn.ecsdk.ECTypes.ECFlavor,net.easyconn.ecsdk.ECTypes.ECForwardInfo,net.easyconn.ecsdk.ECTypes.ECGPSInfo,net.easyconn.ecsdk.ECTypes.ECGearType,net.easyconn.ecsdk.ECTypes.ECHeadLightStatus,net.easyconn.ecsdk.ECTypes.ECHudLaneGuidancePictureInfo,net.easyconn.ecsdk.ECTypes.ECHudRoadJunctionPictureInfo,net.easyconn.ecsdk.ECTypes.ECIconFormat,net.easyconn.ecsdk.ECTypes.ECIconInfo,net.easyconn.ecsdk.ECTypes.ECInputImeOptions,net.easyconn.ecsdk.ECTypes.ECInputInfo,net.easyconn.ecsdk.ECTypes.ECInputType,net.easyconn.ecsdk.ECTypes.ECLogLevel,net.easyconn.ecsdk.ECTypes.ECLogModule,net.easyconn.ecsdk.ECTypes.ECLogOutputType,net.easyconn.ecsdk.ECTypes.ECMInstBaseInfo,net.easyconn.ecsdk.ECTypes.ECMediaLevel,net.easyconn.ecsdk.ECTypes.ECMicFeature,net.easyconn.ecsdk.ECTypes.ECMicType,net.easyconn.ecsdk.ECTypes.ECMirrorConfig,net.easyconn.ecsdk.ECTypes.ECMirrorFeature,net.easyconn.ecsdk.ECTypes.ECMirrorMode,net.easyconn.ecsdk.ECTypes.ECMirrorSize,net.easyconn.ecsdk.ECTypes.ECMirrorViewConfig,net.easyconn.ecsdk.ECTypes.ECMusicInfoCover,net.easyconn.ecsdk.ECTypes.ECMusicStatus,net.easyconn.ecsdk.ECTypes.ECNaviCameraType,net.easyconn.ecsdk.ECTypes.ECNaviIcon,net.easyconn.ecsdk.ECTypes.ECNaviStatus,net.easyconn.ecsdk.ECTypes.ECNavigationHudInfo,net.easyconn.ecsdk.ECTypes.ECNetInterfaceInfo,net.easyconn.ecsdk.ECTypes.ECNetLinkInfo,net.easyconn.ecsdk.ECTypes.ECOTAUpdateCheckMode,net.easyconn.ecsdk.ECTypes.ECOTAUpdateErrorCode,net.easyconn.ecsdk.ECTypes.ECOTAUpdateSoftware,net.easyconn.ecsdk.ECTypes.ECOptions,net.easyconn.ecsdk.ECTypes.ECPageInfo,net.easyconn.ecsdk.ECTypes.ECPageInstallAction,net.easyconn.ecsdk.ECTypes.ECPageInstallResult,net.easyconn.ecsdk.ECTypes.ECPageInstallState,net.easyconn.ecsdk.ECTypes.ECPageType,net.easyconn.ecsdk.ECTypes.ECParallelWorldAudioSource,net.easyconn.ecsdk.ECTypes.ECParallelWorldCache,net.easyconn.ecsdk.ECTypes.ECPhoneBlueState,net.easyconn.ecsdk.ECTypes.ECPhoneNotification,net.easyconn.ecsdk.ECTypes.ECProductType,net.easyconn.ecsdk.ECTypes.ECQRInfo,net.easyconn.ecsdk.ECTypes.ECQrAction,net.easyconn.ecsdk.ECTypes.ECRoundScreenMirrorPos,net.easyconn.ecsdk.ECTypes.ECSEPrameter,net.easyconn.ecsdk.ECTypes.ECScreenDirection,net.easyconn.ecsdk.ECTypes.ECScreenType,net.easyconn.ecsdk.ECTypes.ECSensorErrorType,net.easyconn.ecsdk.ECTypes.ECSensorType,net.easyconn.ecsdk.ECTypes.ECSpeechEngineType,net.easyconn.ecsdk.ECTypes.ECStatusMessage,net.easyconn.ecsdk.ECTypes.ECSupportConnect,net.easyconn.ecsdk.ECTypes.ECSupportFunction,net.easyconn.ecsdk.ECTypes.ECSystemKeyCode,net.easyconn.ecsdk.ECTypes.ECTimeInfo,net.easyconn.ecsdk.ECTypes.ECTouchEventData,net.easyconn.ecsdk.ECTypes.ECTouchEventType,net.easyconn.ecsdk.ECTypes.ECTouchMode,net.easyconn.ecsdk.ECTypes.ECTransportCommConfig,net.easyconn.ecsdk.ECTypes.ECTransportInfo,net.easyconn.ecsdk.ECTypes.ECTransportType,net.easyconn.ecsdk.ECTypes.ECTurnIndicatorStatus,net.easyconn.ecsdk.ECTypes.ECVRTextInfo,net.easyconn.ecsdk.ECTypes.ECVRTextType,net.easyconn.ecsdk.ECTypes.ECVideoInfo,net.easyconn.ecsdk.ECTypes.ECVideoType,net.easyconn.ecsdk.ECTypes.ECVideoViewArea,net.easyconn.ecsdk.ECTypes.ECVirtualInstStateData
+confidence: observed
+authority: shipped-artifact
+environment: null
+limitations[4]: Static decompiler observations do not establish runtime behavior; the APK is never executed.,Method signatures use provider display types; exact DEX descriptors and instruction offsets are unavailable. Overload indices are local to this engine and artifact.,"Class inventories use parsed metadata before code generation, including synthetic members that may be omitted from decompiled source. Source positions remain unknown.","Manifest summary fields are extracted by the upstream engine; decoded XML is retained for verification. APK signatures, split APKs, native libraries and Android runtime capture are not verified by this provider."
+locations: []
+evidence_links: []

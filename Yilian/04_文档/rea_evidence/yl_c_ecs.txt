@@ -1,0 +1,106 @@
+evidence_id: ev_2c5880a49abe2d4a2405af5299c070b74c2ced12cd6efa6959eb2142b7a62428
+subject:
+  name: 亿连手机互联V7.0.1.apk
+  digest:
+    sha256: c95ba50c05ef94a3883e2dc387aeda80525bd380cd528f813330da92de1cd362
+  format: apk
+  architecture: null
+  local_path: /home/opc/workspace/apk/Yilian/03_原始APK/亿连手机互联V7.0.1.apk
+provider:
+  id: jadx
+  name: JADX headless
+  version: 0.7.1
+analysis_profile: null
+predicate_type: rea.analysis
+operation: inspect_android_class
+parameters:
+  path: /home/opc/workspace/apk/Yilian/03_原始APK/亿连手机互联V7.0.1.apk
+  class_name: net.easyconn.framework.sdkservice.EasyConnectService
+raw_result:
+  server:
+    name: rea-jadx-bridge
+    version: "1"
+  bridge_sha256: 5a5a4e32264fbe597a329d7ad4b06a6266b7b31243e86b0263dbddcecaf351a1
+  jar_sha256: 6e5eacf500b64292bfb73c49797c1958f6ee44646e43e868039ae7feb573ff75
+  loaded:
+    state: LOADED
+    apk_path: /tmp/rea-android-gz4hep/target.apk
+    class_count: 3299
+    resource_count: 1501
+    threads: 1
+    resources: full
+  calls[3]:
+    - operation: rea_jvm_status
+      input:
+      response:
+        content[1]{type,text}:
+          text,"{\"available_processors\":4,\"engine_reported_version\":\"0.7.1\",\"metadata_scope\":\"parsed_members\",\"max_heap_bytes\":6018826240,\"java_version\":\"21.0.12.1\"}"
+        isError: false
+    - operation: load_apk
+      input:
+        path: /tmp/rea-android-gz4hep/target.apk
+        threads: 1
+        resources: full
+      response:
+        content[1]{type,text}:
+          text,"{\"state\":\"LOADED\",\"apk_path\":\"/tmp/rea-android-gz4hep/target.apk\",\"class_count\":3299,\"raw_class_count\":3299,\"resource_count\":1501,\"load_duration_ms\":5645,\"decompile_timeout_ms\":90000,\"threads\":1,\"code_cache_size\":64,\"resources\":\"full\"}"
+    - operation: get_class_summary
+      input:
+        class_name: net.easyconn.framework.sdkservice.EasyConnectService
+      response:
+        content[1]{type,text}:
+          text,"{\"inner_classes\":[\"net.easyconn.framework.sdkservice.EasyConnectService.a\",\"net.easyconn.framework.sdkservice.EasyConnectService.b\",\"net.easyconn.framework.sdkservice.EasyConnectService.c\",\"net.easyconn.framework.sdkservice.EasyConnectService.d\"],\"name\":\"EasyConnectService\",\"full_name\":\"net.easyconn.framework.sdkservice.EasyConnectService\",\"field_count\":19,\"fields\":[{\"def_pos\":0,\"name\":\"a\",\"type\":\"f.a.i.i.q\"},{\"def_pos\":0,\"name\":\"b\",\"type\":\"android.content.Context\"},{\"def_pos\":0,\"name\":\"f3173c\",\"type\":\"android.os.IBinder\"},{\"def_pos\":0,\"name\":\"f3174d\",\"type\":\"net.easyconn.framework.sdkservice.EcWifiManager\"},{\"def_pos\":0,\"name\":\"f3175e\",\"type\":\"f.a.i.c.a\"},{\"def_pos\":0,\"name\":\"f3176f\",\"type\":\"net.easyconn.framework.broadcast.BroadcastManager\"},{\"def_pos\":0,\"name\":\"f3177g\",\"type\":\"f.a.i.e.a\"},{\"def_pos\":0,\"name\":\"h\",\"type\":\"net.easyconn.framework.sdkservice.EasyConnectService$c\"},{\"def_pos\":0,\"name\":\"i\",\"type\":\"net.easyconn.framework.sdkservice.EasyConnectService$a\"},{\"def_pos\":0,\"name\":\"j\",\"type\":\"f.a.i.p.e\"},{\"def_pos\":0,\"name\":\"k\",\"type\":\"boolean\"},{\"def_pos\":0,\"name\":\"l\",\"type\":\"boolean\"},{\"def_pos\":0,\"name\":\"m\",\"type\":\"android.content.ServiceConnection\"},{\"def_pos\":0,\"name\":\"n\",\"type\":\"net.easyconn.netlink.service.NetLinkService\"},{\"def_pos\":0,\"name\":\"o\",\"type\":\"f.a.i.i.s\"},{\"def_pos\":0,\"name\":\"p\",\"type\":\"f.a.i.i.r\"},{\"def_pos\":0,\"name\":\"q\",\"type\":\"f.a.g.j\"},{\"def_pos\":0,\"name\":\"r\",\"type\":\"f.a.f.e\"},{\"def_pos\":0,\"name\":\"s\",\"type\":\"f.a.f.a\"}],\"methods\":[{\"is_constructor\":true,\"name\":\"\\u003cinit\\u003e\",\"def_pos\":0,\"signature\":\"\\u003cinit\\u003e(): void\"},{\"is_constructor\":false,\"name\":\"a\",\"def_pos\":0,\"signature\":\"a(): java.lang.String\"},{\"is_constructor\":false,\"name\":\"b\",\"def_pos\":0,\"signature\":\"b(): void\"},{\"is_constructor\":false,\"name\":\"c\",\"def_pos\":0,\"signature\":\"c(): void\"},{\"is_constructor\":false,\"name\":\"d\",\"def_pos\":0,\"signature\":\"d(boolean): void\"},{\"is_constructor\":false,\"name\":\"e\",\"def_pos\":0,\"signature\":\"e(int): void\"},{\"is_constructor\":false,\"name\":\"f\",\"def_pos\":0,\"signature\":\"f(java.lang.String): void\"},{\"is_constructor\":false,\"name\":\"g\",\"def_pos\":0,\"signature\":\"g(): void\"},{\"is_constructor\":false,\"name\":\"h\",\"def_pos\":0,\"signature\":\"h(): void\"},{\"is_constructor\":false,\"name\":\"i\",\"def_pos\":0,\"signature\":\"i(): void\"},{\"is_constructor\":false,\"name\":\"initialization\",\"def_pos\":0,\"signature\":\"initialization(java.lang.String, java.lang.Class\\u003c?\\u003e[]): java.lang.reflect.Constructor\"},{\"is_constructor\":false,\"name\":\"onBind\",\"def_pos\":0,\"signature\":\"onBind(android.content.Intent): android.os.IBinder\"},{\"is_constructor\":false,\"name\":\"onCreate\",\"def_pos\":0,\"signature\":\"onCreate(): void\"},{\"is_constructor\":false,\"name\":\"onDestroy\",\"def_pos\":0,\"signature\":\"onDestroy(): void\"},{\"is_constructor\":false,\"name\":\"onStartCommand\",\"def_pos\":0,\"signature\":\"onStartCommand(android.content.Intent, int, int): int\"},{\"is_constructor\":false,\"name\":\"onUnbind\",\"def_pos\":0,\"signature\":\"onUnbind(android.content.Intent): boolean\"}],\"method_count\":16,\"inner_class_count\":4}"
+        isError: false
+normalized_result:
+  engine:
+    name: jadx-headless-mcp
+    version: 0.7.1
+    artifact_sha256: 6e5eacf500b64292bfb73c49797c1958f6ee44646e43e868039ae7feb573ff75
+    source_revision: 5844800a486d2248fa949b74c9896285f5b54de2
+    worker_count: 1
+    heap_limit_mib: 5740
+  class_name: net.easyconn.framework.sdkservice.EasyConnectService
+  methods[16]{name,reported_signature,overload_index,is_constructor,dex_descriptor}:
+    <init>,"<init>(): void",0,true,null
+    a,"a(): java.lang.String",0,false,null
+    b,"b(): void",0,false,null
+    c,"c(): void",0,false,null
+    d,"d(boolean): void",0,false,null
+    e,"e(int): void",0,false,null
+    f,"f(java.lang.String): void",0,false,null
+    g,"g(): void",0,false,null
+    h,"h(): void",0,false,null
+    i,"i(): void",0,false,null
+    initialization,"initialization(java.lang.String, java.lang.Class<?>[]): java.lang.reflect.Constructor",0,false,null
+    onBind,"onBind(android.content.Intent): android.os.IBinder",0,false,null
+    onCreate,"onCreate(): void",0,false,null
+    onDestroy,"onDestroy(): void",0,false,null
+    onStartCommand,"onStartCommand(android.content.Intent, int, int): int",0,false,null
+    onUnbind,"onUnbind(android.content.Intent): boolean",0,false,null
+  fields[19]{name,reported_type}:
+    a,f.a.i.i.q
+    b,android.content.Context
+    f3173c,android.os.IBinder
+    f3174d,net.easyconn.framework.sdkservice.EcWifiManager
+    f3175e,f.a.i.c.a
+    f3176f,net.easyconn.framework.broadcast.BroadcastManager
+    f3177g,f.a.i.e.a
+    h,net.easyconn.framework.sdkservice.EasyConnectService$c
+    i,net.easyconn.framework.sdkservice.EasyConnectService$a
+    j,f.a.i.p.e
+    k,boolean
+    l,boolean
+    m,android.content.ServiceConnection
+    n,net.easyconn.netlink.service.NetLinkService
+    o,f.a.i.i.s
+    p,f.a.i.i.r
+    q,f.a.g.j
+    r,f.a.f.e
+    s,f.a.f.a
+  inner_classes[4]: net.easyconn.framework.sdkservice.EasyConnectService.a,net.easyconn.framework.sdkservice.EasyConnectService.b,net.easyconn.framework.sdkservice.EasyConnectService.c,net.easyconn.framework.sdkservice.EasyConnectService.d
+confidence: observed
+authority: shipped-artifact
+environment: null
+limitations[4]: Static decompiler observations do not establish runtime behavior; the APK is never executed.,Method signatures use provider display types; exact DEX descriptors and instruction offsets are unavailable. Overload indices are local to this engine and artifact.,"Class inventories use parsed metadata before code generation, including synthetic members that may be omitted from decompiled source. Source positions remain unknown.","Manifest summary fields are extracted by the upstream engine; decoded XML is retained for verification. APK signatures, split APKs, native libraries and Android runtime capture are not verified by this provider."
+locations: []
+evidence_links: []

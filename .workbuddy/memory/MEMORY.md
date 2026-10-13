@@ -23,3 +23,12 @@ v1.6.25 教训：**新功能日志必须落 files/log/**（LogHttpServer.refresh
 - **adb=`C:/PJGG/platform-tools/adb.exe`**（D:/PJGG/platform-tools-latest 已失效）。realme X7 Pro(Android 12, RWPRTCMVSWQWMJBA)：须唤醒+dismiss-keyguard，单次调用链完成多步操作（daemon 会被重启）；MuMu 4.4.4 端口 7555（无 P2P/蓝牙，su 弹窗使请求挂 12~15s，curl 加 --max-time；TCP 连接跨命令被回收须重新 connect）。
 - ★ MSYS 一切 adb shell/push 的 /data 路径必须 `MSYS_NO_PATHCONV=1`。构建/工程路径纯 ASCII。
 - 低速断连待办：车机装最新 BootTask 实测（一键修复→投屏 15min→抓 wifi_rate_probe.txt）；v1.6.30 无障碍自动点弹窗待实机验证（需先在系统辅助功能里启用服务）；FileMgr 零日志问题待修。
+
+## REA 逆向工具链（2026-10-13 装好，可复用）
+`sudo npm i -g rea-agents`（rea 6.4.0）+ `jadx-headless-mcp-0.7.1-all.jar`（sha256 须
+`6e5eacf5…3ff75`）+ **JDK 17+**（本机原装 11 不够，另下 Temurin 21）。
+环境：`REA_JADX_MCP_JAR=<jar>` `JAVA_HOME=<jdk21>`。命令：`inspect-android-package` /
+`search-android-classes` / `inspect-android-class` / `inspect-android-method` /
+`trace-android-references`。坑：内部类用 `.` 不用 `$`；trace 遇重载方法直接报错要换唯一方法名。
+产出：`Yilian/04_文档/亿连V7.0.1_REA逆向分析报告.md` + `rea_evidence/`。native 反编译需另装
+Ghidra/Hopper/IDA（未做）。

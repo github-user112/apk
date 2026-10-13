@@ -373,7 +373,7 @@ public final class BootDiagnostics {
      *  所以逐个键 get。蓝牙抢 2.4G、WiFi 后台常扫、息屏休眠、ROM 省电策略全靠这几个键。 */
     private static String settingsSnapshot() {
         String[] gKeys = {"bluetooth_on", "wifi_on", "wifi_scan_always_enabled",
-                "wifi_scan_throttle_enabled", "airplane_mode_on", "adb_enabled", "stay_on_while_plugged_in"};
+                "wifi_supplicant_scan_interval_ms", "airplane_mode_on", "adb_enabled", "stay_on_while_plugged_in"};
         String[] sKeys = {"screen_off_timeout", "wifi_sleep_policy", "power_sounds_enabled",
                 "lockscreen.disabled"};
         StringBuilder sb = new StringBuilder();
@@ -1291,6 +1291,13 @@ public final class BootDiagnostics {
     private static void dumpLogcat(Writer writer) {
         Process process = null;
         try {
+            // v1.6.32：如实交代 logcat 能看到什么——Android 4.1+ 第三方 App 只能读自身 uid
+            // 的日志（10-01 车机日志实锤：logcat 段 233 行全是本 App 自己的 pid，下面这些
+            // 系统 tag 一条都出不来）。WiFi 扫描抓现行走主界面『数扫描 60 秒』（SCAN_RESULTS
+            // 广播），不依赖 logcat。标签仍保留：若 ROM 放开了读取就能直接看到。
+            writer.write("[v1.6.32 说明] 本 App 只能读自己的 logcat（4.1+ 平台限制，无 READ_LOGS）。\n"
+                    + "[v1.6.32 说明] 下面若无 WifiService/wpa_supplicant 行属正常——后台扫描抓现行\n"
+                    + "[v1.6.32 说明] 请用主界面『① 数扫描 60 秒』（SCAN_RESULTS 广播，免 root）。\n");
             process = new ProcessBuilder(
                     "logcat", "-d", "-v", "time", "-s",
                     "BootTask:V",
@@ -1298,7 +1305,11 @@ public final class BootDiagnostics {
                     "CarLifeLogXfer:V",
                     "ActivityManager:I",
                     "PackageManager:I",
-                    "AndroidRuntime:E")
+                    "AndroidRuntime:E",
+                    "WifiService:V",
+                    "WifiStateMachine:V",
+                    "wpa_supplicant:V",
+                    "WifiNative:V")
                     .redirectErrorStream(true)
                     .start();
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream(), "UTF-8"));

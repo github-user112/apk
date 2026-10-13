@@ -5,7 +5,7 @@
 - 包名：`com.boottask`
 - 最低版本：Android 2.2（API 8，实际按 4.4 编写）—— 兼容一切 4.x，**包括 4.4.2 车机**
 - 构建方式：v1.6 起全部 Java/D8 + apktool 合并进单 dex（`build.sh` Linux / `build_win.sh` Windows，v1.6.26 起类清单已改 glob）
-- 成品：`dist/BootTask_v1.6.28.apk`（**纯 v1 签名**，SHA-1 摘要，无 v2/v3 签名块）；历史版本同目录留档
+- 成品：`dist/BootTask_v1.6.32.apk`（**纯 v1 签名**，SHA-1 摘要，无 v2/v3 签名块）；历史版本同目录留档
 - **v1.6.28 起文件功能已整体拆出**：文件管理 / 扫码传 APK / 卸载软件 → 独立 App
   「车机文件管家」（`FileMgr/`，包名 `com.carfiles`），本 App 不再含文件功能
 
@@ -754,3 +754,65 @@ accessibility_desc 都在；versionCode 37 / 1.6.30；证书 d2519f98 一致。*
 
 > ⚠ 装之前先在系统「设置→辅助功能」里手动启用「开机任务·直连自动允许」，
 > 不然开关打开也不生效（状态行会显示"未启用"）。
+
+### v1.6.31（vc38，2026-10-12）：P2pDialogClicker 三处修复
+
+- **P0**：拒绝词整窗短路删除——配对弹窗本来就有「取消/拒绝」按钮，原版见到即放弃，
+  带取消的弹窗永远不点，功能空转。拒绝词只保留在 isAcceptText 里修正按钮判定；
+  同意词表补「允许连接/始终允许/接受并连接」
+- **P1**：高频日志节流（同 key 10s 一条）；**P2**：修 root 双 recycle（4.4 抛 ISE）
+- MuMu 4.4.4 实测：无障碍服务绑定成功、扫描判定正常、无误点、不崩
+
+### v1.6.32（vc39，2026-10-13）：后台扫描抓现行 + 扫描静默（把「速率低」头号嫌疑做成证据链）
+
+**背景**：亿连「WiFi传输速率低」= 每 2s ping 对端、RTT>200ms 连续 3 次（v1.6.24 复刻）。
+RF 环境已排除后，头号未证实嫌疑是**后台 WiFi 扫描把单射频踢离信道**。要把真实原因抓出来，
+需要数出扫描频率并与 RTT 尖峰做时间关联——原设计用 logcat 抓 wpa_supplicant 扫描日志，
+**被 10-01 车机日志判死**：
+
+- Android 4.1+ 第三方 App 的 logcat 只能读**自己 uid** 的日志（READ_LOGS 变签名权限）：
+  diagnostic.txt 的 logcat 段 233 行全是本 App 自己的 pid 2697，-s 过滤的
+  ActivityManager:I / AndroidRuntime:E 一条都没出来 → WifiService/wpa 扫描日志拿不到。
+
+**换的口子（免 root 零权限）**：`SCAN_RESULTS_AVAILABLE_ACTION` 广播——系统每完成一次
+WiFi 扫描（不管哪个 App/框架发起）必发这条全局广播，注册即收。
+
+- 新增 `ScanCatcher extends Service`：
+  - 会话式接收器（beginSession/endSession 引用计数，可与 RTT 探测重叠）；
+    静态 API（beginSession/eventsBetween/eventCount）供 WifiRateProbe 关联
+  - 独立 60 秒计数模式（主界面①）：背景扫描频率 + 分级判定，落
+    `files/log/scan_catcher.txt` + `/sdcard/boottask/scan_catcher.log`
+  - 如实交代局限：广播只能证明「发生了几次」，**点不了名**（发起点在 WifiService 日志里，
+    本 App 读不到），定位靠「静默前后差分」
+- 新增 `ScanSilence`：四步静默 + 逐步如实报成败
+  - ① `settings put global wifi_scan_always_enabled 0`
+  - ② `settings put global wifi_supplicant_scan_interval_ms 300000`（键名/单位 javap 复核自
+    4.4 `Settings$Global`；**老键 wifi_scan_throttle_enabled 是 Android 7+ 的、4.4 上无效**）
+  - ①②在本车必被拒（WRITE_SECURE_SETTINGS 是签名权限；10-01 日志实锤连 settings get 都是
+    「无权限读取」）→ 失败时保留命令输出原文 + 给电脑端 adb 一条命令（shell uid 有权限，免 root）
+  - ③ 禁用全部已保存 WiFi（disableNetwork，CHANGE_WIFI_STATE 普通权限**必成**——supplicant
+    不再为它们扫描/漫游，免 root 唯一一定落地的硬手段）
+  - ④ 高性能 WiFi 锁；`undo()` 重新启用网络 + 恢复 settings（原值没读到就给 adb 还原命令）
+- `WifiRateProbe` 报告插入【② 后台扫描关联】节（原②③顺延为③④）：
+  - pingLoop 记录每个超 200 尖峰的起点；关联窗口 = 尖峰前 1s ~ 后 4s
+    （扫描广播在扫描完成时才发出，被拖高的 ping 必落在该区间）
+  - 分级：窗口 0 扫描 → 扫描排除；≥70% 尖峰落窗且 ≥ 随机期望 2 倍 → ★强相关定罪；
+    中度/弱相关如实报（随机期望按「每尖峰 5s 窗 / 总时长」折算，防误判）
+  - 结论并进界面 verdict 行
+- 主界面新分区「后台扫描抓现行 + 扫描静默」：①数扫描 60 秒 ②扫描静默 ③还原 + 状态行
+- `BootDiagnostics.dumpLogcat`：加 WifiService/wpa_supplicant/WifiStateMachine/WifiNative
+  标签 + 开头如实说明「本 App 只能读自己的 logcat，扫描抓现行请用『数扫描』」；
+  诊断快照 settings 键表同换 supplicant 间隔键
+- 系统修复⑤ 与 adb 清单 #5 同步换成 4.4 真键（原 throttle 键写进去无效 = 等于没修）
+- **apktool.yml 版本漂移修复**：此前停在 37/1.6.30（manifest 已 38/1.6.31），本次两者对齐 39/1.6.32
+
+**验证**：构建 0 error；dex 含 SCAN_RESULTS/新类/新文案全 OK；条目数不变（10，无新桌面入口）；
+versionCode 39 / 1.6.32（二进制 Manifest 复核）；smali 寄存器 lint 通过（v0-v15）；
+D8 的 `java.lang.Runnable not found` 警告经独立重建 1.6.31 A/B 对照，确认为**工具链既有**
+（1.6.31 在 MainActivity$7 上同款），非本版引入。**实机待跑**。
+
+**车机闭环用法**（抓现行→定罪→固化）：
+1. 车机开着 WiFi（不必连手机）→ 点『① 数扫描 60 秒』记下背景频率；
+2. 点『② 扫描静默』（③ 禁保存网络必成；①② 被拒会给 adb 命令，电脑执行后即生效）；
+3. 复测『① 数扫描』+『测 RTT』：频率/尖峰大降 = 扫描定罪（保持 adb 设置固化）；
+   没降 = 框架周期/位置扫描 → 执行 adb 命令后再复测。

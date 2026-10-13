@@ -76,6 +76,11 @@ public class MainActivity extends Activity implements View.OnClickListener,
     private Button amPickButton;
     private Button amClearButton;
     private TextView amStatusText;
+    /** v1.6.32 后台扫描抓现行 + 扫描静默 */
+    private Button scCountButton;
+    private Button scSilenceButton;
+    private Button scUndoButton;
+    private TextView scStatusText;
     private TextView countText;
     private TextView rootText;
 
@@ -361,6 +366,36 @@ public class MainActivity extends Activity implements View.OnClickListener,
         fixSysButton.setOnClickListener(this);
         addIn(cDiag, fixSysButton);
 
+        // ---- 分区十一：后台扫描抓现行 + 扫描静默（v1.6.32）----
+        LinearLayout cSc = card(root, "后台扫描抓现行 + 扫描静默（v1.6.32）",
+                "亿连「WiFi传输速率低」= RTT>200ms 连续 3 次（见上面『测 RTT』）。"
+                        + "头号未证实嫌疑：后台 WiFi 扫描把单射频踢离信道。\n"
+                        + "★抓现行为什么不用 logcat：Android 4.1+ 第三方 App 只能读自己的日志"
+                        + "（10-01 车机日志实锤），wpa_supplicant/WifiService 的扫描日志拿不到；"
+                        + "但系统每完成一次扫描必发 SCAN_RESULTS 广播——注册即收，零权限免 root。\n"
+                        + "闭环用法：①数扫描 60 秒（背景频率）→ ②扫描静默 → "
+                        + "③复测数扫描+测 RTT：频率/尖峰大降 = 扫描定罪；没降 = 走日志里的 adb 命令。");
+
+        scCountButton = new Button(this);
+        scCountButton.setText("① 数扫描 60 秒（抓现行）");
+        scCountButton.setOnClickListener(this);
+        addIn(cSc, scCountButton);
+
+        scSilenceButton = new Button(this);
+        scSilenceButton.setText("② 扫描静默（禁保存网络 + 尽力关扫描开关）");
+        scSilenceButton.setOnClickListener(this);
+        addIn(cSc, scSilenceButton);
+
+        scUndoButton = new Button(this);
+        scUndoButton.setText("③ 还原（启用保存网络 + 恢复开关）");
+        scUndoButton.setOnClickListener(this);
+        addIn(cSc, scUndoButton);
+
+        scStatusText = new TextView(this);
+        scStatusText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+        scStatusText.setTextColor(Color.rgb(90, 90, 90));
+        addIn(cSc, scStatusText);
+
         android.widget.ScrollView scroller = new android.widget.ScrollView(this);
         scroller.setFillViewport(true);
         scroller.addView(root);
@@ -383,6 +418,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
         updateAmUi();
         updateWrUi();
         updateLrfUi();
+        updateScUi();   // v1.6.32
         // v1.6.13：每次回到前台都重新探测 root —— 用户在 SuperSU 里授权后回来能自动变绿，
         // 不用杀 App 重开（探测在后台线程，不卡 UI）
         probeRootAsync();
@@ -491,6 +527,54 @@ public class MainActivity extends Activity implements View.OnClickListener,
                 tail.append(lines[i]);
             }
             wrStatusText.setText("结论：" + verdict + "\n最近记录：\n" + tail);
+        } catch (Throwable ignored) {
+        }
+    }
+
+    /** v1.6.32：后台扫描抓现行 + 扫描静默分区状态 */
+    private void updateScUi() {
+        try {
+            boolean run = ScanCatcher.isRunning();
+            scCountButton.setEnabled(!run);
+            scSilenceButton.setEnabled(!run);
+            if (run) {
+                scCountButton.setText("正在数扫描…（60 秒）");
+                scStatusText.setText("状态：正在监听 SCAN_RESULTS 广播，60 秒后出结论…");
+                return;
+            }
+            scCountButton.setText("① 数扫描 60 秒（抓现行）");
+            StringBuilder sb = new StringBuilder();
+            String verdict = ScanCatcher.verdict();
+            if (verdict.length() > 0) {
+                sb.append("抓现行：").append(verdict);
+            }
+            String silence = ScanSilence.lastResult();
+            if (silence.length() > 0 && !"（未执行）".equals(silence)) {
+                if (sb.length() > 0) {
+                    sb.append('\n');
+                }
+                sb.append(silence);
+            }
+            String log = ScanCatcher.lastResult();
+            if (log != null && log.length() > 0) {
+                String[] lines = log.split("\n");
+                StringBuilder tail = new StringBuilder();
+                int from = Math.max(0, lines.length - 6);
+                for (int i = from; i < lines.length; i++) {
+                    if (tail.length() > 0) {
+                        tail.append('\n');
+                    }
+                    tail.append(lines[i]);
+                }
+                if (sb.length() > 0) {
+                    sb.append("\n--- 数扫描日志 ---\n");
+                }
+                sb.append(tail);
+            }
+            if (sb.length() == 0) {
+                sb.append("状态：还没数过。点『① 数扫描 60 秒』测背景扫描频率。");
+            }
+            scStatusText.setText(sb.toString());
         } catch (Throwable ignored) {
         }
     }
@@ -921,6 +1005,46 @@ public class MainActivity extends Activity implements View.OnClickListener,
             }).start();
             return;
         }
+        if (v == scCountButton) {
+            Toast.makeText(this, "开始数扫描，60 秒后出结论", Toast.LENGTH_SHORT).show();
+            try {
+                startService(new Intent(this, ScanCatcher.class));
+            } catch (Throwable t) {
+                Toast.makeText(this, "服务拉起失败：" + t, Toast.LENGTH_LONG).show();
+                return;
+            }
+            updateScUi();
+            scStatusText.postDelayed(new Runnable() {
+                public void run() {
+                    updateScUi();
+                    if (ScanCatcher.isRunning()) {
+                        scStatusText.postDelayed(this, 2000L);
+                    }
+                }
+            }, 2000L);
+            return;
+        }
+        if (v == scSilenceButton || v == scUndoButton) {
+            final boolean isSilence = (v == scSilenceButton);
+            Toast.makeText(this, isSilence ? "扫描静默执行中…" : "还原执行中…",
+                    Toast.LENGTH_SHORT).show();
+            new Thread(new Runnable() {
+                public void run() {
+                    final String r = isSilence
+                            ? ScanSilence.silence(MainActivity.this)
+                            : ScanSilence.undo(MainActivity.this);
+                    runOnUiThread(new Runnable() {
+                        public void run() {
+                            Toast.makeText(MainActivity.this,
+                                    r.length() > 200 ? r.substring(0, 200) + "…" : r,
+                                    Toast.LENGTH_LONG).show();
+                            updateScUi();
+                        }
+                    });
+                }
+            }).start();
+            return;
+        }
         if (v == fixSysButton) {
             // 非亿连原因（系统/环境层）：一次只做一项，做完跑 15 分钟对比
             new AlertDialog.Builder(this)
@@ -930,7 +1054,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
                             "② CPU 恢复默认 governor",
                             "③ 关蓝牙（排除蓝牙与 WLAN 抢 2.4G）",
                             "④ 开蓝牙",
-                            "⑤ 关 WiFi 后台常扫（注意方向：节流=1 才是更少扫描）"},
+                            "⑤ 关 WiFi 后台常扫（always=0 + 周期扫描间隔 5 分钟）"},
                             new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface d, int w) {
                                     runRepair(w + 20);

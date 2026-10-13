@@ -111,6 +111,8 @@ public class WifiRateProbe extends Service {
                     logFile("探测异常: " + t);
                     Log.w(TAG, "probe fail", t);
                 } finally {
+                    // v1.6.32 兜底：runProbe 中途异常也保证注销扫描接收器（引用计数已归零时是 no-op）
+                    ScanCatcher.endSession(WifiRateProbe.this);
                     sRunning = false;
                     stopSelf();
                 }
@@ -133,6 +135,8 @@ public class WifiRateProbe extends Service {
 
     private void runProbe() {
         int dur = duration(this);
+        // v1.6.32 抓现行：开后台扫描观测会话，与 RTT 尖峰做时间关联（见 scanCorrelation）
+        long scanT0 = ScanCatcher.beginSession(this);
         String peer = findPeer();
         sTarget = peer == null ? "" : peer;
         logFile("探测时长 " + dur + "s，目标对端 " + (peer == null ? "未找到" : peer));
@@ -143,6 +147,7 @@ public class WifiRateProbe extends Service {
 
         // ---- ① 空口侧：RTT 分布 ----
         RttStats st = peer == null ? null : pingLoop(peer, dur);
+        ScanCatcher.endSession(this);   // v1.6.32：事件采集完毕（后面是分析，不需要接收器了）
         logFile("");
         logFile("【① RTT 实测（复刻亿连判定）】");
         if (st == null) {
@@ -166,10 +171,13 @@ public class WifiRateProbe extends Service {
             }
         }
 
-        // ---- ② 链路指标：谁在拖 ----
+        // ---- ② 后台扫描关联（v1.6.32 抓现行）----
+        scanCorrelation(st, dur, scanT0);
+
+        // ---- ③ 链路指标：谁在拖 ----
         linkSide(st);
 
-        // ---- ③ 缓解建议 ----
+        // ---- ④ 缓解建议 ----
         advice(st);
 
         logFile("");
@@ -179,11 +187,75 @@ public class WifiRateProbe extends Service {
     }
 
     /**
+     * v1.6.32 抓现行：把 RTT 尖峰与后台扫描事件做时间关联。
+     * 抓取口 = SCAN_RESULTS 广播——App uid 的 logcat 读不到 WifiService/wpa 日志
+     * （Android 4.1+ 平台限制，10-01 车机日志实锤：logcat 段 233 行全是本 App 自己的），
+     * 而系统每完成一次扫描必发这条全局广播，注册即收、零权限免 root。
+     * 判定窗口取「尖峰前 1 秒 ~ 后 4 秒」：扫描广播在扫描完成时才发出，
+     * 被扫描拖高的 ping 一定落在该扫描完成前后的这个区间里。
+     */
+    private void scanCorrelation(RttStats st, int dur, long scanT0) {
+        long winMs;
+        int scans;
+        if (st != null && st.winEnd > st.winStart) {
+            winMs = st.winEnd - st.winStart;
+            scans = ScanCatcher.eventsBetween(st.winStart, st.winEnd);
+        } else {
+            winMs = dur * 1000L;
+            scans = ScanCatcher.eventsBetween(scanT0, scanT0 + winMs);
+        }
+        double perMin = winMs > 0 ? Math.round(scans * 600000.0 / winMs) / 10.0 : 0;
+        logFile("");
+        logFile("【② 后台扫描关联（v1.6.32 抓现行）】");
+        logFile("  抓取口：SCAN_RESULTS 广播——App uid 的 logcat 读不到 WifiService/wpa 日志");
+        logFile("          （4.1+ 平台限制，10-01 车机日志实锤），广播免 root 零权限。");
+        logFile("  探测窗口 " + (winMs / 1000) + " 秒内扫描完成 " + scans + " 次（≈" + perMin + " 次/分）");
+
+        if (st == null || st.total == 0) {
+            logFile("  （无对端 RTT 数据，未做关联——扫描频率请用主界面『① 数扫描 60 秒』复测）");
+            return;
+        }
+        if (st.over200 == 0) {
+            logFile("  RTT 尖峰 0 次 → 本轮无劣化，无需归因（扫描频率仅备查）。");
+            return;
+        }
+        if (scans == 0) {
+            logFile("  RTT 尖峰 " + st.over200 + " 次，窗口内 0 次扫描 → 扫描嫌疑排除。");
+            logFile("  （转查：GO 负担 / 省电降速 / CPU / 2.4G 同频干扰——见【④ 缓解措施】）");
+            sVerdict = sVerdict + "；扫描排除";
+            return;
+        }
+        int linked = 0;
+        for (int i = 0; i < st.spikeT0.size(); i++) {
+            long t = st.spikeT0.get(i).longValue();
+            if (ScanCatcher.eventsBetween(t - 1000L, t + 4000L) > 0) {
+                linked++;
+            }
+        }
+        int pct = linked * 100 / st.over200;
+        int expPct = (int) Math.min(100L, scans * 5000L * 100L / Math.max(1L, winMs));
+        logFile("  尖峰 " + st.over200 + " 次，其中 " + linked + " 次落在扫描时间窗内（" + pct + "%）；");
+        logFile("  随机巧合期望 ≈" + expPct + "%（每尖峰窗口 5 秒 / 总时长）——高于期望 2 倍才算真相关。");
+        logFile("  判定窗：尖峰前 1s ~ 后 4s（扫描广播在扫描完成时发出）。");
+        if (pct >= 70 && st.over200 >= 3 && pct >= expPct * 2) {
+            logFile("  ★强相关：后台扫描嫌疑极大 → 点『② 扫描静默』后复测『测 RTT』+『数扫描』定罪。");
+            sVerdict = sVerdict + "；★扫描强相关(" + linked + "/" + st.over200 + ")";
+        } else if (pct >= 50 && pct >= expPct * 2) {
+            logFile("  中度相关：值得一键静默后复测对比。");
+            sVerdict = sVerdict + "；扫描中度相关(" + linked + "/" + st.over200 + ")";
+        } else {
+            logFile("  弱相关（" + pct + "% vs 随机期望 " + expPct + "%）——尖峰多数不随扫描，扫描不是主因。");
+            sVerdict = sVerdict + "；扫描弱相关(" + linked + "/" + st.over200 + ")";
+        }
+    }
+
+    /**
      * 每 2 秒 ping 一次（和亿连同周期），返回统计
      * v1.6.26：失败样本按超时计——原来失败也拿墙钟当 RTT，会**假阴性**报「链路良好」。
      */
     private RttStats pingLoop(String ip, int durSec) {
         RttStats st = new RttStats();
+        st.winStart = System.currentTimeMillis();   // v1.6.32：扫描关联的观测窗口
         long end = System.currentTimeMillis() + durSec * 1000L;
         int seq = 0;
         boolean noPingLogged = false;
@@ -214,6 +286,7 @@ public class WifiRateProbe extends Service {
             }
             if (over) {
                 st.over200++;
+                st.spikeT0.add(Long.valueOf(t0));   // v1.6.32：尖峰起点供扫描关联
                 st.streak++;
                 if (st.streak > st.maxStreak) {
                     st.maxStreak = st.streak;
@@ -236,6 +309,7 @@ public class WifiRateProbe extends Service {
                 }
             }
         }
+        st.winEnd = System.currentTimeMillis();
         return st;
     }
 
@@ -330,7 +404,7 @@ public class WifiRateProbe extends Service {
     /** 链路侧：RSSI / 收发字节 / CPU —— 判断是空口烂还是车机烂 */
     private void linkSide(RttStats st) {
         logFile("");
-        logFile("【② 链路侧对照】");
+        logFile("【③ 链路侧对照】");
 
         String wireless = AdvActions.run(new String[]{"cat", "/proc/net/wireless"}, 6000L, 4096);
         StringBuilder w = new StringBuilder();
@@ -389,7 +463,7 @@ public class WifiRateProbe extends Service {
 
     private void advice(RttStats st) {
         logFile("");
-        logFile("【③ 缓解措施（按性价比排序）】");
+        logFile("【④ 缓解措施（按性价比排序）】");
 
         // 1) 改通道形态：直连 → 手机热点
         logFile("  ①【最有效】别用直连，用「手机开 2.4G 热点 → 车机连」");
@@ -429,6 +503,9 @@ public class WifiRateProbe extends Service {
         int total, timeout, over200, streak, maxStreak;
         int max;
         List<Integer> all = new ArrayList<Integer>();
+        // v1.6.32 抓现行：超 200 尖峰的起点（墙钟 ms）+ 探测窗口，供扫描事件关联
+        List<Long> spikeT0 = new ArrayList<Long>();
+        long winStart, winEnd;
 
         void add(int v) {
             all.add(v);

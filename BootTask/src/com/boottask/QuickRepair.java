@@ -211,8 +211,9 @@ public final class QuickRepair {
     }
 
     /** 关 WiFi 后台常扫。
-     *  ⚠ 注意方向与网上流传的相反：wifi_scan_throttle_enabled=1 才是「开启节流=减少扫描」，
-     *    设为 0 反而会让后台扫描更频繁、更容易打断 P2P。 */
+     *  v1.6.32 改用 javap 复核过的 4.4 真键：原 wifi_scan_throttle_enabled 是 Android 7+
+     *  的键、4.4 上写进去无效（等于没修）；换成 wifi_supplicant_scan_interval_ms=300000，
+     *  把 supplicant 周期扫描拉到 5 分钟（键名/单位来自 4.4 framework Settings$Global）。 */
     public static String repairWifiScanOff(Context ctx) {
         StringBuilder rep = new StringBuilder();
         rep.append("[关WiFi常扫] ");
@@ -222,14 +223,14 @@ public final class QuickRepair {
         AdvActions.run(new String[]{"su", "-c",
                 "settings put global wifi_scan_always_enabled 0"}, 8000L, 2048);
         AdvActions.run(new String[]{"su", "-c",
-                "settings put global wifi_scan_throttle_enabled 1"}, 8000L, 2048);
+                "settings put global wifi_supplicant_scan_interval_ms 300000"}, 8000L, 2048);
         String a = AdvActions.run(new String[]{"su", "-c",
                 "settings get global wifi_scan_always_enabled"}, 8000L, 1024);
         String b = AdvActions.run(new String[]{"su", "-c",
-                "settings get global wifi_scan_throttle_enabled"}, 8000L, 1024);
+                "settings get global wifi_supplicant_scan_interval_ms"}, 8000L, 1024);
         rep.append("wifi_scan_always_enabled=").append(oneLine(a))
-                .append("; wifi_scan_throttle_enabled=").append(oneLine(b))
-                .append(" (1=节流开启=扫描更少，方向别搞反)");
+                .append("; wifi_supplicant_scan_interval_ms=").append(oneLine(b))
+                .append(" (期望 0 / 300000 毫秒=5 分钟)");
         return finish(ctx, rep);
     }
 

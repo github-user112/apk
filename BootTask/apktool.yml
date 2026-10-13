@@ -10,6 +10,6 @@ sdkInfo:
 packageInfo:
   forcedPackageId: 127
 versionInfo:
-  versionCode: 39
-  versionName: 1.6.32
+  versionCode: 40
+  versionName: 1.6.33
 compressionType: false

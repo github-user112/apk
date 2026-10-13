@@ -143,6 +143,8 @@ public class WifiRateProbe extends Service {
         logFile("");
         logFile("【判定标准】亿连：每 2s ping 一次，单次 RTT>200ms 记 1 次，连续 3 次弹「WiFi传输速率低」");
         logFile("            → 连续 6 秒以上持续劣化才弹；本探测复刻同一阈值。");
+        // v1.6.33 博通省电断流线索：探测启动时先采一次省电状态（免 root 三视角）
+        logFile("WiFi 省电（探测启动时）：" + WifiPowerSave.sampleOnce());
         logFile("");
 
         // ---- ① 空口侧：RTT 分布 ----
@@ -169,6 +171,40 @@ public class WifiRateProbe extends Service {
             } else {
                 sVerdict = "RTT 全部正常（无一次>200ms）—— 此刻链路是好的";
             }
+        }
+
+        // ---- v1.6.33 尖峰时刻的省电采样（博通 bcmdhd「省电断流」线索，免 root）----
+        if (st != null && !st.psSpike.isEmpty()) {
+            int psOn = 0;
+            int psOff = 0;
+            int psUnk = 0;
+            for (int i = 0; i < st.psSpike.size(); i++) {
+                Boolean on = WifiPowerSave.looksOn(st.psSpike.get(i));
+                if (on == null) {
+                    psUnk++;
+                } else if (on.booleanValue()) {
+                    psOn++;
+                } else {
+                    psOff++;
+                }
+            }
+            logFile("  WiFi 省电采样（尖峰时刻）：" + st.psSpike.size() + " 次 → on=" + psOn
+                    + " off=" + psOff + " 未知=" + psUnk + "；基线=" + st.psBase);
+            for (int i = 0; i < st.psSpike.size() && i < 2; i++) {
+                logFile("    样本" + (i + 1) + ": " + st.psSpike.get(i));
+            }
+            if (psOn > 0 && psOn >= psOff) {
+                logFile("  ★尖峰时省电开着 —— 博通 bcmdhd 射频按 DTIM beacon 唤醒，首包 100~500ms，");
+                logFile("    正撞亿连 200ms 阈值（「省电断流」是博通驱动的经典毛病）→ 关法见 adb 清单#1。");
+                sVerdict = sVerdict + "；★尖峰时省电=on（关法见 adb 清单#1）";
+            } else if (psOn == 0 && psOff > 0) {
+                logFile("  尖峰时省电全为 off → 驱动级省电排除（固件内部自适应省电不在此视图内，");
+                logFile("    见 WifiPowerSave 类注释的诚实边界；扫描/双连/GO 负担嫌疑相对上升）。");
+            } else {
+                logFile("  省电状态全部读不出（三套工具缺失/无响应）→ 该嫌疑无法观测，按未知处理。");
+            }
+        } else if (st != null) {
+            logFile("  WiFi 省电：本轮无尖峰，未在尖峰时刻采样（基线：" + st.psBase + "）");
         }
 
         // ---- ② 后台扫描关联（v1.6.32 抓现行）----
@@ -256,6 +292,7 @@ public class WifiRateProbe extends Service {
     private RttStats pingLoop(String ip, int durSec) {
         RttStats st = new RttStats();
         st.winStart = System.currentTimeMillis();   // v1.6.32：扫描关联的观测窗口
+        st.psBase = WifiPowerSave.cached();         // v1.6.33：省电基线（缓存版，尖峰时取新鲜值）
         long end = System.currentTimeMillis() + durSec * 1000L;
         int seq = 0;
         boolean noPingLogged = false;
@@ -287,6 +324,9 @@ public class WifiRateProbe extends Service {
             if (over) {
                 st.over200++;
                 st.spikeT0.add(Long.valueOf(t0));   // v1.6.32：尖峰起点供扫描关联
+                if (st.psSpike.size() < 5) {
+                    st.psSpike.add(WifiPowerSave.cached());   // v1.6.33：尖峰时刻省电状态（缓存1.5s，尖峰≥2s间隔→每次都是新鲜采样）
+                }
                 st.streak++;
                 if (st.streak > st.maxStreak) {
                     st.maxStreak = st.streak;
@@ -405,6 +445,7 @@ public class WifiRateProbe extends Service {
     private void linkSide(RttStats st) {
         logFile("");
         logFile("【③ 链路侧对照】");
+        logFile("  WiFi 省电（探测结束时）：" + WifiPowerSave.sampleOnce());   // v1.6.33：新鲜采样，不吃缓存
 
         String wireless = AdvActions.run(new String[]{"cat", "/proc/net/wireless"}, 6000L, 4096);
         StringBuilder w = new StringBuilder();
@@ -506,6 +547,9 @@ public class WifiRateProbe extends Service {
         // v1.6.32 抓现行：超 200 尖峰的起点（墙钟 ms）+ 探测窗口，供扫描事件关联
         List<Long> spikeT0 = new ArrayList<Long>();
         long winStart, winEnd;
+        // v1.6.33 省电断流线索：基线采样 + 最多 5 次尖峰时刻采样
+        String psBase;
+        List<String> psSpike = new ArrayList<String>();
 
         void add(int v) {
             all.add(v);

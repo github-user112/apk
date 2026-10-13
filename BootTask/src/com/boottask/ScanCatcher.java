@@ -211,7 +211,8 @@ public class ScanCatcher extends Service {
             i++;
             if (i % 10 == 0) {
                 int n = eventsBetween(t0, System.currentTimeMillis());
-                logFile("  +" + i + "s：已收到 " + n + " 次扫描完成广播");
+                // v1.6.33：顺带采省电轨迹（缓存 1.5s，10s 间隔 → 每次新鲜；博通动态 PS 会 flapping）
+                logFile("  +" + i + "s：已收到 " + n + " 次扫描完成广播；WiFi 省电=" + WifiPowerSave.cached());
             }
         }
         long elapsed = System.currentTimeMillis() - t0;

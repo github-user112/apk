@@ -5,7 +5,7 @@
 - 包名：`com.boottask`
 - 最低版本：Android 2.2（API 8，实际按 4.4 编写）—— 兼容一切 4.x，**包括 4.4.2 车机**
 - 构建方式：v1.6 起全部 Java/D8 + apktool 合并进单 dex（`build.sh` Linux / `build_win.sh` Windows，v1.6.26 起类清单已改 glob）
-- 成品：`dist/BootTask_v1.6.32.apk`（**纯 v1 签名**，SHA-1 摘要，无 v2/v3 签名块）；历史版本同目录留档
+- 成品：`dist/BootTask_v1.6.33.apk`（**纯 v1 签名**，SHA-1 摘要，无 v2/v3 签名块）；历史版本同目录留档
 - **v1.6.28 起文件功能已整体拆出**：文件管理 / 扫码传 APK / 卸载软件 → 独立 App
   「车机文件管家」（`FileMgr/`，包名 `com.carfiles`），本 App 不再含文件功能
 
@@ -816,3 +816,35 @@ D8 的 `java.lang.Runnable not found` 警告经独立重建 1.6.31 A/B 对照，
 2. 点『② 扫描静默』（③ 禁保存网络必成；①② 被拒会给 adb 命令，电脑执行后即生效）；
 3. 复测『① 数扫描』+『测 RTT』：频率/尖峰大降 = 扫描定罪（保持 adb 设置固化）；
    没降 = 框架周期/位置扫描 → 执行 adb 命令后再复测。
+
+### v1.6.33（vc40，2026-10-13）：WiFi 省电状态观测（博通 bcmdhd「省电断流」线索）
+
+**线索（用户给的）**：博通 bcmdhd 驱动/固件的动态省电是 RTT 尖峰的经典来源——射频按
+DTIM beacon 唤醒，首包时延 100~500ms，正好撞亿连「速率低」的 200ms 阈值。分析结论：
+**值得加，而且是个观测盲区**——
+
+- BootTask 早有「关 WiFi 省电」的杠杆（QuickRepair root 版 / adb 清单#1 `iw set power_save off`），
+  诊断快照里也早有「GO 省电状态」段（v1.6.2）——但它跑的是 `su -c iw ...`，**这台车没 su**，
+  修复按钮 hasRoot 短路 → 省电开关的真实状态在这台车上**从未被读到过一行**
+- GET 操作（iw get / iwconfig / iwpriv get_power）**免 root 就能读**，缺的只是观测层
+
+新增 `WifiPowerSave`（免 root 三视角采样，互为备份——这台 telechips 到底带哪套工具本身是未知数）：
+- `iw dev <iface> get power_save`（nl80211 主力）· `iwconfig <iface>`（WEXT，
+  解析 Power Management 行）· `iwpriv <iface> get_power`（用户线索命令；不支持就如实记
+  `unsupported`——这本身也是驱动栈情报）
+- 接口名解析 `iw dev`（免 root 可读）退回 wlan0；采样带 1.5s TTL 缓存（`cached()`）与
+  新鲜采样（`sampleOnce()`）两档
+- **诚实边界**（写进类注释与诊断判读）：iw/iwconfig 看到的是「驱动省电开关」；博通**固件内部**
+  自适应省电不在此视图内 → 所以观测靠「尖峰时刻采样 + 空闲轨迹采样」让时间相关性说话
+
+接入点：
+- `WifiRateProbe`：探测启动/结束各采一次；pingLoop 里**每个 RTT>200 尖峰时刻采一次**
+  （最多 5 次，缓存 1.5s 保证每次新鲜）→ 结论分级：尖峰时多为 on → ★省电嫌疑实锤方向
+  （附 adb 关法）；全 off → 驱动级省电排除（其余嫌疑上升）；读不出 → 如实按未知处理
+- `ScanCatcher` 60 秒数扫描：每 10s 顺带一条省电轨迹（空闲态 bcmdhd 动态 PS flapping 可见）
+- `BootDiagnostics`：新增「WiFi 省电状态 v1.6.33（免 root）」段（放在 root 门之前，
+  本车从此能看到数据）；判读说明一并写进段内
+
+**验证**：构建/静态门禁（见版本记录）；**实机待跑**——第一份带省电数据的日志包
+（一键攻坚/诊断快照/测 RTT 任一）就能告诉我们：这台车的 bcmdhd 到底带不带 iw/iwconfig/iwpriv、
+以及省电开关此刻是 on 还是 off。

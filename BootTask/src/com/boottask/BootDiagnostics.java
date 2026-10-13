@@ -242,6 +242,17 @@ public final class BootDiagnostics {
         section(writer, "系统开关 (蓝牙 / WiFi扫描 / 休眠 / 息屏)",
                 settingsSnapshot());
 
+        // ---- v1.6.33 免 root 省电观测（博通 bcmdhd「省电断流」线索）----
+        // 历史坑：v1.6.2 起的「GO 省电状态」段（下方 root 段）跑的是 su -c iw，
+        // 本车无 su → 那段从未产出过一行数据。GET 操作其实免权限，免 root 也能读。
+        section(writer, "WiFi 省电状态 v1.6.33 (iw/iwconfig/iwpriv, 免 root)",
+                WifiPowerSave.sampleOnce()
+                        + "\n判读: iw=on / wext=on → 驱动省电开着，射频按 DTIM beacon 唤醒，"
+                        + "首包 RTT 100~500ms 正撞亿连 200ms 阈值（博通「省电断流」经典毛病），"
+                        + "关法见 adb 清单#1;"
+                        + "\n      全 ?/no-iw/no-iwconfig → 三套工具都读不了，看下方 root 段或内核 sysfs;"
+                        + "\n      iwpriv=unsupported → 该驱动不提供此私有 ioctl，属正常（不是故障）");
+
         // ---- root 才能拿到的深度信息 ----
         if (!root) {
             section(writer, "wifi 深度诊断 (root)", "(no root, 跳过 dumpsys/logcat; 上面免 root 段仍有效)");

@@ -40,6 +40,7 @@ public class RateWatcher extends Service {
     private static volatile long sScans = 0;
 
     private volatile boolean mStop = false;
+    private long mLastSnapshotAt = 0;   // 断链快照冷却：同一链路故障不必每 10 秒刷屏
 
     public static boolean isRunning() {
         return sRunning;
@@ -222,6 +223,14 @@ public class RateWatcher extends Service {
 
     /** 断链现场快照：ip addr / 无线计数 / dev 计数 / 省电 / 扫描 —— 断链后不用人按按钮 */
     private void dumpDisconnect(String why) {
+        long now = System.currentTimeMillis();
+        if (now - mLastSnapshotAt < 60000L) {
+            // 同一链路故障不必每 10 秒刷屏：已经抓过现场，60 秒内只记一行摘要
+            logFile("★★★ 断链持续：" + why + "（快照 60s 内已抓，省略细节）");
+            sStatus = "★ 断链：" + why;
+            return;
+        }
+        mLastSnapshotAt = now;
         logFile("★★★ 断链时刻：" + why);
         sStatus = "★ 断链：" + why;
         String addr = AdvActions.run(new String[]{"ip", "-f", "inet", "addr"}, 6000L, 4096);
@@ -302,32 +311,60 @@ public class RateWatcher extends Service {
         }
     }
 
-    /** 找对端：ip neigh 里的 192.168.49.x（排除自己 .1） */
+    /**
+     * 找对端：先看默认网关（热点/直连通用），再回退到 ip neigh。
+     * 车机做 P2P GO 时网关就是手机（192.168.49.x，x!=1）；
+     * 手机做 AP 热点时网关是手机（192.168.43.1），必须允许 .1 作为对端。
+     */
     private String findPeer() {
+        // 1. 从默认路由取网关：wlan0/p2p0 活跃时最直接
+        String[] lines;
+        String route = AdvActions.run(new String[]{"ip", "route"}, 8000L, 4096);
+        if (route != null) {
+            lines = route.split("\n");
+            for (int i = 0; i < lines.length; i++) {
+                String t = lines[i].trim();
+                if (!t.startsWith("default")) {
+                    continue;
+                }
+                String[] parts = t.split(" +");
+                for (int k = 0; k < parts.length - 1; k++) {
+                    if ("via".equals(parts[k])) {
+                        String gw = parts[k + 1];
+                        if (isLikelyPeerIp(gw)) {
+                            return gw;
+                        }
+                    }
+                }
+            }
+        }
+
+        // 2. 回退：ip neigh 里找 192.168.49.x/43.x 的可用对端
         String out = AdvActions.run(new String[]{"ip", "neigh"}, 8000L, 8192);
         if (out == null) {
             return null;
         }
-        String[] lines = out.split("\n");
+        lines = out.split("\n");
         for (int i = 0; i < lines.length; i++) {
             String t = lines[i].trim();
-            if (!t.startsWith("192.168.49.")) {
-                continue;
-            }
             int sp = t.indexOf(' ');
             if (sp <= 0) {
                 continue;
             }
             String ip = t.substring(0, sp);
-            if (ip.endsWith(".1")) {
+            if (!isLikelyPeerIp(ip) || t.indexOf("FAILED") >= 0) {
                 continue;
             }
-            if (t.indexOf("FAILED") >= 0) {
-                continue;
-            }
+            // P2P GO 自己通常是 .1，热点时 .1 是对端，所以这里不排除 .1，
+            // 但同一台车机自己的 192.168.49.1/43.1 也会出现在 ip neigh 吗？
+            // 自己不会出现在 ip neigh 里，因此安全。
             return ip;
         }
         return null;
+    }
+
+    private static boolean isLikelyPeerIp(String ip) {
+        return ip != null && (ip.startsWith("192.168.49.") || ip.startsWith("192.168.43."));
     }
 
     // ------------------------------------------------------------------ 日志（与另三探针同契约：files/log/ + /sdcard/boottask/）

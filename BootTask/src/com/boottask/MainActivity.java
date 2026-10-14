@@ -48,6 +48,9 @@ public class MainActivity extends Activity implements View.OnClickListener {
     private Button lrfFixButton;
     private Button lrfUndoButton;
     private TextView lrfStatusText;
+    /** v1.6.35 低速蹲守：常开自动记录尖峰/断链现场（修「出问题再点按钮已晚了」） */
+    private Button rwToggleButton;
+    private TextView rwStatusText;
     private TextView rootText;
 
     @Override
@@ -128,8 +131,15 @@ public class MainActivity extends Activity implements View.OnClickListener {
         lrfUndoButton.setOnClickListener(this);
         addIn(cMain, lrfUndoButton);
 
+        // v1.6.35 低速蹲守：断链/尖峰发生在一瞬间，事后点按钮抓不到现场 —— 改为常开自动记录
+        rwToggleButton = new Button(this);
+        rwToggleButton.setOnClickListener(this);
+        addIn(cMain, rwToggleButton);
+
         wrStatusText = statusLine();
         addIn(cMain, wrStatusText, dip(8));
+        rwStatusText = statusLine();
+        addIn(cMain, rwStatusText);
         scStatusText = statusLine();
         addIn(cMain, scStatusText);
         lrfStatusText = statusLine();
@@ -179,6 +189,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
         updateWrUi();
         updateScUi();
         updateLrfUi();
+        updateRwUi();   // v1.6.35
         // 每次回前台都重新探测 root —— 用户在 SuperSU 里授权后回来能自动变绿
         // （探测在后台线程，不卡 UI；节流在 probeRootAsync 里）
         probeRootAsync();
@@ -247,6 +258,25 @@ public class MainActivity extends Activity implements View.OnClickListener {
         }
     }
 
+    /** v1.6.35：低速蹲守状态（开关持久化 + 服务实时状态） */
+    private void updateRwUi() {
+        try {
+            boolean on = RateWatcher.enabled(this);
+            boolean run = RateWatcher.isRunning();
+            rwToggleButton.setText(on
+                    ? (run ? "低速蹲守：运行中（点此关闭）" : "低速蹲守：已开启（正在启动…）")
+                    : "低速蹲守：已关闭（点此开启，推荐常开）");
+            rwStatusText.setText("蹲守状态：" + RateWatcher.status()
+                    + "\n（每 2s 自动 ping 对端；尖峰/弹窗/断链时刻自动留档，"
+                    + "断链瞬间抓现场快照，事后扫码取日志即可回溯）");
+            if (on && !run) {
+                // 服务没跑（刚装上 / 被系统回收）就拉起；onStartCommand 幂等，重复 start 无害
+                startService(new Intent(this, RateWatcher.class));
+            }
+        } catch (Throwable ignored) {
+        }
+    }
+
     /** v1.6.25：低速断连一站式修复状态 */
     private void updateLrfUi() {
         try {
@@ -295,6 +325,27 @@ public class MainActivity extends Activity implements View.OnClickListener {
                     updateWrUi();
                 }
             }, (dur + 20L) * 1000L);
+            return;
+        }
+        if (v == rwToggleButton) {
+            // v1.6.35：开关持久化；开=拉起服务，关=停服务。默认开（安装即守护）
+            boolean on = !RateWatcher.enabled(this);
+            RateWatcher.setEnabled(this, on);
+            if (on) {
+                startService(new Intent(this, RateWatcher.class));
+                Toast.makeText(this, "低速蹲守已开启：行车中自动记录尖峰与断链现场",
+                        Toast.LENGTH_LONG).show();
+            } else {
+                stopService(new Intent(this, RateWatcher.class));
+                Toast.makeText(this, "低速蹲守已关闭（排查期建议保持开启）",
+                        Toast.LENGTH_SHORT).show();
+            }
+            updateRwUi();
+            rwStatusText.postDelayed(new Runnable() {
+                public void run() {
+                    updateRwUi();
+                }
+            }, 1200L);
             return;
         }
         if (v == scCountButton) {

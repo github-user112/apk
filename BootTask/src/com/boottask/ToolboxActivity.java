@@ -241,8 +241,21 @@ public class ToolboxActivity extends Activity implements View.OnClickListener,
             items.add("尚无规则：请点击“添加规则”并保存");
         }
         countText.setText("共 " + count + " 条");
+        // v1.6.35：android.R.layout.simple_list_item_1 是**白字**布局（为深色列表设计），
+        // 放在白卡片上等于隐形 —— 用户实锤「颜色太浅看不清楚」。改 ArrayAdapter 覆写
+        // getView 把字改成深色（背景保持列表默认透明，露出卡片白底）。
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(
-                this, android.R.layout.simple_list_item_1, items);
+                this, android.R.layout.simple_list_item_1, items) {
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                View v = super.getView(position, convertView, parent);
+                if (v instanceof TextView) {
+                    ((TextView) v).setTextColor(Color.rgb(34, 34, 34));
+                    ((TextView) v).setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+                }
+                return v;
+            }
+        };
         lv.setAdapter(adapter);
         lv.setOnItemClickListener(this);
     }

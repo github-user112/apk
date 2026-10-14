@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.boottask" android:versionCode="41" android:versionName="1.6.34">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.boottask" android:versionCode="42" android:versionName="1.6.35">
     <uses-sdk android:minSdkVersion="8" android:targetSdkVersion="19"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
@@ -52,6 +52,8 @@
         <service android:name=".HotspotProbe"/>
         <service android:name=".WifiRateProbe"/>
         <service android:name=".ScanCatcher"/>
+        <!-- v1.6.35 低速蹲守：常开自动记录 RTT 尖峰/断链现场 -->
+        <service android:name=".RateWatcher"/>
         <service android:name=".AudioMonitor"/>
     </application>
 </manifest>

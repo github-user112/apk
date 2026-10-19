@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.media.AudioManager;
 
 import java.lang.reflect.Method;
@@ -37,6 +38,7 @@ public final class MuteGuard {
     private static final String PREFS = "muteguard";
     private static final String KEY_TEMP = "tempActive";
     private static final String KEY_VOLS = "savedVols";
+    private static final String KEY_HEALED = "heal_v1636";       // 旧版残留 0 音量的一次性升级自愈
 
     /** 重施时间点（相对 mute() 的毫秒，绝对值） */
     private static final long[] TICKS = {
@@ -155,6 +157,77 @@ public final class MuteGuard {
         restore(app);
     }
 
+    public static boolean cancelIfMuted(Context context) {
+        final Context app = app(context);
+        if (app == null) {
+            return false;
+        }
+        boolean was;
+        synchronized (LOCK) {
+            was = sMuted;
+        }
+        if (was) {
+            unmute(app);
+            return true;
+        }
+        if (allZeroAndSilent(app)) {
+            restore(app);
+            return true;
+        }
+        return false;
+    }
+
+    public static void autoRestore(Context context) {
+        try {
+            final Context app = app(context);
+            if (app == null) {
+                return;
+            }
+            if (sMuted) {
+                return;
+            }
+            SharedPreferences sp = app.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+            if (!sp.getBoolean(KEY_HEALED, false)) {
+                sp.edit().putBoolean(KEY_HEALED, true).commit();
+                if (allZeroAndSilent(app) && !hasMuteAction(app)
+                        && AudioMonitor.blockTargets(app).length == 0) {
+                    restore(app);
+                }
+            }
+        } catch (Throwable t) {
+            BootDiagnostics.log(context, "MuteGuard autoRestore failed: " + t);
+        }
+    }
+
+    private static boolean allZeroAndSilent(Context context) {
+        AudioManager am = audio(context);
+        if (am == null) {
+            return false;
+        }
+        try {
+            if (am.getRingerMode() != AudioManager.RINGER_MODE_SILENT) {
+                return false;
+            }
+            for (int i = 0; i < STREAMS.length; i++) {
+                if (am.getStreamVolume(STREAMS[i]) != 0) {
+                    return false;
+                }
+            }
+            return true;
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
+    private static boolean hasMuteAction(Context context) {
+        try {
+            String raw = context.getSharedPreferences("rules", 0).getString("list", "[]");
+            return raw != null && raw.contains("\"action\":\"mute\"");
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
     public static boolean isMuted() {
         return sMuted;
     }
@@ -197,16 +270,13 @@ public final class MuteGuard {
                     saved[i] = am.getStreamVolume(STREAMS[i]);
                 }
                 sSavedVolumes = saved;
+                if (sSavedRinger < 0) {
+                    sSavedRinger = am.getRingerMode();
+                }
             }
             am.setRingerMode(AudioManager.RINGER_MODE_SILENT);
             for (int i = 0; i < STREAMS.length; i++) {
                 am.setStreamVolume(STREAMS[i], 0, 0);
-                if (firstPass && !sStreamMuteApplied) {
-                    am.setStreamMute(STREAMS[i], true);
-                }
-            }
-            if (firstPass && !sStreamMuteApplied) {
-                sStreamMuteApplied = true;
             }
             sLastSelfChange = System.currentTimeMillis();
             BootDiagnostics.log(context, "MuteGuard applied [" + label + "] " + describe(context));
@@ -221,10 +291,8 @@ public final class MuteGuard {
             return;
         }
         try {
-            am.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
-            for (int i = 0; i < STREAMS.length; i++) {
-                am.setStreamMute(STREAMS[i], false);
-            }
+            am.setRingerMode((sSavedRinger >= 0 && sSavedRinger <= 3)
+                    ? sSavedRinger : AudioManager.RINGER_MODE_NORMAL);
             sStreamMuteApplied = false;
             // v1.6.36：优先内存快照；跨重启后从 prefs 读（boot-heal 场景）
             int[] saved = sSavedVolumes;
@@ -243,6 +311,7 @@ public final class MuteGuard {
             sLastSelfChange = System.currentTimeMillis();
             // v1.6.36：恢复后清快照与持久化标志，下次 mute 重新采样
             sSavedVolumes = null;
+            sSavedRinger = -1;
             clearTempPrefs(context);
             BootDiagnostics.log(context, "MuteGuard restored " + describe(context));
         } catch (Throwable t) {

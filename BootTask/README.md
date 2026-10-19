@@ -5,7 +5,7 @@
 - 包名：`com.boottask`
 - 最低版本：Android 2.2（API 8，实际按 4.4 编写）—— 兼容一切 4.x，**包括 4.4.2 车机**
 - 构建方式：v1.6 起全部 Java/D8 + apktool 合并进单 dex（`build.sh` Linux / `build_win.sh` Windows，v1.6.26 起类清单已改 glob）
-- 成品：`dist/BootTask_v1.6.33.apk`（**纯 v1 签名**，SHA-1 摘要，无 v2/v3 签名块）；历史版本同目录留档
+- 成品：`dist/BootTask_v1.6.36.apk`（**纯 v1 签名**，SHA-1 摘要，无 v2/v3 签名块）；历史版本同目录留档
 - **v1.6.28 起文件功能已整体拆出**：文件管理 / 扫码传 APK / 卸载软件 → 独立 App
   「车机文件管家」（`FileMgr/`，包名 `com.carfiles`），本 App 不再含文件功能
 
@@ -848,3 +848,43 @@ DTIM beacon 唤醒，首包时延 100~500ms，正好撞亿连「速率低」的 
 **验证**：构建/静态门禁（见版本记录）；**实机待跑**——第一份带省电数据的日志包
 （一键攻坚/诊断快照/测 RTT 任一）就能告诉我们：这台车的 bcmdhd 到底带不带 iw/iwconfig/iwpriv、
 以及省电开关此刻是 on 还是 off。
+
+### v1.6.34 / v1.6.35（补记：变更记录在 git commit f486fade / 0a386b8f）
+- v1.6.34：状态页瘦身（排查主线留守，其余分三页收纳）
+- v1.6.35：低速蹲守常开自动记录 + 修规则列表白字隐形
+
+### v1.6.36（vc43，2026-10-19）：修「取消静音后仍开机静音」的根因
+
+**症状**：用户关掉开机静音后，车机每次开机仍静音，且任务列表里没有任何静音任务。
+
+**根因（代码+2026-10-17 日志双实锤）**：
+1. `MuteGuard` watchdog 到期只 `releaseWatchdog` **不恢复音量** → 六流音量 0 与
+   `ringer=SILENT` 被 Android AudioService **持久化**到 Settings.System，
+   此后每次开机系统直接恢复 0 → 表现为「开机静音且无任务」。全程日志无一条
+   `MuteGuard restored`（10:46:17 起 6 流全 0；10:55:22 到期 final 后再无恢复）。
+2. AudioMonitor 兜底每 5 秒重复 `mute()`，且 `applyAll(firstPass)` 每次都重读
+   "静音前音量"（此时已 0）覆盖 `sSavedVolumes` → 就算 restore 也没有真原值。
+3. 「取消开机静音」按钮只删规则 + 清拦截目标，从不恢复音量。
+
+**修复**（src/com/boottask）：
+- `MuteGuard`：① 静音前音量/铃声持久化进 `prefs(muteguard)`，重复 `mute()` 幂等
+  （只有新会话才记录原值）② watchdog 到期 → unlock + `restore()` ③ `restore()` 支持
+  从 prefs 取回原值（存值为 0 时逐流兜底 max/2）④ 新增 `autoRestore()` 开机自愈
+  （leftover 标记 + 有 mute 规则时不插手；另含**一次性升级自愈**：装本版后首次开机
+  「六流全 0 且铃声静音且无 mute 规则/拦截目标」即判定旧版残留，恢复到各流 50%）⑤
+  新增 `cancelIfMuted()`（不改 `unmute()V` 签名——smali ExecService 按旧签名引用）。
+- `BootAudioReceiver`：BOOT_COMPLETED 时先 `MuteGuard.autoRestore`。
+- `ToolboxActivity`：「取消开机静音」顺带 `cancelIfMuted()`，恢复时提示。
+- `BootDiagnostics`：快照头部新增 `audio=` 行（各流音量/铃声/静音标志）——
+  「开机静音」类问题从此一眼可查。
+
+**验证**：构建通过（javac+D8+apktool 3.0.3）；条目级对比 10=10 无缺漏；
+dex 字符串 `muteguard/saved_volumes/MuteGuard autoRestore/upgrade heal/saved pre-mute/MuteGuard restored/cancelIfMuted/audio=` 全命中；
+versionCode 43 / versionName 1.6.36，成品 `dist/BootTask_v1.6.36.apk` 已提交。
+**装车验收点**：装本版后重启一次——
+① boottask.log 应出现 `MuteGuard upgrade heal`（六流恢复到各流 50%，铃声恢复 NORMAL）；
+② 若之前手动静音过：`MuteGuard autoRestore: ...`；
+③ 诊断快照头部多一行 `audio= music=7/15 ... ringer=2 ...`；
+④ 若 FM/收音机开机仍无声而媒体有声 → 那是 MCU/功放层的事，不在 Android 静音范围。
+
+

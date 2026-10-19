@@ -82,6 +82,9 @@ public final class BootDiagnostics {
             writer.write("enabled=" + applicationInfo.enabled + "\n");
             writer.write("filesDir=" + context.getFilesDir().getAbsolutePath() + "\n");
             writer.write("rules=" + context.getSharedPreferences("rules", 0).getString("list", "[]") + "\n");
+            // v1.6.36：快照头部记录音频状态（各流音量/铃声模式/静音标志），
+            // 「开机静音」类问题从此一眼可查，不用空猜
+            writer.write("audio=" + MuteGuard.describe(context) + "\n");
             writer.write("\n--- env recon (v1.4) ---\n");
             writer.flush();
             envRecon(writer);

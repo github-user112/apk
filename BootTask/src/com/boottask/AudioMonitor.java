@@ -282,10 +282,12 @@ public class AudioMonitor extends Service {
         boolean root = FileOps.suOk();
         String how = killTargets(ctx, alive, root);
         // 连续 2 轮（~10 秒）还在 → 杀不掉（多半是免 root 杀不了前台），自动静音兜底保证无声
+        // v1.6.36：改用 muteTemp（临时静音）—— 看门狗到期自动恢复音量。旧版 mute() 到期不恢复，
+        // 音量 0 被系统持久化，清空拦截目标后车机永久静音（10-17 车机日志实锤的残留状态根因）。
         if (sAliveTicks >= 2) {
             try {
-                MuteGuard.mute(ctx);
-                how += " + MuteGuard 静音兜底（已挂看门狗）";
+                MuteGuard.muteTemp(ctx);
+                how += " + MuteGuard 临时静音（3 分钟后自动恢复）";
             } catch (Throwable t) {
                 how += "；静音兜底失败 " + t;
             }
@@ -470,13 +472,16 @@ public class AudioMonitor extends Service {
     /**
      * 能不能作为「关软件」候选：像应用包名（含 '.'、无 '/'）+ 不是自己 + 不在 denylist。
      * denylist 只挡关了会出事的：SystemUI（关了状态栏没了）与桌面（关了没桌面）。
+     * v1.6.36 新增 android.process.media：系统常驻进程容器，免 root 永远杀不掉 ——
+     * 选了它静音兜底必触发且永不解除（10-17 车机事故根因），直接不提供。
      */
     private static boolean isPickable(String base) {
         if (base == null || base.length() < 4 || base.indexOf('.') < 0
                 || base.indexOf('/') >= 0) {
             return false;
         }
-        if (base.equals("com.boottask") || base.equals("com.android.systemui")) {
+        if (base.equals("com.boottask") || base.equals("com.android.systemui")
+                || base.equals("android.process.media")) {
             return false;
         }
         return !base.startsWith("com.android.launcher");

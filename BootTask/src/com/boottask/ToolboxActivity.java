@@ -458,13 +458,24 @@ public class ToolboxActivity extends Activity implements View.OnClickListener,
             boolean hadTgt = AudioMonitor.blockTarget(this) != null;
             int n = removeMuteRules();
             AudioMonitor.clearBlockTarget(this);
+            // v1.6.36：顺带解除当前静音并恢复音量 —— 旧版静音兜底把音量清 0 后被系统持久化，
+            // 只删规则/清目标没人把音量调回，车机表现为「每次开机都静音」（残留状态）。
+            try {
+                MuteGuard.unmute(this);
+            } catch (Throwable ignored) {
+            }
+            try {
+                MediaMute.unmuteAll(this);
+            } catch (Throwable ignored) {
+            }
             refresh();
             updateAmUi();
             Toast.makeText(this,
-                    (n > 0 || hadTgt)
+                    ((n > 0 || hadTgt)
                             ? ("已取消：开机静音规则 " + n + " 条"
-                               + (hadTgt ? "，关软件拦截已清空" : ""))
-                            : "当前没有静音规则，也没有关软件拦截",
+                               + (hadTgt ? "，关软件拦截已清空" : "") + "，")
+                            : "当前没有静音规则，也没有关软件拦截")
+                    + "；已解除静音并恢复音量",
                     Toast.LENGTH_LONG).show();
             return;
         }

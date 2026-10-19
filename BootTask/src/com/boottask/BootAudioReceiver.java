@@ -17,6 +17,8 @@ public class BootAudioReceiver extends BroadcastReceiver {
         try {
             if (Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())) {
                 context.startService(new Intent(context, AudioMonitor.class));
+                // v1.6.36：上次「临时静音」没到期就被重启打断 → 开机后自动恢复音量
+                MuteGuard.restoreIfPending(context);
             }
         } catch (Throwable ignored) {
         }

@@ -8,7 +8,8 @@
 1.45 当前交付版（首页角标 QrBadge+BtGuard 6s 快判死+修 1.25 hasUsableLocalIp 极性+超时 120s）｜1.44 扫码入组（车机实机全流程跑通）｜1.43 修兜底拆组（keepP2pGroup 闸门）｜1.40 无蓝牙直连兜底 NoBtFallback｜更早：1.30 NetWatch+SessionLog、1.29 BtGuard 重写、1.26 修 VerifyError（1.25/1.41 作废勿回退）。关键类映射见 AGENTS.md。
 
 ## 外部包「CarLife4.0车机端个人修改版2.0」（2026-10-20 实测，别与本仓库 mod1.x 混）
-`C:/PJGG/apk/CarLife4.0车机端个人修改版2.0.apk` = vc16 / 4.0.M2.0 / minSdk16，**签名与 mod1.x 不同、互不能覆盖**。功能比 mod1.x 多了「无感连接提示」弹窗（读本机 WLAN 直连名引导改名）、设置页更全。★**P0：USB 未授权时系统授权框每秒重弹（实测 25s 弹 25 次、点确定也挡不住）**，根因 `a/a/a/a/m/n/c/c.smali` 扫描循环 `sleep(1000)` 后无条件 `startActivity(UsbPermissionProxyActivity)`，只靠 `hasPermission()` 事后收敛——**没带 mod1.12 的 USB 免授权修复**。详见 `.workbuddy/memory/2026-10-20.md`。
+`C:/PJGG/apk/CarLife4.0车机端个人修改版2.0.apk` = vc16 / 4.0.M2.0 / minSdk16，**签名与 mod1.x 不同、互不能覆盖**。功能比 mod1.x 多了「无感连接提示」弹窗（读本机 WLAN 直连名引导改名）、设置页更全。★**P0：USB 未授权时系统授权框每秒重弹（实测 25s 弹 25 次、点确定也挡不住）**，根因 `a/a/a/a/m/n/c/c.smali` 扫描循环 `sleep(1000)` 后无条件 `startActivity(UsbPermissionProxyActivity)`，只靠 `hasPermission()` 事后收敛——**没带 mod1.12 的 USB 免授权修复**。
+★**在车机上 WLAN 直连/无感都用不了**：全包 `BluetoothAdapter.enable()` 调用数 = **0**，只检查不主动开，文案「无感: 车机蓝牙未开启，无法与手机握手…等蓝牙打开会自动重试」；且「P2P 组已建立，但蓝牙握手通道不存在，无法请求IP」→ 组建好了也只能干等蓝牙。车机上只能走 USB / 热点。BLE 改名（反射 `setName`）做得细，但前提是蓝牙能开。详见 `.workbuddy/memory/2026-10-20.md`。
 
 ## BootTask（com.boottask）现状：v1.6.36（vc43）
 功能分区：P2pGuard 直连保护、WifiRateProbe 复刻亿连判定、HotspotProbe 热点蹲守、AudioMonitor 启动/声音监控+静音强杀、LowRateFix 一键修复、P2pDialogClicker 直连免打扰（无障碍自动点弹窗）。

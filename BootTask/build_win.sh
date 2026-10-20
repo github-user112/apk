@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # BootTask Windows (Git Bash) 构建脚本 —— 与 build.sh 等价的跨平台版
-# 差异：JDK 用仓库自带 jdk-17；zip 不可用改用 python3 zipfile；工具 jar 拷到 ASCII 临时目录
+# 差异：JDK 用仓库自带 jdk-17；zip 不可用改用 python zipfile；工具 jar 拷到 ASCII 临时目录
 set -euo pipefail
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd -W 2>/dev/null || pwd)
@@ -50,7 +50,7 @@ cp "$R8_JAR" "$WORK/tools/r8.jar"
 ANDROID_JAR="$WORK/tools/android.jar"
 R8_JAR="$WORK/tools/r8.jar"
 
-python3 - "$PROJECT" "$WORK/project" <<'PY'
+python - "$PROJECT" "$WORK/project" <<'PY'
 import shutil
 import sys
 
@@ -77,7 +77,7 @@ rm -f \
     "$WORK/java/com/baidu/carlifevehicle/logxfer/NoBtFallback.java" \
     "$WORK/java/com/baidu/carlifevehicle/logxfer/SessionLog.java"
 
-python3 - "$WORK/java" <<'PY'
+python - "$WORK/java" <<'PY'
 import pathlib
 import sys
 
@@ -113,7 +113,7 @@ CLASS_FILES=("$WORK"/classes/com/boottask/*.class "$WORK"/classes/com/baidu/carl
 java -jar "$APKTOOL_JAR" b "$WORK/project" -o "$WORK/base.apk"
 
 # classes.dex（apktool 产物）+ Java 类合并重编
-python3 - "$WORK" <<'PY'
+python - "$WORK" <<'PY'
 import sys
 import zipfile
 
@@ -131,7 +131,7 @@ java -cp "$R8_JAR" com.android.tools.r8.D8 \
 cp "$WORK/base.apk" "$WORK/unsigned.apk"
 cp "$LOGXFER/assets/logxfer/logxfer.html" "$WORK/assets/logxfer/logxfer.html"
 cp "$LOGXFER/assets/logxfer/qrcode.js" "$WORK/assets/logxfer/qrcode.js"
-python3 - "$WORK/assets/logxfer/logxfer.html" <<'PY'
+python - "$WORK/assets/logxfer/logxfer.html" <<'PY'
 import pathlib
 import sys
 
@@ -143,7 +143,7 @@ if text.count(old) != 1:
 path.write_text(text.replace(old, "开机任务 日志下载"), encoding="utf-8")
 PY
 
-python3 - "$WORK" <<'PY'
+python - "$WORK" <<'PY'
 import sys
 import zipfile
 
@@ -182,7 +182,7 @@ java -jar "$APKSIGNER_JAR" sign \
     "$WORK/unsigned.apk"
 
 java -jar "$APKSIGNER_JAR" verify --min-sdk-version 8 "$OUT"
-python3 - "$OUT" <<'PY'
+python - "$OUT" <<'PY'
 import sys
 import zipfile
 

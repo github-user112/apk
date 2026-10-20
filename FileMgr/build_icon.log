@@ -1,0 +1,25 @@
+app_name -> è½¦æœºæ–‡ä»¶ç®¡å®¶ 1.0.0
+¾¯¸æ: [options] Î´Óë -source 8 Ò»ÆğÉèÖÃÒıµ¼ÀàÂ·¾¶
+×¢: C:\Users\gpj\AppData\Local\Temp\opencode\filemgr-build.aS7MKn\java\com\carfiles\MainActivity.javaÊ¹ÓÃ»ò¸²¸ÇÁËÒÑ¹ıÊ±µÄ API¡£
+×¢: ÓĞ¹ØÏêÏ¸ĞÅÏ¢, ÇëÊ¹ÓÃ -Xlint:deprecation ÖØĞÂ±àÒë¡£
+×¢: C:\Users\gpj\AppData\Local\Temp\opencode\filemgr-build.aS7MKn\java\com\baidu\carlifevehicle\logxfer\LogHttpServer.javaÊ¹ÓÃÁËÎ´¾­¼ì²é»ò²»°²È«µÄ²Ù×÷¡£
+×¢: ÓĞ¹ØÏêÏ¸ĞÅÏ¢, ÇëÊ¹ÓÃ -Xlint:unchecked ÖØĞÂ±àÒë¡£
+1 ¸ö¾¯¸æ
+Warning in C:\Users\gpj\AppData\Local\Temp\opencode\filemgr-build.aS7MKn\classes\com\carfiles\AppListActivity$6.class:
+Type `java.lang.Runnable` was not found, it is required for default or static interface methods desugaring of `com.carfiles.AppListActivity$6`
+Warning in C:\Users\gpj\AppData\Local\Temp\opencode\filemgr-build.aS7MKn\classes\com\carfiles\AppListActivity$3.class:
+Type `java.util.Comparator` was not found, it is required for default or static interface methods desugaring of `com.carfiles.AppListActivity$3`
+I: Using Apktool 3.0.3 on CarFiles.apk with 8 threads
+I: Smaling smali folder into classes.dex...
+W: Unknown file type, ignoring: C:\Users\gpj\AppData\Local\Temp\opencode\filemgr-build.aS7MKn\project\smali\.gitkeep
+I: Building resources with aapt2...
+I: Building apk file...
+I: Importing assets...
+I: Built apk into: C:\Users\gpj\AppData\Local\Temp\opencode\filemgr-build.aS7MKn\base.apk
+(base æœ‰ dexï¼Œèµ°ä¸¤æ®µåˆå¹¶)
+Warning in C:\Users\gpj\AppData\Local\Temp\opencode\filemgr-build.aS7MKn\classes\com\carfiles\AppListActivity$2.class:
+Type `java.lang.Runnable` was not found, it is required for default or static interface methods desugaring of `com.carfiles.AppListActivity$2`
+Warning in C:\Users\gpj\AppData\Local\Temp\opencode\filemgr-build.aS7MKn\classes\com\carfiles\AppListActivity$3.class:
+Type `java.util.Comparator` was not found, it is required for default or static interface methods desugaring of `com.carfiles.AppListActivity$3`
+entries=13
+C:/PJGG/apk/FileMgr/dist/CarFiles_v1.0.0.apk

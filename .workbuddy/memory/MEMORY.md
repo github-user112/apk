@@ -11,6 +11,11 @@
 `C:/PJGG/apk/CarLife4.0车机端个人修改版2.0.apk` = vc16 / 4.0.M2.0 / minSdk16，**签名与 mod1.x 不同、互不能覆盖**。功能比 mod1.x 多了「无感连接提示」弹窗（读本机 WLAN 直连名引导改名）、设置页更全。★**P0：USB 未授权时系统授权框每秒重弹（实测 25s 弹 25 次、点确定也挡不住）**，根因 `a/a/a/a/m/n/c/c.smali` 扫描循环 `sleep(1000)` 后无条件 `startActivity(UsbPermissionProxyActivity)`，只靠 `hasPermission()` 事后收敛——**没带 mod1.12 的 USB 免授权修复**。
 ★**在车机上 WLAN 直连/无感都用不了**：全包 `BluetoothAdapter.enable()` 调用数 = **0**，只检查不主动开，文案「无感: 车机蓝牙未开启，无法与手机握手…等蓝牙打开会自动重试」；且「P2P 组已建立，但蓝牙握手通道不存在，无法请求IP」→ 组建好了也只能干等蓝牙。车机上只能走 USB / 热点。BLE 改名（反射 `setName`）做得细，但前提是蓝牙能开。详见 `.workbuddy/memory/2026-10-20.md`。
 
+## 外部包「CarMore 0.2.7」（2026-10-23 实测，DiPlay+CarLife 合体）
+`com.unifiedconnect.app` vc22 / minSdk19 / targetSdk28 = **DiPlay(CarPlay) + CarLife 车机端合体**，双进程 `:carlife`+`:diplay`。内嵌官方 CarLife 4.0，**自带 USB 免授权无障碍服务**（比上面那个 2.0 强）。
+★**CarLife 直连被官方硬编码关闭（改配置无效）**：`zb1.J()` 读 prefs `HOME_CONNECT_MODE==2` → 强制 `N(0)` 回退有线（日志 `direct entry disabled, coerce home mode DIRECT -> WIRED`）；`u00.b(I)` 里类型 2 → cond_2 把目标主机设成 **127.0.0.1**/7200；日志 `【直连连接】直连入口已关闭（DIRECT_MODE_ENABLED=false），拒绝启动`。UI 连接方式只有「有线/热点」。实测 sed 改 prefs 启动后被自动改回 0。**蓝牙 enable() 在 CarLife 侧 0 处**（只有 DiPlay 侧有）→ 你车机「蓝牙起不来」堵点它一点没解。**对你车机无直连价值，别折腾。**
+★但**按键映射页很强**：厂商按键广播协议 + 逐键映射 + 按键检测 + 导入导出 + 恢复默认；另有权限页、USB设备扫描、热点加入修复（需 root/SDK≥33）。详见 `.workbuddy/memory/2026-10-23.md`。
+
 ## BootTask（com.boottask）现状：v1.6.36（vc43）
 功能分区：P2pGuard 直连保护、WifiRateProbe 复刻亿连判定、HotspotProbe 热点蹲守、AudioMonitor 启动/声音监控+静音强杀、LowRateFix 一键修复、P2pDialogClicker 直连免打扰（无障碍自动点弹窗）。
 ★ v1.6.29 审查定论（2026-10-12，MuMu 4.4.4 framework.jar 实锤）：**P2pAutoAccept 整体无效**——广播 `android.net.wifi.p2p.connection.WIFI_P2P_CONNECTION_REQUESTED` 在 4.4 framework 不存在（4.4 只有 6 个标准 p2p action）；隐藏方法 `requestGroupInfo(WifiP2pDevice)` 不存在（只有 Channel+Listener 签名）；EXTRA 真实 key 是 "wifiP2pDevice"。接收器永不触发，seen 恒 0。别信 AI 博客编造的 API。

@@ -135,6 +135,19 @@ public final class NoRootFixes {
         return done(ctx, rep);
     }
 
+    /**
+     * 重启车机（v1.6.39，例外：这个要 root，不免）。成功时系统直接重启、来不及返回；
+     * 返回说明 su 不存在或 reboot 被拒，调用方提示用户手动重启。
+     */
+    public static void rebootDevice(Context ctx) {
+        try {
+            String out = AdvActions.run(new String[]{"su", "-c", "reboot"}, 8000L, 2048);
+            BootDiagnostics.log(ctx, "NoRootFixes: reboot 返回（多半是没 root）" + out);
+        } catch (Throwable t) {
+            BootDiagnostics.log(ctx, "NoRootFixes: reboot fail " + t);
+        }
+    }
+
     /** 打开亿连自身界面（它内部有设置/画质入口的话，可以人肉改，等效于免 root 的 L1） */
     public static String openYilian(Context ctx) {
         try {

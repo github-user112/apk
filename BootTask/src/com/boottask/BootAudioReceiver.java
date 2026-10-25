@@ -19,6 +19,7 @@ public class BootAudioReceiver extends BroadcastReceiver {
         try {
             if (Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())) {
                 MuteGuard.autoRestore(context);   // v1.6.36 开机残留静音自愈
+                MediaMute.maybeBootClaim(context); // v1.6.38 开机播静音抢占音源（时长可配）
                 context.startService(new Intent(context, AudioMonitor.class));
                 // v1.6.36：上次「临时静音」没到期就被重启打断 → 开机后自动恢复音量
                 MuteGuard.restoreIfPending(context);

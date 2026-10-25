@@ -110,10 +110,7 @@ public class ExcludedActivity extends Activity implements View.OnClickListener {
         hsStatusText.setTextColor(Color.rgb(90, 90, 90));
         addIn(cHs, hsStatusText);
 
-        android.widget.ScrollView scroller = new android.widget.ScrollView(this);
-        scroller.setFillViewport(true);
-        scroller.addView(root);
-        setContentView(scroller);
+        setContentView(root);   // v1.6.39：内容一屏放得下，去滚动
 
         BootDiagnostics.log(this, "ExcludedActivity opened");
         updateGuardUi();

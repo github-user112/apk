@@ -88,10 +88,7 @@ public class RootToolsActivity extends Activity implements View.OnClickListener 
         adbSheetButton.setOnClickListener(this);
         addIn(cAdb, adbSheetButton);
 
-        android.widget.ScrollView scroller = new android.widget.ScrollView(this);
-        scroller.setFillViewport(true);
-        scroller.addView(root);
-        setContentView(scroller);
+        setContentView(root);   // v1.6.39：内容一屏放得下，去滚动
 
         BootDiagnostics.log(this, "RootToolsActivity opened");
     }

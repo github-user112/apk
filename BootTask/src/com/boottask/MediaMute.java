@@ -10,7 +10,7 @@ import android.media.AudioTrack;
  * 旧 mute 动作只 setRingerMode(SILENT)——那是铃声模式，只管来电/通知流；
  * 车机多媒体自启播 FM 走 STREAM_MUSIC（媒体流），完全不受影响（用户车机实测无效）。
  *
- * muteAll  = 铃声 SILENT + 媒体流音量归零 + 媒体流 mute（4.4 的 setStreamMute 仍有效）
+ * muteAll  = 铃声 SILENT + 媒体流音量归零（v1.6.38 起不再 setStreamMute，见 MuteGuard 注释）
  * unmuteAll= 媒体流 unmute + 铃声 NORMAL（音量不自动恢复，用户手动调回或重开机）
  *
  * FM 若走独立 MCU/收音芯片直连功放，Android 侧仍管不住——这种情况下诊断快照的
@@ -25,9 +25,10 @@ public final class MediaMute {
         try {
             AudioManager am = (AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE);
             am.setRingerMode(AudioManager.RINGER_MODE_SILENT);
+            // v1.6.38：删掉 setStreamMute——按调用方 Binder 计数，与 MuteGuard 的
+            // Application 上下文计数对不上会把媒体流永久卡 mute（车机 2026-10-24 实锤）。
             am.setStreamVolume(AudioManager.STREAM_MUSIC, 0, 0);
-            am.setStreamMute(AudioManager.STREAM_MUSIC, true);
-            BootDiagnostics.log(ctx, "MediaMute: ringer SILENT + music vol=0 + music muted");
+            BootDiagnostics.log(ctx, "MediaMute: ringer SILENT + music vol=0");
         } catch (Throwable t) {
             BootDiagnostics.log(ctx, "MediaMute fail: " + t);
         }
@@ -87,11 +88,113 @@ public final class MediaMute {
     public static void unmuteAll(Context ctx) {
         try {
             AudioManager am = (AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE);
-            am.setStreamMute(AudioManager.STREAM_MUSIC, false);
             am.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
-            BootDiagnostics.log(ctx, "MediaMute: music unmuted + ringer NORMAL");
+            // v1.6.38：音量别再留在 0（旧版「音量不自动恢复」+ 卡死 mute = 用户以为静音坏了）。
+            // 是 0 就回到一半；不是 0 说明用户自己调过，不动。
+            if (am.getStreamVolume(AudioManager.STREAM_MUSIC) == 0) {
+                am.setStreamVolume(AudioManager.STREAM_MUSIC,
+                        am.getStreamMaxVolume(AudioManager.STREAM_MUSIC) / 2, 0);
+            }
+            BootDiagnostics.log(ctx, "MediaMute: ringer NORMAL + music vol="
+                    + am.getStreamVolume(AudioManager.STREAM_MUSIC));
         } catch (Throwable t) {
             BootDiagnostics.log(ctx, "MediaMute fail: " + t);
+        }
+    }
+
+    // ---------------------------------------------------------------- 开机抢占音源（v1.6.38）
+
+    private static final String PREF = "boot_claim";
+    private static final String K_ON = "on";
+    private static final String K_SECS = "secs";
+    private static final int DEFAULT_SECS = 30;
+
+    public static boolean isBootClaimEnabled(Context ctx) {
+        try {
+            return ctx.getSharedPreferences(PREF, Context.MODE_PRIVATE).getBoolean(K_ON, false);
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
+    public static int bootClaimSecs(Context ctx) {
+        try {
+            return ctx.getSharedPreferences(PREF, Context.MODE_PRIVATE).getInt(K_SECS, DEFAULT_SECS);
+        } catch (Throwable t) {
+            return DEFAULT_SECS;
+        }
+    }
+
+    public static void setBootClaim(Context ctx, boolean on, int secs) {
+        try {
+            ctx.getSharedPreferences(PREF, Context.MODE_PRIVATE).edit()
+                    .putBoolean(K_ON, on).putInt(K_SECS, secs).commit();
+        } catch (Throwable t) {
+        }
+        BootDiagnostics.log(ctx, "MediaMute: bootClaim -> "
+                + (on ? ("on " + secs + "s") : "off"));
+    }
+
+    /**
+     * 开机入口（BootAudioReceiver 调）：开关开着就后台线程播 N 秒静音抢占音源。
+     * 已在放歌（如 QuickBoot 恢复时亿连正在播）就跳过——别把正在响的流顶掉。
+     * ⚠ 结束后<b>不</b>调 muteAll：目的是抢音源交给亿连，静音会把媒体音量清零。
+     */
+    public static void maybeBootClaim(final Context ctx) {
+        try {
+            if (!isBootClaimEnabled(ctx)) {
+                return;
+            }
+            final Context app = ctx.getApplicationContext() == null
+                    ? ctx : ctx.getApplicationContext();
+            final int secs = bootClaimSecs(app);
+            Thread t = new Thread(new Runnable() {
+                public void run() {
+                    AudioManager am = (AudioManager) app.getSystemService(Context.AUDIO_SERVICE);
+                    if (am != null && am.isMusicActive()) {
+                        BootDiagnostics.log(app, "MediaMute: boot claim 跳过（已有音乐在播）");
+                        return;
+                    }
+                    playSilence(app, secs);
+                }
+            }, "BootClaim");
+            t.setDaemon(true);
+            t.start();
+        } catch (Throwable t) {
+            BootDiagnostics.log(ctx, "MediaMute maybeBootClaim fail: " + t);
+        }
+    }
+
+    /** 在调用线程播 seconds 秒静音（STREAM_MUSIC，write 阻塞自带节奏）。 */
+    public static void playSilence(Context ctx, int seconds) {
+        AudioTrack track = null;
+        try {
+            int rate = 44100;
+            int ch = AudioFormat.CHANNEL_OUT_MONO;
+            int enc = AudioFormat.ENCODING_PCM_16BIT;
+            int minBuf = AudioTrack.getMinBufferSize(rate, ch, enc);
+            if (minBuf <= 0) {
+                minBuf = rate;
+            }
+            byte[] silence = new byte[Math.max(minBuf, 4096)];   // 全 0 = 静音
+            track = new AudioTrack(AudioManager.STREAM_MUSIC, rate, ch, enc,
+                    minBuf, AudioTrack.MODE_STREAM);
+            track.play();
+            long deadline = System.currentTimeMillis() + seconds * 1000L;
+            while (System.currentTimeMillis() < deadline) {
+                track.write(silence, 0, silence.length);
+            }
+            track.stop();
+            BootDiagnostics.log(ctx, "MediaMute: silence played " + seconds + "s（音源已抢到 Android）");
+        } catch (Throwable t) {
+            BootDiagnostics.log(ctx, "MediaMute playSilence fail: " + t);
+        } finally {
+            if (track != null) {
+                try {
+                    track.release();
+                } catch (Throwable ignored) {
+                }
+            }
         }
     }
 }

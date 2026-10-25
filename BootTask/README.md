@@ -853,6 +853,58 @@ DTIM beacon 唤醒，首包时延 100~500ms，正好撞亿连「速率低」的 
 - v1.6.34：状态页瘦身（排查主线留守，其余分三页收纳）
 - v1.6.35：低速蹲守常开自动记录 + 修规则列表白字隐形
 
+### v1.6.39（vc46，2026-10-25）：UI 页签化——车机屏整页不滚动 + 首页=常用
+
+用户需求：「页面有点乱；都用点击操作，不要滚动」「首页放规则和声音，再加重启亿连/重启车机，其他的放第二页」。
+
+**最终结构**：
+
+| 页 | 页签 | 内容 |
+|---|---|---|
+| **首页 MainActivity** | **常用** | 横屏双列：左=我的规则（列表+添加）；右=声音（立即静音/抢占 0.6s/开机抢占/选自启软件关掉/取消开机静音）+ 设备（**重启亿连 / 重启车机**） |
+| | **排查** | WLAN 速率低主线：测 RTT/数扫描/扫描静默/低速修复/蹲守（按钮两列四行 + 状态行限高 maxLines=5） |
+| | **更多** | root 状态、下载日志、二级页入口（工具箱/Root 工具/已排除） |
+| **工具箱 ToolboxActivity** | 监控 / 按键 / 工具 | 声音监控与拦截、P2P 弹窗自动允许 + 亿连按键转发、免 root 工具 |
+| Root 工具 / 已排除 | — | 不变（仅去掉整页 ScrollView；内容本就一屏） |
+
+- 机制：面板 onCreate 全预建，切页签只换 `setVisibility`；页签 52dp 大按钮、选中蓝底白字；
+  规则/声音逻辑（RuleStore 反射、开机静音选择器）从 ToolboxActivity 原样迁入 MainActivity，
+  Toolbox 只留监控/按键/工具三个页签；MainActivity 补了 `card(..., right)` 4 参重载。
+- 新增 `NoRootFixes.rebootDevice`：`su -c reboot`，无 root 时如实提示手动重启（本车无 su）。
+- 顺手修掉 MainActivity `wrStatusText` 双重赋值的孤儿 bug。
+
+**验证**：构建 0 error；条目 10=10；dex 含 `buildDailyPanel/重启车机/rebootDevice/
+callStore/showBootKillPicker/switchTab` + 1.6.38 全部功能串（MediaKeyRelay/maybeBootClaim/
+net.easyconn.music.next/开机抢占音源）；签名验证通过；versionCode 46 / 1.6.39。
+**实机待验**：首页三页签 + 工具箱三页签各点一遍——不滚动、按钮全能点、规则列表正常、
+重启亿连生效、重启车机在无 root 时报提示。
+
+### v1.6.38（vc45，2026-10-25）：亿连上一首/下一首 + 静音计数陷阱根治
+
+**两个问题一次解决**（车机 2026-10-24 日志 + 按键检测照片双实锤）：
+
+**① 亿连按键切音源**：车机面板/方控的「上一首/下一首」= 标准 `KEYCODE_MEDIA_PREVIOUS(88)`/`KEYCODE_MEDIA_NEXT(87)`，以**窗口键事件直发前台应用、不发 MEDIA_BUTTON 广播**。亿连不消费 → 落到德赛多媒体应用 → 音源被切成「多媒体」。
+
+- **发现**：亿连 `BroadcastManager` 动态注册了 `net.easyconn.music.next/.previous/.play/.pause/.play.pause`，收到即 `ECSDK.sendBtnEvent(EC_BTN_MUSIC_NEXT…)` 发手机（**不查音乐焦点**）。V7.0.1 反编译全程核实，**亿连零改动**。
+- **实现**：`P2pDialogClicker`（你车机上已在跑的无障碍服务）加 `flagRequestFilterKeyEvents`（API 18+，4.4.2 支持）→ `onKeyEvent` 在前台窗口之前拿到键 → 仅当前台是 `net.easyconn` 时拦下 87/88（返回 true 消费，德赛多媒体收不到 → 不切音源）+ 发对应 `net.easyconn.music.*` 广播 → 手机切歌。前台不是亿连时一律放行，不影响本地多媒体按键。
+- 新类 `MediaKeyRelay`：开关（默认开）+ 计数 + 状态行；前台包名由窗口事件实时跟踪。开关 UI 进「直连免打扰」卡片。
+- **上车前零成本验证**（车机有 adb/终端时）：连着亿连执行 `am broadcast -a net.easyconn.music.next`，手机切歌 = 链路实锤。仓库反编译的是 V7.0.1，车机装的版本若更新需这条命令复核。
+- ⚠ 不确定性：若 MCU 在硬件层也自己切音源（不经过 Android），拦键拦不住切源——装好按一下就知道，还切 = MCU 行为，Android 侧无解。
+
+**② 静音被「搞坏」**：根因是 `setStreamMute` 按**调用方 AudioManager 实例的 Binder 计数**——`MediaMute`（Activity 上下文）与 `MuteGuard`（Application 上下文）计数对不上，连按 4 次「立即静音/抢占音源」后媒体流**永久卡 mute**（`isStreamMute=true`），且 mute 状态下 `setStreamVolume` 写不进去 → 0 音量被持久化 → 每次开机都是 0。日志实锤：10:19 取消恢复 `music=7/15 mute=false`（正常），16:05:57 起连按 4 次后所有恢复行都是 `music=0/15 mute=true`。
+
+- **修复**：`MuteGuard.applyAll` / `MediaMute.muteAll` 彻底删掉 `setStreamMute`——音量归 0 就是静音，没有计数器就没有坑。`MediaMute.unmuteAll` 顺带把 music 音量从 0 恢复到 max/2（旧版「音量不自动恢复」+ 卡死 mute = 用户以为静音坏了）。
+- **现机救回**（不装新版也行）：重启车机清掉 AudioService 计数 → 按音量+ 拧回媒体音量。
+
+**③ 开机抢占音源（时长可自定义）**：开机后先播 N 秒静音把音源从收音机/多媒体抢到 Android，等亿连连上由亿连接管出声——治「开机收音机巨响」。
+
+- `MediaMute.playSilence(ctx, secs)`：MODE_STREAM 循环写全 0 PCM（write 阻塞自带节奏）；`maybeBootClaim(ctx)` 由 BootAudioReceiver 在 BOOT_COMPLETED 调用，后台线程执行。
+- ⚠ 结束后**不**调 muteAll（目的是抢音源交给亿连，静音会把媒体音量清零，反而堵住亿连出声）。
+- ⚠ QuickBoot 护栏：开机广播也可能在「挂起恢复」时触发，`isMusicActive()` 为真（亿连正在播）就跳过，不把正在响的流顶掉。
+- 开关在「开机静音」卡片：「开机抢占音源」按钮 → 弹窗选 关闭 / 15 / 30 / 60 / 120 / 180 秒，默认关。prefs `boot_claim`。
+
+**验证**：构建 0 error（`onKeyEvent` 不能写 `@Override`——stub android.jar 的 AccessibilityService 没声明它，运行时 4.4 真类有，按签名分派）；条目级 10=10；dex 含 `MediaKeyRelay/noteForeground/handleKey/net.easyconn.music.next/.previous/上一首/下一首` 与 `maybeBootClaim/playSilence/isMusicActive/开机抢占音源/boot_claim` 全 OK；解包成品 `accessibilityFlags="...|flagRequestFilterKeyEvents"` 实锤进包；versionCode 45 / 1.6.38。**实机待验**（验收点：亿连前台按 87/88 → 手机切歌且音源不切；静音→取消→media 音量回到 7/15；开机后日志 `silence played Ns（音源已抢到 Android）` 且收音机不响）。
+
 ### v1.6.36（vc43，2026-10-19）：修「取消静音后仍开机静音」的根因
 
 **症状**：用户关掉开机静音后，车机每次开机仍静音，且任务列表里没有任何静音任务。

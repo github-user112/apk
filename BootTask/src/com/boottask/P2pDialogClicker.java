@@ -1,6 +1,7 @@
 package com.boottask;
 
 import android.accessibilityservice.AccessibilityService;
+import android.view.KeyEvent;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 
@@ -70,6 +71,17 @@ public class P2pDialogClicker extends AccessibilityService {
     protected void onServiceConnected() {
         super.onServiceConnected();
         sInst = this;
+        // v1.6.38：运行时再开一次按键过滤（XML 里也已声明 flagRequestFilterKeyEvents，
+        // 双保险——个别 ROM 只认运行时设置）。0x20 = FLAG_REQUEST_FILTER_KEY_EVENTS（API 18）。
+        try {
+            android.accessibilityservice.AccessibilityServiceInfo info = getServiceInfo();
+            if (info != null) {
+                info.flags |= 0x20;
+                setServiceInfo(info);
+            }
+        } catch (Throwable t) {
+            BootDiagnostics.log(this, "P2pDialogClicker: 开按键过滤失败 " + t);
+        }
         P2pAutoAccept.noteServiceState(this, true);
     }
 
@@ -85,10 +97,15 @@ public class P2pDialogClicker extends AccessibilityService {
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
         try {
+            int type = event == null ? 0 : event.getEventType();
+            // v1.6.38：前台包名跟踪独立于直连免打扰开关——按键转发（MediaKeyRelay）要用
+            if (type == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
+                MediaKeyRelay.noteForeground(
+                        event == null ? null : String.valueOf(event.getPackageName()));
+            }
             if (!P2pAutoAccept.isEnabled(this)) {
                 return;
             }
-            int type = event == null ? 0 : event.getEventType();
             // 只扫「窗口出现」和「窗口内容变化」两类，其余不碰（省电 + 防误点）
             if (type != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
                     && type != AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
@@ -99,6 +116,21 @@ public class P2pDialogClicker extends AccessibilityService {
         } catch (Throwable t) {
             // 回调里抛异常 = 系统可能直接禁用无障碍服务，必须吞掉
             BootDiagnostics.log(this, "P2pDialogClicker: handler crashed " + t);
+        }
+    }
+
+    /**
+     * v1.6.38：按键过滤（要 flagRequestFilterKeyEvents，XML + onServiceConnected 双开）。
+     * 上一首/下一首（88/87）在亿连前台时拦下并转发「net.easyconn.music.*」广播，
+     * 其余键一律放行。逻辑全在 MediaKeyRelay，这里只管吞异常（回调抛异常会被系统禁用服务）。
+     * ⚠ 不能写 @Override：构建用 stub android.jar 的 AccessibilityService 没声明
+     * onKeyEvent，写了编译报错；运行时 4.4 真类有这方法，按签名正常分派。
+     */
+    public boolean onKeyEvent(KeyEvent event) {
+        try {
+            return MediaKeyRelay.handleKey(this, event);
+        } catch (Throwable t) {
+            return false;
         }
     }
 

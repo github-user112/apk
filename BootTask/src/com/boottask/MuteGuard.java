@@ -20,7 +20,8 @@ import java.lang.reflect.Method;
  * v1.5 三种一起治：全流静音 + 延时重施 + 音量变化看门狗 + 状态回读（判定到底是哪一种）。
  *
  * 坑：AudioService.setStreamMute 是「按调用方 Binder 计数」的，重复 mute(true) N 次
- * 需要 unmute(false) N 次才能解除。故 setStreamMute 一次会话只做一次，重施只清音量。
+ * 需要 unmute(false) N 次才能解除，跨 AudioManager 实例（Activity vs Application
+ * 上下文）计数对不上会**永久卡死**（2026-10-24 车机实锤）→ v1.6.38 起彻底不用它。
  *
  * v1.6.36 修复「开机永久静音」事故（10-17 车机日志实锤）：
  * 旧版看门狗到期只注销广播、不恢复音量 —— setStreamVolume(0) 会被系统持久化，
@@ -63,7 +64,6 @@ public final class MuteGuard {
     private static volatile boolean sTemp = false;
     private static volatile long sDeadline = 0L;
     private static volatile long sLastSelfChange = 0L;
-    private static volatile boolean sStreamMuteApplied = false;
     private static volatile int[] sSavedVolumes = null;
     private static volatile BroadcastReceiver sReceiver = null;
     private static volatile Thread sGuard = null;
@@ -78,10 +78,15 @@ public final class MuteGuard {
         if (app == null) {
             return;
         }
+        boolean fresh;
         synchronized (LOCK) {
+            fresh = !sMuted;
             sMuted = true;
             sTemp = false;
             sDeadline = System.currentTimeMillis() + WATCHDOG_WINDOW_MS;
+        }
+        if (fresh) {
+            captureSaved(app);
         }
         applyAll(app, true, "mute t=0");
         registerWatchdog(app);
@@ -255,7 +260,7 @@ public final class MuteGuard {
 
     // ---------------------------------------------------------------- 内部实现
 
-    private static void applyAll(Context context, boolean firstPass, String label) {
+    private static void applyAll(Context context, String label) {
         AudioManager am = audio(context);
         if (am == null) {
             BootDiagnostics.log(context, "MuteGuard: no AudioManager");
@@ -275,6 +280,10 @@ public final class MuteGuard {
                 }
             }
             am.setRingerMode(AudioManager.RINGER_MODE_SILENT);
+            // v1.6.38：彻底不再用 setStreamMute——它是按调用方 AudioManager 实例的 Binder
+            // 计数的，MediaMute（Activity 上下文）与 MuteGuard（Application 上下文）
+            // 计数对不上就永久卡死（2026-10-24 车机日志实锤：mute=true 后
+            // setStreamVolume 也写不进去，0 音量被持久化）。音量归 0 就是静音。
             for (int i = 0; i < STREAMS.length; i++) {
                 am.setStreamVolume(STREAMS[i], 0, 0);
             }
@@ -291,14 +300,35 @@ public final class MuteGuard {
             return;
         }
         try {
-            am.setRingerMode((sSavedRinger >= 0 && sSavedRinger <= 3)
-                    ? sSavedRinger : AudioManager.RINGER_MODE_NORMAL);
-            sStreamMuteApplied = false;
-            // v1.6.36：优先内存快照；跨重启后从 prefs 读（boot-heal 场景）
             int[] saved = sSavedVolumes;
+            int ringer = sSavedRinger;
             if (saved == null) {
                 saved = readSavedVols(context);
             }
+            if (saved == null || ringer < 0) {
+                SharedPreferences sp = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+                String csv = sp.getString(KEY_SAVED, null);
+                if (csv != null) {
+                    String[] parts = csv.split(",");
+                    if (parts.length == STREAMS.length) {
+                        int[] p = new int[STREAMS.length];
+                        for (int i = 0; i < STREAMS.length; i++) {
+                            try {
+                                p[i] = Integer.parseInt(parts[i].trim());
+                            } catch (NumberFormatException e) {
+                                p[i] = 0;
+                            }
+                        }
+                        saved = p;
+                    }
+                }
+                if (ringer < 0) {
+                    ringer = sp.getInt(KEY_RINGER, -1);
+                }
+            }
+            am.setRingerMode((ringer >= 0 && ringer <= 3)
+                    ? ringer : AudioManager.RINGER_MODE_NORMAL);
+            sStreamMuteApplied = false;
             for (int i = 0; i < STREAMS.length; i++) {
                 int target;
                 if (saved != null && saved[i] > 0) {
@@ -313,6 +343,7 @@ public final class MuteGuard {
             sSavedVolumes = null;
             sSavedRinger = -1;
             clearTempPrefs(context);
+            clearPersisted(context);
             BootDiagnostics.log(context, "MuteGuard restored " + describe(context));
         } catch (Throwable t) {
             BootDiagnostics.log(context, "MuteGuard restore failed: " + t);
@@ -335,7 +366,7 @@ public final class MuteGuard {
                     if (!sMuted) {
                         return;
                     }
-                    applyAll(app, false, "t+" + (TICKS[i] / 1000L) + "s");
+                    applyAll(app, "t+" + (TICKS[i] / 1000L) + "s");
                 }
                 long tail = sDeadline - System.currentTimeMillis();
                 if (tail > 0) {
@@ -394,7 +425,7 @@ public final class MuteGuard {
                         public void run() {
                             sleepQuietly(250L);
                             if (sMuted) {
-                                applyAll(target, false, "watchdog");
+                                applyAll(target, "watchdog");
                             }
                         }
                     }, "MuteGuard-hit").start();
@@ -450,6 +481,17 @@ public final class MuteGuard {
             app.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
                     .putBoolean(KEY_TEMP, true)
                     .putString(KEY_VOLS, b.toString())
+                    .commit();
+        } catch (Throwable ignored) {
+        }
+    }
+
+    private static void clearPersisted(Context context) {
+        try {
+            context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+                    .remove(KEY_SAVED)
+                    .remove(KEY_RINGER)
+                    .putBoolean(KEY_LEFTOVER, false)
                     .commit();
         } catch (Throwable ignored) {
         }

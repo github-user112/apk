@@ -44,6 +44,7 @@ public class ToolboxActivity extends Activity implements View.OnClickListener {
     private Button p2pAaSettingsButton;
     private Button p2pAaTestButton;
     private Button keyfToggleButton;
+    private Button keywButton;
     private TextView keyfText;
     private TextView p2pAaText;
 
@@ -200,13 +201,18 @@ public class ToolboxActivity extends Activity implements View.OnClickListener {
         gridRow(cAa, p2pAaSettingsButton, p2pAaTestButton);
 
         p2pAaOnButton = new Button(this);
-        p2pAaOnButton.setText("开启：自动点掉 P2P 配对弹窗");
+        p2pAaOnButton.setText("开启：自动点掉配对弹窗");
         p2pAaOnButton.setOnClickListener(this);
 
         p2pAaOffButton = new Button(this);
         p2pAaOffButton.setText("关闭（恢复手动点允许）");
         p2pAaOffButton.setOnClickListener(this);
         gridRow(cAa, p2pAaOnButton, p2pAaOffButton);
+
+        // v1.6.40：触发关键字自定义——窗口里出现任一词 + 有同意类按钮 → 才自动点
+        keywButton = new Button(this);
+        keywButton.setOnClickListener(this);
+        addIn(cAa, keywButton);
 
         // v1.6.38：亿连上一首/下一首（无障碍拦 87/88 → 发 net.easyconn.music.* 广播）
         keyfToggleButton = new Button(this);
@@ -267,7 +273,7 @@ public class ToolboxActivity extends Activity implements View.OnClickListener {
         }
     }
 
-    /** v1.6.29 直连免打扰分区状态 + v1.6.38 按键转发状态 */
+    /** v1.6.29 直连免打扰分区状态 + v1.6.38 按键转发状态 + v1.6.40 关键字 */
     private void updateAaUi() {
         try {
             p2pAaOnButton.setEnabled(!P2pAutoAccept.isEnabled(this));
@@ -277,6 +283,10 @@ public class ToolboxActivity extends Activity implements View.OnClickListener {
                     ? "关闭：亿连前台时 上一首/下一首 转发给手机"
                     : "开启：亿连前台时 上一首/下一首 转发给手机");
             keyfText.setText(MediaKeyRelay.statusText(this));
+            String[] keys = P2pAutoAccept.sceneKeys(this);
+            keywButton.setText(keys != null
+                    ? "触发关键字：自定义（" + keys.length + " 个词）——点我改"
+                    : "触发关键字：内置 P2P 词表（点我自定义）");
         } catch (Throwable ignored) {
         }
     }
@@ -383,6 +393,41 @@ public class ToolboxActivity extends Activity implements View.OnClickListener {
         if (v == p2pAaTestButton) {
             Toast.makeText(this, P2pDialogClicker.selfTest(), Toast.LENGTH_LONG).show();
             updateAaUi();
+            return;
+        }
+        if (v == keywButton) {
+            // v1.6.40：自定义触发关键字（逗号/换行分隔；留空保存 = 恢复内置词表）
+            final android.widget.EditText et = new android.widget.EditText(this);
+            et.setSingleLine(false);
+            et.setMinLines(3);
+            et.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+            et.setText(P2pAutoAccept.sceneKeysRaw(this));
+            et.setHint("逗号或换行分隔，如：配对,连接\n留空保存 = 恢复内置 P2P 词表");
+            new AlertDialog.Builder(this)
+                    .setTitle("触发关键字：窗口含任一词 + 有「确定/允许」类按钮 → 自动点")
+                    .setView(et)
+                    .setPositiveButton("保存", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface d, int w) {
+                            P2pAutoAccept.setSceneKeys(ToolboxActivity.this,
+                                    et.getText() == null ? "" : et.getText().toString());
+                            String[] keys = P2pAutoAccept.sceneKeys(ToolboxActivity.this);
+                            Toast.makeText(ToolboxActivity.this,
+                                    keys != null ? "已保存 " + keys.length + " 个关键字"
+                                            : "已恢复内置 P2P 词表",
+                                    Toast.LENGTH_LONG).show();
+                            updateAaUi();
+                        }
+                    })
+                    .setNeutralButton("恢复默认词表", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface d, int w) {
+                            P2pAutoAccept.setSceneKeys(ToolboxActivity.this, "");
+                            Toast.makeText(ToolboxActivity.this, "已恢复内置 P2P 词表",
+                                    Toast.LENGTH_SHORT).show();
+                            updateAaUi();
+                        }
+                    })
+                    .setNegativeButton("取消", null)
+                    .show();
             return;
         }
         if (v == keyfToggleButton) {

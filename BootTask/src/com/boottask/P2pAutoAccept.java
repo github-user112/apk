@@ -35,6 +35,7 @@ public final class P2pAutoAccept {
     private static final String K_MISS = "miss";
     private static final String K_LAST = "last";
     private static final String K_LAST_AT = "lastAt";
+    private static final String K_KEYS = "scene_keys";   // v1.6.40 自定义触发关键字
 
     private P2pAutoAccept() {
     }
@@ -55,6 +56,55 @@ public final class P2pAutoAccept {
         } catch (Throwable t) {
         }
         BootDiagnostics.log(c, "P2pAutoAccept: switch -> " + (on ? "on" : "off"));
+    }
+
+    // ------------------------------------------------------------------ 自定义触发关键字（v1.6.40）
+
+    /**
+     * 自定义触发关键字（逗号/分号/换行分隔，全角半角都行）。
+     * 返回 null = 用户没设过，用 P2pDialogClicker 的内置 P2P 词表；
+     * 返回非空数组 = 只认这些词（窗口含任一词 + 有同意类按钮 → 才点）。
+     */
+    public static String[] sceneKeys(Context c) {
+        try {
+            String raw = prefs(c).getString(K_KEYS, "");
+            if (raw == null) {
+                return null;
+            }
+            raw = raw.trim();
+            if (raw.length() == 0) {
+                return null;
+            }
+            String[] parts = raw.split("[,，;；\\n]+");
+            java.util.ArrayList<String> out = new java.util.ArrayList<String>();
+            for (int i = 0; i < parts.length; i++) {
+                String s = parts[i].trim();
+                if (s.length() > 0) {
+                    out.add(s);
+                }
+            }
+            return out.isEmpty() ? null : out.toArray(new String[0]);
+        } catch (Throwable t) {
+            return null;
+        }
+    }
+
+    public static String sceneKeysRaw(Context c) {
+        try {
+            String s = prefs(c).getString(K_KEYS, "");
+            return s == null ? "" : s;
+        } catch (Throwable t) {
+            return "";
+        }
+    }
+
+    public static void setSceneKeys(Context c, String raw) {
+        try {
+            prefs(c).edit().putString(K_KEYS, raw == null ? "" : raw.trim()).commit();
+        } catch (Throwable t) {
+        }
+        BootDiagnostics.log(c, "P2pAutoAccept: sceneKeys -> "
+                + (sceneKeys(c) == null ? "（内置词表）" : raw));
     }
 
     // ------------------------------------------------------------------ 计数（由无障碍服务上报）

@@ -197,6 +197,9 @@ public class P2pDialogClicker extends AccessibilityService {
         if (winPkg != null && winPkg.equals(getPackageName())) {
             return;
         }
+        // v1.6.40：触发关键字可自定义——设了就只认自定义词，没设走内置 P2P 词表
+        String[] custom = P2pAutoAccept.sceneKeys(this);
+        String[] gate = custom != null ? custom : SCENE_TEXT;
         boolean scene = false;
         AccessibilityNodeInfo accept = null;
         String rejectSeen = null;
@@ -213,7 +216,7 @@ public class P2pDialogClicker extends AccessibilityService {
             if (rejectSeen == null && containsAny(text, REJECT_TEXT)) {
                 rejectSeen = brief(text);
             }
-            if (!scene && containsAny(text, SCENE_TEXT)) {
+            if (!scene && containsAny(text, gate)) {
                 scene = true;
             }
             if (accept == null && n.isClickable() && n.isEnabled() && isAcceptText(text)) {
@@ -223,7 +226,8 @@ public class P2pDialogClicker extends AccessibilityService {
         if (!scene) {
             // v1.6.31：这里在 TYPE_WINDOW_CONTENT_CHANGED 下高频触发，不节流会把
             // 诊断日志整个刷掉。同原因 10 秒只记一条。
-            logThrottled("P2pDialogClicker: 窗口无 P2P 特征，跳过（pkg=" + winPkg + "）");
+            logThrottled("P2pDialogClicker: 窗口无触发关键字，跳过（pkg=" + winPkg
+                    + (custom != null ? "，自定义词表" : "") + "）");
             return;
         }
         if (accept == null) {

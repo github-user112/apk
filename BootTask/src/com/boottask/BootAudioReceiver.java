@@ -5,32 +5,23 @@ import android.content.Context;
 import android.content.Intent;
 
 /**
- * v1.6.21 开机自动拉起声音监控：记录开机后谁被拉起、谁抢音频焦点，
- * 若用户设过拦截目标则顺带拦截（免 root killBackgroundProcesses）。
- * 独立 Java Receiver，不动 smali 版 BootReceiver。
+ * v1.6.44 开机自启：只拉起「亿连进程监视」（YilianWatcher，只读 /proc）。
  *
- * v1.6.35 顺带：开机恢复「低速蹲守」（持久化开关默认开；关了就不再拉起）。
- * v1.6.36 顺带：MuteGuard 开机自愈——上次静音没 restore 就断电/重启、或旧版
- * 到期不恢复留下的 0 音量，开机时救回来（有 mute 规则时不插手）。
+ * 历史：这里曾顺带 AudioMonitor（启动与声音监控）、MuteGuard（开机静音自愈）、
+ * RateWatcher（低速蹲守）—— 用户明确「车机声音不要动、低速蹲守也不要」，三个
+ * 连服务带源码全删了。剩下的 YilianWatcher 不改任何系统状态。
+ * MediaMute（开机抢占音源）也不走这里：它有自己的开关，默认关，开才生效。
+ *
+ * 独立 Java Receiver，不动 smali 版 BootReceiver。
  */
 public class BootAudioReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
-        try {
-            if (Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())) {
-                MuteGuard.autoRestore(context);   // v1.6.36 开机残留静音自愈
-                MediaMute.maybeBootClaim(context); // v1.6.38 开机播静音抢占音源（时长可配）
-                context.startService(new Intent(context, AudioMonitor.class));
-                // v1.6.36：上次「临时静音」没到期就被重启打断 → 开机后自动恢复音量
-                MuteGuard.restoreIfPending(context);
-            }
-        } catch (Throwable ignored) {
+        if (!Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())) {
+            return;
         }
         try {
-            if (Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())
-                    && RateWatcher.enabled(context)) {
-                context.startService(new Intent(context, RateWatcher.class));
-            }
+            context.startService(new Intent(context, YilianWatcher.class));
         } catch (Throwable ignored) {
         }
     }

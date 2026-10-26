@@ -24,8 +24,9 @@ import android.widget.Toast;
 
 /**
  * v1.6.41 首页单页化（用户拍板的功能减法）：
- *  - 排查页（RTT/扫描/低速修复）删掉——亿连断连排查已闭环，现场数据由 RateWatcher
- *    常开蹲守自动落盘，要发日志用「下载日志」；
+ *  - 排查页（RTT/扫描/低速修复）删掉；v1.6.44 起 AudioMonitor / MuteGuard /
+ *    RateWatcher 三个也全删（用户：车机声音不要动、低速蹲守也不要），
+ *    只留 YilianWatcher 常开记录亿连进程出现/消失 + CPU/内存，要发日志用「下载日志」；
  *  - 声音模块只留「开机抢占音源」；
  *  - 更多页 / 工具模块 / Root 工具 / 已排除页 全删；
  *  - 保留：我的规则 + 开机抢占音源 + 重启亿连 + 下载日志 + 按键与弹窗入口。
@@ -155,6 +156,12 @@ public class MainActivity extends Activity implements View.OnClickListener,
         BootDiagnostics.log(this, "MainActivity opened");
         // ExecService 是 smali 类，javac 不可见 → setClassName 字符串形式
         startService(new Intent().setClassName(getPackageName(), getPackageName() + ".ExecService"));
+        // 开机广播被 OEM 自启动管理静默禁用（BootReceiver 落 disabledComponents）时，
+        // 用户打开 App 也能把亿连进程监视拉起来
+        try {
+            startService(new Intent(this, YilianWatcher.class));
+        } catch (Throwable ignored) {
+        }
     }
 
     @Override

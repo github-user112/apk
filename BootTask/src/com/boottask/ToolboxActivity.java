@@ -19,8 +19,7 @@ import android.widget.Toast;
 
 /**
  * v1.6.42：功能减法——监控页签也删了，本页只剩「按键与弹窗」（弹窗自动允许 +
- * 亿连上一首/下一首转发），页签栏一并去掉。AudioMonitor 服务保留（开机自启，
- * 仍写 audio_monitor.txt 进日志包）。
+ * 亿连上一首/下一首转发），页签栏一并去掉。v1.6.44 起 AudioMonitor 服务也删了。
  *
  * 编译期约束：stub android.jar 无 org.json；smali 类对 javac 不可见。
  */

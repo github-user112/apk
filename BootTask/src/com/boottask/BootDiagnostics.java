@@ -84,7 +84,7 @@ public final class BootDiagnostics {
             writer.write("rules=" + context.getSharedPreferences("rules", 0).getString("list", "[]") + "\n");
             // v1.6.36：快照头部记录音频状态（各流音量/铃声模式/静音标志），
             // 「开机静音」类问题从此一眼可查，不用空猜
-            writer.write("audio=" + MuteGuard.describe(context) + "\n");
+            writer.write("audio=" + audioState(context) + "\n");
             // v1.6.41：功能开关与运行状态（新版功能的状态一眼可查，不用猜配置）
             section(writer, "功能开关与运行状态 (v1.6.41)", featureStates(context));
             writer.write("\n--- env recon (v1.4) ---\n");
@@ -146,19 +146,43 @@ public final class BootDiagnostics {
             sb.append("【弹窗自动允许】读取失败 ").append(t).append('\n');
         }
         try {
-            sb.append("【低速蹲守】开关=").append(RateWatcher.enabled(context))
-                    .append(" 运行=").append(RateWatcher.isRunning())
-                    .append(" 状态=").append(RateWatcher.status()).append('\n');
+            sb.append("【亿连进程监视】运行=").append(YilianWatcher.isRunning())
+                    .append(" 状态=").append(YilianWatcher.status()).append('\n');
         } catch (Throwable t) {
-            sb.append("【低速蹲守】读取失败 ").append(t).append('\n');
+            sb.append("【亿连进程监视】读取失败 ").append(t).append('\n');
         }
+        return sb.toString();
+    }
+
+    /**
+     * 只读的音频快照（各流当前/最大音量 + 铃声模式）。「开机静音」类问题一眼可查。
+     * MuteGuard 已删，这里留一份独立实现 —— 只读不改，不会动车机声音。
+     */
+    private static String audioState(Context context) {
+        android.media.AudioManager am = (android.media.AudioManager)
+                context.getSystemService(Context.AUDIO_SERVICE);
+        if (am == null) {
+            return "audio=unavailable";
+        }
+        int[] streams = new int[]{android.media.AudioManager.STREAM_VOICE_CALL,
+                android.media.AudioManager.STREAM_SYSTEM,
+                android.media.AudioManager.STREAM_RING,
+                android.media.AudioManager.STREAM_MUSIC,
+                android.media.AudioManager.STREAM_ALARM,
+                android.media.AudioManager.STREAM_NOTIFICATION};
+        String[] names = new String[]{"voice", "system", "ring", "music", "alarm", "notify"};
+        StringBuilder sb = new StringBuilder();
         try {
-            sb.append("【声音监控】运行=").append(AudioMonitor.isRunning())
-                    .append(" 拦截目标=")
-                    .append(java.util.Arrays.toString(AudioMonitor.blockTargets(context)))
-                    .append(" 最近动作=").append(AudioMonitor.lastAction()).append('\n');
+            for (int i = 0; i < streams.length; i++) {
+                if (i > 0) {
+                    sb.append(' ');
+                }
+                sb.append(names[i]).append('=').append(am.getStreamVolume(streams[i]))
+                        .append('/').append(am.getStreamMaxVolume(streams[i]));
+            }
+            sb.append(" ringer=").append(am.getRingerMode());
         } catch (Throwable t) {
-            sb.append("【声音监控】读取失败 ").append(t).append('\n');
+            sb.append(" (读取失败: ").append(t).append(')');
         }
         return sb.toString();
     }

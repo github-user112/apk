@@ -2,7 +2,6 @@ package com.boottask;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
@@ -14,14 +13,14 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 /**
- * v1.6.41：本页只剩「按键与弹窗」+「声音监控」两个页签（规则/声音/工具已全部
- * 移到首页或直接删除）。整页不滚动：页签预建，切换只换可见性。
+ * v1.6.42：功能减法——监控页签也删了，本页只剩「按键与弹窗」（弹窗自动允许 +
+ * 亿连上一首/下一首转发），页签栏一并去掉。AudioMonitor 服务保留（开机自启，
+ * 仍写 audio_monitor.txt 进日志包）。
  *
  * 编译期约束：stub android.jar 无 org.json；smali 类对 javac 不可见。
  */
@@ -29,10 +28,6 @@ public class ToolboxActivity extends Activity implements View.OnClickListener {
 
     private static final int ACCENT = Color.rgb(47, 111, 237);
 
-    private Button amToggleButton;
-    private Button amPickButton;
-    private Button amClearButton;
-    private TextView amStatusText;
     private Button p2pAaOnButton;
     private Button p2pAaOffButton;
     private Button p2pAaSettingsButton;
@@ -42,18 +37,12 @@ public class ToolboxActivity extends Activity implements View.OnClickListener {
     private TextView keyfText;
     private TextView p2pAaText;
 
-    // ---- v1.6.39 页签容器（车机屏不滚动：预建面板，切页签只换可见性）----
-    // 规则/声音迁入首页；工具模块 v1.6.41 删除——只留按键/监控
-    private static final String[] TAB_NAMES = {"按键", "监控"};
-    private Button[] tabButtons;
-    private LinearLayout[] panels;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setTitle("按键与监控");
+        setTitle("按键与弹窗");
 
-        // v1.6.39：页签化，整页不滚动（车机滚屏卡）。页签栏 + 五个预建面板。
+        // 整页不滚动（车机滚屏卡）。
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setPadding(dip(12), dip(8), dip(12), dip(10));
@@ -63,14 +52,14 @@ public class ToolboxActivity extends Activity implements View.OnClickListener {
         headRow.setOrientation(LinearLayout.HORIZONTAL);
         headRow.setGravity(Gravity.CENTER_VERTICAL);
         TextView title = new TextView(this);
-        title.setText("按键与监控");
+        title.setText("按键与弹窗");
         title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
         title.setTypeface(Typeface.DEFAULT_BOLD);
         title.setTextColor(Color.rgb(34, 34, 34));
         headRow.addView(title, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         TextView sub = new TextView(this);
-        sub.setText("按键转发 / 弹窗自动允许 / 声音监控");
+        sub.setText("弹窗自动允许 / 亿连上一首下一首转发");
         sub.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
         sub.setTextColor(Color.rgb(120, 120, 120));
         LinearLayout.LayoutParams subLp = new LinearLayout.LayoutParams(
@@ -79,58 +68,19 @@ public class ToolboxActivity extends Activity implements View.OnClickListener {
         headRow.addView(sub, subLp);
         root.addView(headRow, matchWrap());
 
-        LinearLayout tabBar = new LinearLayout(this);
-        tabBar.setOrientation(LinearLayout.HORIZONTAL);
-        tabButtons = new Button[TAB_NAMES.length];
-        for (int i = 0; i < TAB_NAMES.length; i++) {
-            Button b = new Button(this);
-            b.setText(TAB_NAMES[i]);
-            b.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
-            b.setOnClickListener(this);
-            tabButtons[i] = b;
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, dip(52), 1f);
-            if (i > 0) {
-                lp.leftMargin = dip(6);
-            }
-            tabBar.addView(b, lp);
-        }
-        LinearLayout.LayoutParams tabLp = matchWrap();
-        tabLp.topMargin = dip(8);
-        root.addView(tabBar, tabLp);
-
-        FrameLayout content = new FrameLayout(this);
+        LinearLayout content = new LinearLayout(this);
+        content.setOrientation(LinearLayout.VERTICAL);
         LinearLayout.LayoutParams contentLp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f);
-        contentLp.topMargin = dip(4);
+        contentLp.topMargin = dip(8);
         root.addView(content, contentLp);
-
-        panels = new LinearLayout[TAB_NAMES.length];
-        for (int i = 0; i < panels.length; i++) {
-            panels[i] = new LinearLayout(this);
-            panels[i].setOrientation(LinearLayout.VERTICAL);
-            content.addView(panels[i], new FrameLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-            panels[i].setVisibility(View.GONE);
-        }
-        buildKeyPanel(panels[0]);
-        buildMonitorPanel(panels[1]);
-        switchTab(0);
+        buildKeyPanel(content);
         setContentView(root);
 
         BootDiagnostics.log(this, "ToolboxActivity opened");
     }
 
-    /** 切页签：只换可见性 + 页签配色，面板内容不动（状态由 onResume/各 update 刷新） */
-    private void switchTab(int i) {
-        for (int k = 0; k < panels.length; k++) {
-            panels[k].setVisibility(k == i ? View.VISIBLE : View.GONE);
-            boolean sel = k == i;
-            tabButtons[k].setBackgroundColor(sel ? ACCENT : Color.WHITE);
-            tabButtons[k].setTextColor(sel ? Color.WHITE : Color.rgb(34, 34, 34));
-        }
-    }
-
-    /** 让卡片填满页签面板（高度吃完剩余空间） */
+    /** 让卡片填满所在容器（高度吃完剩余空间） */
     private void fillPanel(LinearLayout card) {
         LinearLayout.LayoutParams lp = (LinearLayout.LayoutParams) card.getLayoutParams();
         lp.height = 0;
@@ -151,33 +101,7 @@ public class ToolboxActivity extends Activity implements View.OnClickListener {
         addIn(card, row);
     }
 
-    // ---- 页签二：启动与声音监控 ----
-    private void buildMonitorPanel(LinearLayout p) {
-        LinearLayout cAm = card(p, "启动与声音监控",
-                "记录开机后谁被拉起、谁抢音频焦点；设拦截目标后目标一冒头就杀。"
-                        + "落日志 /sdcard/boottask/audio_monitor.log，开机自动开始。");
-        fillPanel(cAm);
-
-        amToggleButton = new Button(this);
-        amToggleButton.setOnClickListener(this);
-
-        amPickButton = new Button(this);
-        amPickButton.setText("选择拦截目标（选多媒体/收音机）");
-        amPickButton.setOnClickListener(this);
-        gridRow(cAm, amToggleButton, amPickButton);
-
-        amClearButton = new Button(this);
-        amClearButton.setText("清空拦截目标");
-        amClearButton.setOnClickListener(this);
-        addIn(cAm, amClearButton);
-
-        amStatusText = new TextView(this);
-        amStatusText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
-        amStatusText.setTextColor(Color.rgb(90, 90, 90));
-        addIn(cAm, amStatusText);
-    }
-
-    // ---- 页签一：按键与弹窗（直连免打扰 + 亿连上一首/下一首）----
+    // ---- 唯一内容：按键与弹窗（直连免打扰 + 亿连上一首/下一首）----
     private void buildKeyPanel(LinearLayout p) {
         LinearLayout cAa = card(p, "按键与弹窗",
                 "P2P 配对弹窗自动点「允许」；亿连前台时 上一首/下一首 直接控制手机。"
@@ -223,20 +147,7 @@ public class ToolboxActivity extends Activity implements View.OnClickListener {
         addIn(cAa, p2pAaText);
     }
 
-    // ---------------------------------------------------------------- 监控/按键状态
-
-    /** v1.6.21：启动与声音监控分区状态 */
-    private void updateAmUi() {
-        try {
-            amToggleButton.setText(AudioMonitor.isRunning()
-                    ? "停止启动与声音监控" : "开启启动与声音监控（也可等开机自动开始）");
-            String tgt = AudioMonitor.blockTarget(this);
-            amStatusText.setText("拦截目标：" + (tgt == null ? "未设置" : tgt)
-                    + "\n状态：" + AudioMonitor.lastAction()
-                    + "\n最近记录：\n" + MainActivity.tail(AudioMonitor.readLog(this), 4));
-        } catch (Throwable ignored) {
-        }
-    }
+    // ---------------------------------------------------------------- 按键状态
 
     /** v1.6.29 直连免打扰分区状态 + v1.6.38 按键转发状态 + v1.6.40 关键字 */
     private void updateAaUi() {
@@ -259,39 +170,13 @@ public class ToolboxActivity extends Activity implements View.OnClickListener {
     @Override
     protected void onResume() {
         super.onResume();
-        updateAmUi();
         updateAaUi();
-    }
-
-    /** v1.6.21：接收 AppPickActivity 选中的拦截目标 */
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 77 && resultCode == RESULT_OK && data != null) {
-            String pkg = data.getStringExtra("pkg");
-            if (pkg != null && pkg.length() > 0) {
-                AudioMonitor.setBlockTarget(this, pkg);
-                Toast.makeText(this, "拦截目标已设为 " + pkg
-                        + "（开机后也会自动拦截）", Toast.LENGTH_LONG).show();
-                if (!AudioMonitor.isRunning()) {
-                    startService(new Intent(this, AudioMonitor.class));
-                }
-                updateAmUi();
-            }
-        }
     }
 
     // ---------------------------------------------------------------- 点击事件
 
     @Override
     public void onClick(View v) {
-        // v1.6.39：页签切换
-        for (int k = 0; k < tabButtons.length; k++) {
-            if (v == tabButtons[k]) {
-                switchTab(k);
-                return;
-            }
-        }
         if (v == p2pAaOnButton) {
             P2pAutoAccept.setEnabled(this, true);
             updateAaUi();
@@ -364,35 +249,6 @@ public class ToolboxActivity extends Activity implements View.OnClickListener {
             Toast.makeText(this, on
                     ? "已开启：亿连前台时按 上一首/下一首 直接控制手机（不再切音源）"
                     : "已关闭：按键恢复原样（会切到多媒体）", Toast.LENGTH_LONG).show();
-            return;
-        }
-        if (v == amToggleButton) {
-            if (AudioMonitor.isRunning()) {
-                stopService(new Intent(this, AudioMonitor.class));
-                Toast.makeText(this, "声音监控已停止", Toast.LENGTH_SHORT).show();
-            } else {
-                startService(new Intent(this, AudioMonitor.class));
-                Toast.makeText(this, "声音监控已开启（每 5 秒记录新进程与音频焦点）",
-                        Toast.LENGTH_LONG).show();
-            }
-            updateAmUi();
-            amStatusText.postDelayed(new Runnable() {
-                public void run() {
-                    updateAmUi();
-                }
-            }, 1200L);
-            return;
-        }
-        if (v == amPickButton) {
-            Intent it = new Intent();
-            it.setClassName(getPackageName(), "com.boottask.AppPickActivity");
-            startActivityForResult(it, 77);   // 结果 extra "pkg"
-            return;
-        }
-        if (v == amClearButton) {
-            AudioMonitor.clearBlockTarget(this);
-            Toast.makeText(this, "已清空拦截目标", Toast.LENGTH_SHORT).show();
-            updateAmUi();
             return;
         }
     }

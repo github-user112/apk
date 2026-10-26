@@ -135,7 +135,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
 
         LinearLayout cKey = card(right, "按键与弹窗", null);
         keysButton = new Button(this);
-        keysButton.setText("按键与弹窗 / 声音监控 设置");
+        keysButton.setText("按键与弹窗设置");
         keysButton.setOnClickListener(this);
         addIn(cKey, keysButton);
 

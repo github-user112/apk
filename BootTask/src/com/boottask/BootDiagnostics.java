@@ -665,9 +665,8 @@ public final class BootDiagnostics {
             b.append("\n声音/媒体嫌疑包（★=正在运行，最可能就是它开机出声）:\n")
                     .append(sus.length() > 0 ? sus : "(pm list 没抓到)\n");
 
-            b.append("\n怎么用：上面带 ★ 的包逐个在主界面「选择拦截目标」里选上并重启验证。\n")
-                    .append("想要精确时间线（谁先起、谁抢音频焦点），开 v1.6.21 的「启动与声音监控」再开机一次，\n")
-                    .append("日志 /sdcard/boottask/audio_monitor.log。\n");
+            b.append("\n怎么用：带 ★ 的包就是最可能的出声源。声音监控开机自动运行（v1.6.42 起不再有\n")
+                    .append("页面开关），时间线自动落 /sdcard/boottask/audio_monitor.log，随日志包一起发回。\n");
         } catch (Throwable t) {
             b.append("(探测异常: ").append(t).append(")\n");
         }

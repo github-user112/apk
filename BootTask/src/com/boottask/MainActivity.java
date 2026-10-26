@@ -28,7 +28,8 @@ import android.widget.Toast;
  *    常开蹲守自动落盘，要发日志用「下载日志」；
  *  - 声音模块只留「开机抢占音源」；
  *  - 更多页 / 工具模块 / Root 工具 / 已排除页 全删；
- *  - 保留：我的规则 + 开机抢占音源 + 重启亿连/重启车机 + 下载日志 + 按键与弹窗入口。
+ *  - 保留：我的规则 + 开机抢占音源 + 重启亿连 + 下载日志 + 按键与弹窗入口。
+ *    （重启车机需 root，本车无 su，v1.6.43 起按钮已删）
  *
  * 布局：整页不滚动。左列=规则列表（吃满高度）；右列=声音 / 按键入口 / 设备。
  *
@@ -49,7 +50,6 @@ public class MainActivity extends Activity implements View.OnClickListener,
     private Button claimBootButton;
     private Button keysButton;
     private Button rebootYlButton;
-    private Button rebootCarButton;
     private Button logButton;
 
     @Override
@@ -143,10 +143,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
         rebootYlButton = new Button(this);
         rebootYlButton.setText("重启亿连");
         rebootYlButton.setOnClickListener(this);
-        rebootCarButton = new Button(this);
-        rebootCarButton.setText("重启车机（需 root）");
-        rebootCarButton.setOnClickListener(this);
-        gridRow(cDev, rebootYlButton, rebootCarButton);
+        addIn(cDev, rebootYlButton);
 
         logButton = new Button(this);
         logButton.setText("下载日志（亿连连接与系统运行信息，扫码取走）");
@@ -234,32 +231,6 @@ public class MainActivity extends Activity implements View.OnClickListener,
                     });
                 }
             }).start();
-            return;
-        }
-        if (v == rebootCarButton) {
-            new AlertDialog.Builder(this)
-                    .setTitle("重启车机")
-                    .setMessage("需要 root（本车 10-09 日志实锤无 su，大概率失败，"
-                            + "失败会如实提示）。确定重启？")
-                    .setPositiveButton("重启", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface d, int w) {
-                            new Thread(new Runnable() {
-                                public void run() {
-                                    NoRootFixes.rebootDevice(MainActivity.this);
-                                    // 能走到这说明 su 不存在或 reboot 失败（成功时系统已重启）
-                                    runOnUiThread(new Runnable() {
-                                        public void run() {
-                                            Toast.makeText(MainActivity.this,
-                                                    "重启失败：本车无 root，请长按面板电源键",
-                                                    Toast.LENGTH_LONG).show();
-                                        }
-                                    });
-                                }
-                            }).start();
-                        }
-                    })
-                    .setNegativeButton("取消", null)
-                    .show();
             return;
         }
         if (v == logButton) {
@@ -401,19 +372,6 @@ public class MainActivity extends Activity implements View.OnClickListener,
         lp.height = 0;
         lp.weight = 1f;
         card.setLayoutParams(lp);
-    }
-
-    /** 两按钮一行（车机横屏宽度够，省高度） */
-    private void gridRow(LinearLayout card, View a, View b) {
-        LinearLayout row = new LinearLayout(this);
-        row.setOrientation(LinearLayout.HORIZONTAL);
-        LinearLayout.LayoutParams la = new LinearLayout.LayoutParams(
-                0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
-        la.rightMargin = dip(6);
-        row.addView(a, la);
-        row.addView(b, new LinearLayout.LayoutParams(
-                0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
-        addIn(card, row);
     }
 
     private LinearLayout card(LinearLayout root, String title, String desc) {

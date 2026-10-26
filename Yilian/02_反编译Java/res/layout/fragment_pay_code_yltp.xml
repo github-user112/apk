@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout android:layout_width="match_parent" android:layout_height="match_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <ImageButton android:layout_gravity="start|top" android:id="@id/fragment_pay_code_back" android:background="@drawable/back_button" android:layout_width="@dimen/dp_80" android:layout_height="@dimen/dp_80" android:layout_marginLeft="@dimen/dp_10" android:layout_marginTop="@dimen/dp_16" />
+    <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginLeft="@dimen/dp_30" android:layout_marginRight="@dimen/dp_30" android:layout_centerInParent="true">
+        <RelativeLayout android:id="@id/yltp_pay_code_layout" android:background="@drawable/yltp_ec_qr_download_app_bg_selector" android:layout_width="@dimen/dp_160" android:layout_height="@dimen/dp_160" android:layout_centerHorizontal="true">
+            <ImageView android:id="@id/yltp_iv_paycode" android:layout_width="match_parent" android:layout_height="match_parent" />
+        </RelativeLayout>
+        <TextView android:textSize="@dimen/sp_20" android:textColor="@color/white_50" android:gravity="center_horizontal" android:id="@id/yltp_tv_pay_tip1" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/dp_20" android:maxWidth="@dimen/dp_840" android:text="@string/yltp_main_pay_tips" android:layout_below="@id/yltp_pay_code_layout" android:layout_centerHorizontal="true" />
+        <TextView android:textSize="@dimen/sp_24" android:textColor="@color/primary_txt_color" android:gravity="center_horizontal" android:id="@id/yltp_tv_pay_tip2" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/dp_10" android:maxWidth="@dimen/dp_840" android:text="@string/yltp_pay_cede_tip_txt" android:layout_below="@id/yltp_tv_pay_tip1" android:layout_centerHorizontal="true" />
+        <Button android:textSize="@dimen/sp_24" android:textColor="@color/check_update_txt_color" android:gravity="center" android:id="@id/yltp_btn_pay_confirm" android:background="@drawable/check_update_btn" android:paddingLeft="@dimen/dp_30" android:paddingRight="@dimen/dp_30" android:layout_width="wrap_content" android:layout_height="@dimen/dp_60" android:layout_marginTop="@dimen/dp_24" android:minWidth="@dimen/dp_300" android:text="@string/yltp_pay_cofirm_txt" android:layout_below="@id/yltp_tv_pay_tip2" android:layout_centerHorizontal="true" android:textAllCaps="false" />
+    </RelativeLayout>
+</RelativeLayout>

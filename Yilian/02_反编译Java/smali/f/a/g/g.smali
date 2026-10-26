@@ -1,0 +1,193 @@
+.class public Lf/a/g/g;
+.super Ljava/lang/Object;
+.source ""
+
+
+# static fields
+.field public static final a:[B
+
+.field public static final b:[B
+
+.field public static final c:[B
+
+
+# direct methods
+.method public static constructor <clinit>()V
+    .locals 1
+
+    const/16 v0, 0x53
+
+    new-array v0, v0, [B
+
+    fill-array-data v0, :array_0
+
+    sput-object v0, Lf/a/g/g;->a:[B
+
+    const/16 v0, 0x33
+
+    new-array v0, v0, [B
+
+    fill-array-data v0, :array_1
+
+    sput-object v0, Lf/a/g/g;->b:[B
+
+    const/4 v0, 0x2
+
+    new-array v0, v0, [B
+
+    fill-array-data v0, :array_2
+
+    sput-object v0, Lf/a/g/g;->c:[B
+
+    return-void
+
+    nop
+
+    :array_0
+    .array-data 1
+        0x5t
+        0xct
+        0x9t
+        0x1t
+        -0x5ft
+        0x1t
+        -0x7bt
+        0x2t
+        0x5t
+        0xct
+        0x15t
+        0x0t
+        0x25t
+        0x1t
+        0x75t
+        0x1t
+        -0x6bt
+        0x1ct
+        0x9t
+        0x40t
+        0x9t
+        0x42t
+        0x9t
+        0x43t
+        0x9t
+        0x44t
+        0x9t
+        0x45t
+        0x9t
+        -0x74t
+        0x9t
+        -0x1et
+        0x9t
+        -0x50t
+        0x9t
+        -0x4bt
+        0x9t
+        -0x4at
+        0x9t
+        -0x49t
+        0x9t
+        -0x33t
+        0x9t
+        -0x16t
+        0x9t
+        -0x17t
+        0xat
+        0x23t
+        0x2t
+        0xat
+        0x24t
+        0x2t
+        -0x7ft
+        0x2t
+        -0x40t
+        0x5t
+        0xdt
+        0x9t
+        0x4t
+        -0x5ft
+        0x1t
+        -0x7bt
+        0x1t
+        0x9t
+        0x22t
+        -0x5ft
+        0x2t
+        0x9t
+        0x55t
+        0x15t
+        0x0t
+        0x25t
+        0x2t
+        0x75t
+        0x8t
+        -0x6bt
+        0x1t
+        -0x4ft
+        0x2t
+        0x9t
+        0x54t
+        -0x7ft
+        0x2t
+    .end array-data
+
+    :array_1
+    .array-data 1
+        0x5t
+        0xdt
+        0x9t
+        0x22t
+        -0x5ft
+        0x2t
+        0x9t
+        0x42t
+        0x15t
+        0x0t
+        0x25t
+        0x1t
+        0x75t
+        0x1t
+        -0x7ft
+        0x2t
+        0x9t
+        0x32t
+        0x75t
+        0x1t
+        -0x7ft
+        0x2t
+        0x9t
+        0x51t
+        0x25t
+        0x3ft
+        0x75t
+        0x6t
+        -0x7ft
+        0x2t
+        0x5t
+        0x1t
+        0x9t
+        0x30t
+        0x26t
+        0x0t
+        0x4t
+        0x75t
+        0x10t
+        -0x7ft
+        0x2t
+        0x9t
+        0x31t
+        0x26t
+        0x0t
+        0x4t
+        0x75t
+        0x10t
+        -0x7ft
+        0x2t
+        -0x40t
+    .end array-data
+
+    :array_2
+    .array-data 1
+        -0x40t
+        -0x40t
+    .end array-data
+.end method

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:gravity="center" android:orientation="vertical" android:layout_width="match_parent" android:layout_height="match_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <RelativeLayout android:background="@drawable/yltp_ec_qr_download_app_bg_selector" android:layout_width="@dimen/dp_162" android:layout_height="@dimen/dp_162" android:layout_marginTop="@dimen/dp_40">
+        <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:layout_marginTop="@dimen/dp_2" android:layout_marginBottom="@dimen/dp_2" android:src="@drawable/ic_sustom_service" android:layout_marginStart="@dimen/dp_2" android:layout_marginEnd="@dimen/dp_2" />
+    </RelativeLayout>
+    <TextView android:textSize="@dimen/sp_20" android:textColor="@color/primary_txt_color" android:gravity="center" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/dp_18" android:text="@string/wechat_scan_code_custom_service" />
+    <LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="@dimen/dp_80" android:layout_marginTop="@dimen/dp_40">
+        <View android:background="@color/yltp_tab_bg_color" android:layout_width="match_parent" android:layout_height="@dimen/pop_dialog_line_size" />
+        <Button android:textSize="@dimen/sp_24" android:textColor="@color/pop_dialog_positive_btn_text_color" android:gravity="center" android:id="@id/pop_custom_service_iknow_tv" android:background="@drawable/pop_dialog_custom_service_bg_selector" android:layout_width="match_parent" android:layout_height="match_parent" android:text="@string/yltp_dlna_dialog_i_know" />
+    </LinearLayout>
+</LinearLayout>

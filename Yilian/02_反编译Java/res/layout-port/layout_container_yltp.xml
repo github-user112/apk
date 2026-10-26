@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="match_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <View android:id="@id/view_seat_top" android:visibility="gone" android:layout_width="match_parent" android:layout_height="@dimen/dp_96" />
+    <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="match_parent">
+        <View android:id="@id/view_seat_left" android:visibility="gone" android:layout_width="@dimen/dp_20" android:layout_height="match_parent" />
+        <LinearLayout android:orientation="vertical" android:layout_width="0.0dp" android:layout_height="match_parent" android:layout_weight="1.0">
+            <androidx.recyclerview.widget.RecyclerView android:id="@id/tab_layoput_contype" android:layout_width="match_parent" android:layout_height="0.0dp" android:layout_weight="20.0" />
+            <FrameLayout android:id="@id/fragment_container" android:layout_width="match_parent" android:layout_height="0.0dp" android:layout_weight="80.0" />
+        </LinearLayout>
+        <View android:id="@id/view_seat_right" android:visibility="gone" android:layout_width="@dimen/dp_20" android:layout_height="match_parent" />
+    </LinearLayout>
+    <View android:id="@id/view_seat_bottom" android:visibility="gone" android:layout_width="match_parent" android:layout_height="@dimen/dp_20" />
+</LinearLayout>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:orientation="vertical" android:background="@drawable/pop_dialog_bg" android:layout_width="match_parent" android:layout_height="match_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <ImageView android:layout_gravity="center" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/dp_26" android:src="@drawable/contact_service" />
+    <TextView android:textSize="@dimen/sp_16" android:textColor="@color/pop_dialog_title_text_color" android:gravity="center" android:id="@id/btnUUidText" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/dp_14" android:text="1111111" />
+    <TextView android:textSize="@dimen/sp_20" android:textColor="@color/pop_dialog_title_text_color" android:gravity="center" android:id="@id/btnAuthText" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/dp_26" android:layout_marginBottom="@dimen/dp_14" android:text="@string/auth_fail_tips" />
+    <LinearLayout android:orientation="vertical" android:id="@id/layoutOneButton" android:layout_width="match_parent" android:layout_height="@dimen/dp_80">
+        <View android:background="@color/pop_dialog_line_color" android:layout_width="match_parent" android:layout_height="@dimen/pop_dialog_line_size" />
+        <Button android:textSize="@dimen/sp_30" android:textColor="@color/pop_dialog_positive_btn_text_color" android:gravity="center" android:id="@id/btnConfirm" android:background="@drawable/pop_dialog_common_btn_bg_selector" android:layout_width="match_parent" android:layout_height="match_parent" android:text="@string/auth_button_text" />
+    </LinearLayout>
+</LinearLayout>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout android:id="@id/surfaceView_container" android:background="@color/background_black_pure" android:clickable="true" android:layout_width="match_parent" android:layout_height="match_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <SurfaceView android:layout_gravity="center" android:id="@id/videoSurfaceView" android:layout_width="match_parent" android:layout_height="match_parent" />
+    <net.easyconn.framework.video.SoftSurfaceView android:id="@id/softSurfaceView" android:visibility="gone" android:layout_width="match_parent" android:layout_height="match_parent" />
+    <include layout="@layout/aoa_auth_pending_tip_layout" />
+    <include layout="@layout/mirror_wifi_low_speed_tip_layout" />
+    <include layout="@layout/ec_float_ball_layout" />
+    <include layout="@layout/ec_softinput_layout" />
+</FrameLayout>

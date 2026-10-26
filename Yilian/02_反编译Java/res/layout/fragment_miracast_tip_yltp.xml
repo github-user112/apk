@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:orientation="vertical" android:background="@drawable/yltp_tab_bg_selector" android:layout_width="match_parent" android:layout_height="match_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="0.0dp" android:layout_weight="3.0">
+        <TextView android:textSize="@dimen/sp_20" android:textStyle="bold" android:textColor="@color/yltp_tab_primary_color" android:gravity="center_vertical" android:layout_gravity="center_vertical" android:layout_width="0.0dp" android:layout_height="wrap_content" android:layout_marginLeft="@dimen/dp_30" android:layout_marginRight="@dimen/dp_30" android:text="@string/yltp_miracast_tip_title" android:layout_weight="1.0" />
+    </LinearLayout>
+    <RelativeLayout android:id="@id/layout_miracast_tip_help_yltp" android:layout_width="match_parent" android:layout_height="0.0dp" android:layout_weight="7.0">
+        <include android:id="@id/layout_miracast_tip1_yltp" android:layout_width="match_parent" android:layout_height="wrap_content" layout="@layout/layout_miracast_tip1_yltp" />
+    </RelativeLayout>
+</LinearLayout>

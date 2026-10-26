@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_selected="true" android:drawable="@drawable/yltp_ic_ec_press" />
+    <item android:drawable="@drawable/ytlp_ic_ec_normal" />
+</selector>

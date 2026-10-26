@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout android:id="@id/surfaceView_container" android:layout_width="match_parent" android:layout_height="match_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <net.easyconn.framework.video.SoftSurfaceView android:layout_gravity="center" android:id="@id/airplaySoftSurfaceView" android:clickable="true" android:layout_width="match_parent" android:layout_height="match_parent" />
+    <SurfaceView android:layout_gravity="center" android:id="@id/airplaySurfaceView" android:visibility="gone" android:layout_width="match_parent" android:layout_height="match_parent" />
+    <FrameLayout android:id="@id/lockView" android:background="@color/lock_bg_color" android:visibility="visible" android:layout_width="match_parent" android:layout_height="match_parent">
+        <ImageView android:layout_gravity="center" android:layout_width="wrap_content" android:layout_height="wrap_content" android:src="@drawable/img_lock" />
+    </FrameLayout>
+    <include layout="@layout/ec_float_ball_layout" />
+    <FrameLayout android:id="@id/control_airplay" android:visibility="gone" android:layout_width="match_parent" android:layout_height="wrap_content">
+        <RelativeLayout android:gravity="center_vertical" android:orientation="horizontal" android:background="@drawable/yltp_dlna_title_selector" android:paddingLeft="@dimen/dp_10" android:paddingTop="@dimen/dp_16" android:layout_width="match_parent" android:layout_height="@dimen/dp_96" android:paddingStart="@dimen/dp_10">
+            <ImageView android:layout_gravity="center_vertical" android:id="@id/btn_airplay_exit" android:background="@drawable/main_activity_back_btn_bg" android:layout_width="@dimen/dp_80" android:layout_height="@dimen/dp_80" android:layout_alignParentLeft="true" />
+            <ImageView android:layout_gravity="center_vertical" android:id="@id/btn_airplay_home" android:background="@drawable/main_activity_home_btn_bg" android:layout_width="@dimen/dp_80" android:layout_height="@dimen/dp_80" android:layout_alignParentRight="true" />
+        </RelativeLayout>
+    </FrameLayout>
+    <LinearLayout android:layout_gravity="bottom" android:orientation="horizontal" android:id="@id/yltp_airplay_view_go_pay" android:paddingLeft="@dimen/dp_30" android:paddingRight="@dimen/dp_30" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/dp_100">
+        <LinearLayout android:layout_width="0.0dp" android:layout_height="wrap_content" android:layout_weight="1.0">
+            <LinearLayout android:orientation="vertical" android:background="@drawable/yltp_mirror_go_pay_selector" android:paddingTop="@dimen/dp_12" android:paddingBottom="@dimen/dp_12" android:layout_width="wrap_content" android:layout_height="wrap_content">
+                <TextView android:textSize="@dimen/sp_24" android:textColor="@color/primary_txt_color" android:id="@id/yltp_airplay_tv_count_down_time" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginLeft="@dimen/dp_30" android:layout_marginRight="@dimen/dp_30" android:text="@string/yltp_fragment_pay_tips" />
+                <TextView android:textSize="@dimen/sp_24" android:textColor="@color/yltp_tab_primary_color" android:id="@id/yltp_airplay_tv_go_pay" android:background="@drawable/yltp_dlna_tv_txt_selector" android:paddingLeft="@dimen/dp_16" android:paddingRight="@dimen/dp_16" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginLeft="@dimen/dp_14" android:text="@string/yltp_fragment_pay_at_once" />
+            </LinearLayout>
+        </LinearLayout>
+        <View android:background="@android:color/transparent" android:visibility="invisible" android:layout_width="0.0dp" android:layout_height="0.0dp" android:layout_weight="1.0" />
+    </LinearLayout>
+</FrameLayout>

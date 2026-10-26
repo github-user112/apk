@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:id="@id/contype_item_layout" android:layout_width="match_parent" android:layout_height="match_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <RelativeLayout android:id="@id/contype_item" android:background="@drawable/yltp_tab_bg_selector" android:focusable="true" android:clickable="true" android:layout_width="0.0dp" android:layout_height="match_parent" android:layout_weight="1.0">
+        <LinearLayout android:paddingLeft="@dimen/dp_30" android:paddingRight="@dimen/dp_30" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_centerVertical="true">
+            <ImageView android:layout_gravity="center_vertical" android:id="@id/contype_item_icon" android:layout_width="@dimen/dp_48" android:layout_height="@dimen/dp_48" />
+            <TextView android:textSize="@dimen/sp_20" android:textStyle="bold" android:textColor="@color/yltp_tab_txt_color" android:layout_gravity="center_vertical" android:id="@id/contype_item_txt" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginLeft="@dimen/dp_18" />
+        </LinearLayout>
+    </RelativeLayout>
+    <View android:background="@drawable/yltp_tab_cursor_selector" android:layout_width="@dimen/dp_8" android:layout_height="match_parent" android:layout_alignParentRight="true" />
+</LinearLayout>

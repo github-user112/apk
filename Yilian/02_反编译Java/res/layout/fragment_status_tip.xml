@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout android:layout_width="match_parent" android:layout_height="match_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <ImageView android:id="@id/iv_status" android:layout_width="@dimen/dp_640" android:layout_height="@dimen/dp_330" android:layout_marginTop="@dimen/dp_100" android:src="@drawable/fragment_status_tip_main" android:layout_centerHorizontal="true" />
+    <RelativeLayout android:id="@id/fragment_status_tip_text_part1" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/dp_42" android:layout_below="@id/iv_status">
+        <ImageView android:id="@id/fragment_status_tip_progressbar" android:background="@drawable/loading_animation" android:visibility="gone" android:layout_width="@dimen/dp_24" android:layout_height="@dimen/dp_24" android:layout_marginRight="@dimen/dp_12" android:layout_toLeftOf="@id/tv_status_tip" android:layout_centerVertical="true" />
+        <TextView android:textSize="@dimen/sp_24" android:textColor="@color/primary_txt_color" android:gravity="center_horizontal" android:id="@id/tv_status_tip" android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxWidth="@dimen/dp_840" android:text="@string/unplugin_tip" android:layout_centerHorizontal="true" />
+    </RelativeLayout>
+    <LinearLayout android:orientation="horizontal" android:id="@id/fragment_status_tip_text_part2" android:layout_width="wrap_content" android:layout_height="@dimen/dp_120" android:layout_marginTop="@dimen/dp_20" android:layout_below="@id/fragment_status_tip_text_part1" android:layout_centerHorizontal="true">
+        <ImageView android:id="@id/img_vice_status" android:layout_width="@dimen/dp_30" android:layout_height="@dimen/dp_24" android:layout_marginRight="@dimen/dp_12" android:src="@drawable/download" />
+        <TextView android:textSize="@dimen/sp_18" android:textColor="@color/vice_txt_color" android:id="@id/tv_vice_status_tip" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/install_open_tip" />
+    </LinearLayout>
+    <include layout="@layout/fragment_connection_tip" />
+    <ImageView android:visibility="gone" android:layout_width="match_parent" android:layout_height="match_parent" android:src="@drawable/watermark" android:scaleType="centerInside" />
+</RelativeLayout>

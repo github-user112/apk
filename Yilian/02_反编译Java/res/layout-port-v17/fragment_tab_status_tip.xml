@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout android:background="@color/c_bg" android:layout_width="match_parent" android:layout_height="match_parent" app:is_res_replace="true"
+  xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <RelativeLayout android:id="@id/title_layout" android:layout_width="match_parent" android:layout_height="@dimen/dp_112">
+        <androidx.appcompat.widget.AppCompatImageView android:id="@id/btn_back" android:background="@drawable/main_activity_back_btn_bg" android:layout_width="@dimen/dp_80" android:layout_height="@dimen/dp_80" android:layout_marginLeft="@dimen/dp_10" android:layout_centerVertical="true" android:layout_marginStart="@dimen/dp_10" app:is_res_replace="true" />
+        <androidx.appcompat.widget.AppCompatImageView android:id="@id/btn_about" android:background="@drawable/main_activity_about_btn_bg" android:layout_width="@dimen/dp_80" android:layout_height="@dimen/dp_80" android:layout_marginRight="@dimen/dp_10" android:layout_alignParentRight="true" android:layout_centerVertical="true" android:layout_marginEnd="@dimen/dp_10" android:layout_alignParentEnd="true" app:is_res_replace="true" />
+        <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_marginLeft="@dimen/dp_110" android:layout_marginRight="@dimen/dp_110">
+            <RelativeLayout android:id="@id/tab_title_wlan_qr" android:visibility="gone" android:layout_width="0.0dp" android:layout_height="match_parent" android:layout_weight="1.0">
+                <View android:id="@id/tab_title_wlan_qr_chosen" android:background="@drawable/button_gradient" android:visibility="gone" android:layout_width="@dimen/dp_120" android:layout_height="@dimen/dp_12" android:layout_marginTop="@dimen/dp_6" android:layout_alignBottom="@id/tab_title_wlan_qr_text" android:layout_centerHorizontal="true" />
+                <TextView android:textSize="@dimen/sp_24" android:textStyle="bold" android:id="@id/tab_title_wlan_qr_text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/tab_status_tip_wireless_connect_tab" android:layout_centerInParent="true" />
+            </RelativeLayout>
+            <RelativeLayout android:id="@id/tab_title_ble_qr" android:visibility="gone" android:layout_width="0.0dp" android:layout_height="match_parent" android:layout_weight="1.0">
+                <View android:id="@id/tab_title_ble_qr_chosen" android:background="@drawable/button_gradient" android:visibility="gone" android:layout_width="@dimen/dp_120" android:layout_height="@dimen/dp_12" android:layout_marginTop="@dimen/dp_6" android:layout_alignBottom="@id/tab_title_ble_qr_text" android:layout_centerHorizontal="true" />
+                <TextView android:textSize="@dimen/sp_24" android:textStyle="bold" android:id="@id/tab_title_ble_qr_text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/tab_status_tip_wireless_connect_tab" android:layout_centerInParent="true" />
+            </RelativeLayout>
+            <RelativeLayout android:id="@id/tab_title_ap_connect" android:visibility="gone" android:layout_width="0.0dp" android:layout_height="match_parent" android:layout_weight="1.0">
+                <View android:id="@id/tab_title_ap_connect_chosen" android:background="@drawable/button_gradient" android:visibility="gone" android:layout_width="@dimen/dp_120" android:layout_height="@dimen/dp_12" android:layout_marginTop="@dimen/dp_6" android:layout_alignBottom="@id/tab_title_ap_connect_text" android:layout_centerHorizontal="true" />
+                <TextView android:textSize="@dimen/sp_24" android:textStyle="bold" android:id="@id/tab_title_ap_connect_text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/tab_status_tip_wireless_connect_tab" android:layout_centerInParent="true" />
+            </RelativeLayout>
+            <RelativeLayout android:id="@id/tab_title_usb" android:visibility="gone" android:layout_width="0.0dp" android:layout_height="match_parent" android:layout_weight="1.0">
+                <View android:id="@id/tab_title_usb_chosen" android:background="@drawable/button_gradient" android:visibility="gone" android:layout_width="@dimen/dp_120" android:layout_height="@dimen/dp_12" android:layout_marginTop="@dimen/dp_6" android:layout_alignBottom="@id/tab_title_usb_text" android:layout_centerHorizontal="true" />
+                <TextView android:textSize="@dimen/sp_24" android:textStyle="bold" android:id="@id/tab_title_usb_text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/tab_status_tip_usb_connect_tab" android:layout_centerInParent="true" />
+            </RelativeLayout>
+        </LinearLayout>
+    </RelativeLayout>
+    <RelativeLayout android:id="@id/card_layout" android:background="@drawable/tab_status_tip_card_bg" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_marginLeft="@dimen/dp_24" android:layout_marginTop="@dimen/dp_112" android:layout_marginRight="@dimen/dp_24" android:layout_marginBottom="@dimen/dp_24" app:is_res_replace="true">
+        <RelativeLayout android:id="@id/tv_device_tag_bg" android:background="@drawable/img_service" android:layout_width="wrap_content" android:layout_height="@dimen/dp_52" android:layout_alignParentTop="true" android:layout_alignParentRight="true" app:is_res_replace="true">
+            <TextView android:textSize="@dimen/sp_20" android:textColor="@color/c_t2" android:gravity="center_vertical" android:id="@id/tv_device_tag" android:layout_width="wrap_content" android:layout_height="match_parent" android:layout_marginLeft="@dimen/dp_40" android:layout_marginRight="@dimen/dp_24" android:layout_marginStart="@dimen/dp_40" android:layout_marginEnd="@dimen/dp_24" app:is_res_replace="true" />
+        </RelativeLayout>
+        <include layout="@layout/layout_usb_connect_tab" />
+        <include layout="@layout/layout_wlan_qr_connect_tab" />
+        <include layout="@layout/layout_ble_qr_connect_tab" />
+        <include layout="@layout/layout_ap_connect_tab" />
+    </RelativeLayout>
+    <RelativeLayout android:visibility="gone" android:layout_width="match_parent" android:layout_height="match_parent">
+        <RelativeLayout android:id="@id/fragment_status_tip_text_part1" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/dp_42" android:layout_below="@id/iv_status">
+            <ImageView android:id="@id/fragment_status_tip_progressbar" android:background="@drawable/loading_animation" android:visibility="gone" android:layout_width="@dimen/dp_24" android:layout_height="@dimen/dp_24" android:layout_marginRight="@dimen/dp_12" android:layout_toLeftOf="@id/tv_status_tip" android:layout_centerVertical="true" />
+            <TextView android:textSize="@dimen/sp_24" android:textColor="@color/primary_txt_color" android:gravity="center_horizontal" android:id="@id/tv_status_tip" android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxWidth="@dimen/dp_840" android:text="@string/unplugin_tip" android:layout_centerHorizontal="true" />
+        </RelativeLayout>
+        <LinearLayout android:orientation="horizontal" android:id="@id/fragment_status_tip_text_part2" android:layout_width="wrap_content" android:layout_height="@dimen/dp_120" android:layout_marginTop="@dimen/dp_20" android:layout_below="@id/fragment_status_tip_text_part1" android:layout_centerHorizontal="true">
+            <ImageView android:id="@id/img_vice_status" android:layout_width="@dimen/dp_30" android:layout_height="@dimen/dp_24" android:layout_marginRight="@dimen/dp_12" android:src="@drawable/download" />
+            <TextView android:textSize="@dimen/sp_18" android:textColor="@color/vice_txt_color" android:id="@id/tv_vice_status_tip" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/install_open_tip" />
+        </LinearLayout>
+        <include layout="@layout/fragment_connection_tip" />
+    </RelativeLayout>
+</RelativeLayout>

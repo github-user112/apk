@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:orientation="vertical" android:id="@id/layout_no_touch_about" android:layout_width="match_parent" android:layout_height="wrap_content"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <TextView android:textSize="@dimen/sp_18" android:textColor="@color/copyright_txt_color" android:layout_gravity="center_horizontal" android:id="@id/layout_about_version_tv" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+    <TextView android:textSize="@dimen/sp_18" android:textColor="@color/copyright_txt_color" android:gravity="center_horizontal" android:id="@id/layout_about_sn_tv" android:layout_width="match_parent" android:layout_height="wrap_content" />
+    <TextView android:textSize="@dimen/sp_18" android:textColor="@color/copyright_txt_color" android:layout_gravity="center_horizontal" android:id="@id/layout_about_copyright_tv" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/copyright" />
+</LinearLayout>

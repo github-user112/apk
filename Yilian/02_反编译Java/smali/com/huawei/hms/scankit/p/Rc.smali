@@ -1,0 +1,90 @@
+.class public Lcom/huawei/hms/scankit/p/Rc;
+.super Ljava/lang/Object;
+.source ""
+
+
+# static fields
+.field public static final a:Ljava/lang/String; = "Rc"
+
+.field public static volatile b:Landroid/os/Bundle;
+
+
+# direct methods
+.method public static a(Landroid/content/Context;)Landroid/os/Bundle;
+    .locals 3
+
+    if-nez p0, :cond_0
+
+    new-instance p0, Landroid/os/Bundle;
+
+    invoke-direct {p0}, Landroid/os/Bundle;-><init>()V
+
+    return-object p0
+
+    :cond_0
+    sget-object v0, Lcom/huawei/hms/scankit/p/Rc;->b:Landroid/os/Bundle;
+
+    if-nez v0, :cond_2
+
+    new-instance v0, Landroid/os/Bundle;
+
+    invoke-direct {v0}, Landroid/os/Bundle;-><init>()V
+
+    :try_start_0
+    invoke-static {p0}, Le/d/a/a/a;->a(Landroid/content/Context;)Le/d/a/a/a;
+
+    move-result-object v1
+    :try_end_0
+    .catch Ljava/lang/RuntimeException; {:try_start_0 .. :try_end_0} :catch_1
+    .catch Ljava/lang/Exception; {:try_start_0 .. :try_end_0} :catch_0
+
+    const-string v2, "client/app_id"
+
+    :try_start_1
+    invoke-virtual {v1, v2}, Le/d/a/a/a;->b(Ljava/lang/String;)Ljava/lang/String;
+
+    move-result-object v1
+
+    if-nez v1, :cond_1
+
+    invoke-virtual {p0}, Landroid/content/Context;->getPackageName()Ljava/lang/String;
+
+    move-result-object v1
+    :try_end_1
+    .catch Ljava/lang/RuntimeException; {:try_start_1 .. :try_end_1} :catch_1
+    .catch Ljava/lang/Exception; {:try_start_1 .. :try_end_1} :catch_0
+
+    :cond_1
+    const-string p0, "appid"
+
+    :try_start_2
+    invoke-virtual {v0, p0, v1}, Landroid/os/Bundle;->putString(Ljava/lang/String;Ljava/lang/String;)V
+    :try_end_2
+    .catch Ljava/lang/RuntimeException; {:try_start_2 .. :try_end_2} :catch_1
+    .catch Ljava/lang/Exception; {:try_start_2 .. :try_end_2} :catch_0
+
+    goto :goto_1
+
+    :catch_0
+    sget-object p0, Lcom/huawei/hms/scankit/p/Rc;->a:Ljava/lang/String;
+
+    const-string v1, "getAppInfo: Exception"
+
+    goto :goto_0
+
+    :catch_1
+    sget-object p0, Lcom/huawei/hms/scankit/p/Rc;->a:Ljava/lang/String;
+
+    const-string v1, "getAppInfo: RuntimeException"
+
+    :goto_0
+    invoke-static {p0, v1}, Landroid/util/Log;->e(Ljava/lang/String;Ljava/lang/String;)I
+
+    :goto_1
+    sput-object v0, Lcom/huawei/hms/scankit/p/Rc;->b:Landroid/os/Bundle;
+
+    :cond_2
+    sget-object p0, Lcom/huawei/hms/scankit/p/Rc;->b:Landroid/os/Bundle;
+
+    return-object p0
+.end method

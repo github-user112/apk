@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <FrameLayout android:background="@android:color/transparent" android:layout_width="match_parent" android:layout_height="match_parent">
+        <net.easyconn.ui.widget.EcFloatButton android:layout_gravity="left|top" android:id="@id/ecFloatButton" android:background="@drawable/circle_horizontal_normal" android:visibility="gone" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+        <net.easyconn.ui.widget.EcFloatMenu android:id="@id/ecFloatMenu" android:visibility="gone" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+    </FrameLayout>
+</merge>

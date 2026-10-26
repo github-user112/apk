@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout android:layout_width="match_parent" android:layout_height="match_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="match_parent">
+        <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="0.0dp" android:layout_marginLeft="@dimen/dp_50" android:layout_marginRight="@dimen/dp_30" android:layout_weight="1.0">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content">
+                <ImageView android:layout_gravity="center_vertical" android:layout_width="@dimen/dp_154" android:layout_height="@dimen/dp_160" android:src="@drawable/yltp_dlna_tip1_help_pic1" />
+                <LinearLayout android:layout_gravity="center_vertical" android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginLeft="@dimen/dp_40">
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content">
+                        <TextView android:textSize="@dimen/sp_20" android:textColor="@color/primary_txt_color" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/num1_with_circle" />
+                        <TextView android:textSize="@dimen/sp_20" android:textColor="@color/primary_txt_color" android:layout_gravity="center_horizontal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/yltp_dlna_tip1_help_txt1" />
+                    </LinearLayout>
+                    <TextView android:textSize="@dimen/sp_16" android:textColor="@color/yltp_tab_primary_color" android:id="@id/dlna_tip1_open_hotspot" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/dp_4" android:text="@string/yltp_dlna_tip1_open_hotspot" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+        <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="0.0dp" android:layout_marginLeft="@dimen/dp_50" android:layout_marginRight="@dimen/dp_30" android:layout_weight="1.0">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content">
+                <ImageView android:layout_gravity="center_vertical" android:layout_width="@dimen/dp_154" android:layout_height="@dimen/dp_160" android:src="@drawable/yltp_dlna_tip1_help_pic2" />
+                <LinearLayout android:layout_gravity="center_vertical" android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginLeft="@dimen/dp_40">
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content">
+                        <TextView android:textSize="@dimen/sp_20" android:textColor="@color/primary_txt_color" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/num2_with_circle" />
+                        <TextView android:textSize="@dimen/sp_20" android:textColor="@color/primary_txt_color" android:layout_gravity="center_horizontal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/yltp_dlna_tip1_help_txt2" />
+                    </LinearLayout>
+                    <TextView android:textSize="@dimen/sp_16" android:textColor="@color/yltp_tab_primary_color" android:id="@id/dlna_tip1_support_app" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/dp_4" android:text="@string/yltp_dlna_tip1_support_app_txt" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+        <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="0.0dp" android:layout_marginLeft="@dimen/dp_50" android:layout_marginRight="@dimen/dp_30" android:layout_weight="1.0">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content">
+                <ImageView android:layout_gravity="center_vertical" android:layout_width="@dimen/dp_154" android:layout_height="@dimen/dp_160" android:src="@drawable/yltp_dlna_tip1_help_pic3" />
+                <LinearLayout android:layout_gravity="center_vertical" android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginLeft="@dimen/dp_40">
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content">
+                        <TextView android:textSize="@dimen/sp_20" android:textColor="@color/primary_txt_color" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/num3_with_circle" />
+                        <TextView android:textSize="@dimen/sp_20" android:textColor="@color/primary_txt_color" android:layout_gravity="center_horizontal" android:id="@id/dlna_tip1_help_txt3" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/yltp_dlna_tip1_help_txt3" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+</RelativeLayout>

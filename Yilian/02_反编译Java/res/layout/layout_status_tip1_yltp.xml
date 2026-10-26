@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:orientation="vertical" android:background="@drawable/yltp_tab_bg_selector" android:layout_width="match_parent" android:layout_height="match_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <RelativeLayout android:layout_width="match_parent" android:layout_height="0.0dp" android:layout_weight="3.0">
+        <TextView android:textSize="@dimen/sp_20" android:textStyle="bold" android:textColor="@color/yltp_tab_primary_color" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginLeft="@dimen/dp_30" android:layout_marginRight="@dimen/dp_30" android:text="@string/yltp_status_tip1_title" android:layout_centerVertical="true" />
+    </RelativeLayout>
+    <LinearLayout android:id="@id/status_tip1_help" android:layout_width="match_parent" android:layout_height="0.0dp" android:layout_marginLeft="@dimen/dp_30" android:layout_marginRight="@dimen/dp_30" android:layout_weight="7.0">
+        <LinearLayout android:orientation="vertical" android:layout_width="0.0dp" android:layout_height="wrap_content" android:layout_weight="1.0">
+            <TextView android:textSize="@dimen/sp_20" android:textColor="@color/primary_txt_color" android:layout_gravity="center_horizontal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/dp_16" android:text="@string/num1_with_circle" />
+            <ImageView android:layout_gravity="center_horizontal" android:layout_width="@dimen/dp_154" android:layout_height="@dimen/dp_160" android:src="@drawable/yltp_ec_download_app" />
+            <TextView android:textSize="@dimen/sp_20" android:textColor="@color/primary_txt_color" android:gravity="center_horizontal" android:layout_gravity="center_horizontal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/dp_16" android:text="@string/yltp_status_tip1_help_txt1" />
+        </LinearLayout>
+        <LinearLayout android:orientation="vertical" android:layout_width="0.0dp" android:layout_height="wrap_content" android:layout_marginLeft="@dimen/dp_30" android:layout_weight="1.0">
+            <TextView android:textSize="@dimen/sp_20" android:textColor="@color/primary_txt_color" android:layout_gravity="center_horizontal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/dp_16" android:text="@string/num2_with_circle" />
+            <ImageView android:layout_gravity="center_horizontal" android:layout_width="@dimen/dp_154" android:layout_height="@dimen/dp_160" android:src="@drawable/yltp_status_tip1_help_pic2" />
+            <TextView android:textSize="@dimen/sp_20" android:textColor="@color/primary_txt_color" android:gravity="center_horizontal" android:layout_gravity="center_horizontal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/dp_16" android:text="@string/yltp_status_tip1_help_txt2" />
+        </LinearLayout>
+        <LinearLayout android:orientation="vertical" android:layout_width="0.0dp" android:layout_height="wrap_content" android:layout_marginLeft="@dimen/dp_30" android:layout_weight="1.0">
+            <TextView android:textSize="@dimen/sp_20" android:textColor="@color/primary_txt_color" android:layout_gravity="center_horizontal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/dp_16" android:text="@string/num3_with_circle" />
+            <ImageView android:layout_gravity="center_horizontal" android:layout_width="@dimen/dp_154" android:layout_height="@dimen/dp_160" android:src="@drawable/yltp_status_tip1_help_pic3" />
+            <TextView android:textSize="@dimen/sp_20" android:textColor="@color/primary_txt_color" android:gravity="center_horizontal" android:layout_gravity="center_horizontal" android:id="@id/status_tip1_help_txt3" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/dp_16" android:text="@string/yltp_status_tip1_help_txt3_hz" />
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

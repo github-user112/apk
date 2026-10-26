@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="match_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <TextView android:textSize="@dimen/sp_30" android:textColor="@color/pop_dialog_title_text_color" android:gravity="center" android:id="@id/tvTitle" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/dp_26" android:text="This is title" android:layout_marginStart="@dimen/dp_42" android:layout_marginEnd="@dimen/dp_42" />
+    <TextView android:textSize="@dimen/sp_24" android:textColor="@color/pop_dialog_content_text_color" android:gravity="start" android:id="@id/tvContent" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/dp_14" android:text="This is content" android:layout_marginStart="@dimen/dp_42" android:layout_marginEnd="@dimen/dp_42" />
+    <androidx.appcompat.widget.AppCompatCheckBox android:textSize="@dimen/sp_20" android:textColor="@color/pop_dialog_check_box_text_color" android:id="@id/checkBox" android:paddingLeft="@dimen/dp_12" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/dp_18" android:layout_marginBottom="@dimen/dp_20" android:button="@drawable/introduce_checkbox_bg" android:text="This is check box" android:drawablePadding="@dimen/dp_12" android:layout_marginStart="@dimen/dp_42" android:layout_marginEnd="@dimen/dp_42" />
+</LinearLayout>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout android:layout_width="match_parent" android:layout_height="match_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <LinearLayout android:gravity="center_horizontal" android:orientation="vertical" android:id="@id/fragment_about_main_panel" android:layout_width="match_parent" android:layout_height="match_parent">
+        <ImageView android:id="@id/fragment_about_pic" android:layout_width="@dimen/dp_160" android:layout_height="@dimen/dp_160" android:layout_marginTop="@dimen/dp_120" android:src="@drawable/about_logo" />
+        <TextView android:textSize="@dimen/sp_24" android:textColor="@color/primary_txt_color" android:gravity="center" android:id="@id/fragment_about_version_tv" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/dp_18" />
+        <Button android:textSize="@dimen/sp_24" android:textColor="@color/check_update_txt_color" android:gravity="center" android:id="@id/fragment_about_check_update_btn" android:background="@drawable/check_update_btn" android:paddingLeft="@dimen/dp_30" android:paddingRight="@dimen/dp_30" android:layout_width="wrap_content" android:layout_height="@dimen/dp_60" android:layout_marginTop="@dimen/dp_24" android:minWidth="@dimen/dp_300" android:text="@string/check_update_txt" android:textAllCaps="false" />
+        <TextView android:textSize="@dimen/sp_18" android:textColor="@color/vice_txt_color" android:gravity="center" android:id="@id/fragment_about_auth_state" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/dp_18" />
+        <TextView android:textSize="@dimen/sp_24" android:textColor="@color/vice_txt_color" android:gravity="center" android:id="@id/fragment_about_sn_tv" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/dp_30" />
+        <TextView android:textSize="@dimen/sp_18" android:textColor="@color/copyright_txt_color" android:gravity="center" android:id="@id/fragment_about_warning" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/dp_10" android:text="个人体验版，禁止商用" />
+        <TextView android:textSize="@dimen/sp_18" android:textColor="@color/copyright_txt_color" android:gravity="center" android:id="@id/fragment_about_copyright_tv" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/dp_10" android:text="@string/copyright" />
+    </LinearLayout>
+    <TextView android:textSize="@dimen/sp_30" android:textColor="@color/primary_txt_color" android:gravity="center" android:id="@id/fragment_about_disclaimer" android:visibility="gone" android:scrollbars="vertical" android:layout_width="match_parent" android:layout_height="match_parent" android:text="免责声明" />
+    <LinearLayout android:orientation="vertical" android:id="@id/user_set_decode_mode_settings" android:visibility="gone" android:layout_width="match_parent" android:layout_height="wrap_content">
+        <TextView android:textSize="@dimen/sp_30" android:textColor="@color/primary_txt_color" android:gravity="center_vertical" android:layout_gravity="center_horizontal" android:layout_width="wrap_content" android:layout_height="@dimen/dp_120" android:text="@string/enable_decode_mode_settings_text" />
+        <TextView android:background="#19ffffff" android:layout_width="match_parent" android:layout_height="1.0px" />
+        <LinearLayout android:gravity="center_vertical" android:orientation="vertical" android:id="@id/set_android_decode_container" android:visibility="gone" android:layout_width="match_parent" android:layout_height="@dimen/dp_100" android:layout_marginLeft="@dimen/dp_40" android:layout_marginRight="@dimen/dp_40">
+            <FrameLayout android:layout_width="match_parent" android:layout_height="wrap_content">
+                <TextView android:textSize="@dimen/sp_24" android:textColor="@color/primary_txt_color" android:id="@id/user_set_android_decode_text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/enable_android_connect_soft_decode_text" />
+                <CheckBox android:layout_gravity="end" android:id="@id/user_set_android_decode_cb" android:layout_width="wrap_content" android:layout_height="wrap_content" android:button="@drawable/switch_selector" />
+            </FrameLayout>
+            <TextView android:textSize="@dimen/sp_16" android:textColor="@color/vice_txt_color" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/dp_10" android:text="@string/enable_decode_mode_settings_instruction" />
+        </LinearLayout>
+        <TextView android:background="#19ffffff" android:layout_width="match_parent" android:layout_height="1.0px" />
+        <LinearLayout android:gravity="center_vertical" android:orientation="vertical" android:id="@id/set_ios_decode_container" android:visibility="gone" android:layout_width="match_parent" android:layout_height="@dimen/dp_100" android:layout_marginLeft="@dimen/dp_40" android:layout_marginRight="@dimen/dp_40">
+            <FrameLayout android:layout_width="match_parent" android:layout_height="wrap_content">
+                <TextView android:textSize="@dimen/sp_24" android:textColor="@color/primary_txt_color" android:id="@id/user_set_ios_decode_text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/enable_ios_connect_hard_decode_text" />
+                <CheckBox android:layout_gravity="end" android:id="@id/user_set_ios_decode_cb" android:layout_width="wrap_content" android:layout_height="wrap_content" android:button="@drawable/switch_selector" />
+            </FrameLayout>
+            <TextView android:textSize="@dimen/sp_16" android:textColor="@color/vice_txt_color" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/dp_10" android:text="@string/enable_decode_mode_settings_instruction" />
+        </LinearLayout>
+        <TextView android:background="#19ffffff" android:layout_width="match_parent" android:layout_height="1.0px" />
+    </LinearLayout>
+    <RelativeLayout android:layout_width="match_parent" android:layout_height="@dimen/dp_80" android:layout_marginTop="@dimen/dp_16">
+        <ImageButton android:layout_gravity="start|top" android:id="@id/fragment_about_back" android:background="@drawable/back_button" android:layout_width="@dimen/dp_80" android:layout_height="@dimen/dp_80" android:layout_marginLeft="@dimen/dp_10" />
+        <TextView android:textSize="@dimen/sp_24" android:textColor="@color/pop_dialog_positive_btn_text_color" android:gravity="center_vertical" android:layout_gravity="end|top" android:id="@id/fragment_about_custom_service" android:visibility="gone" android:layout_width="wrap_content" android:layout_height="@dimen/dp_80" android:layout_marginRight="@dimen/dp_40" android:text="@string/contact_custom_service" android:layout_alignParentRight="true" android:layout_centerVertical="true" />
+    </RelativeLayout>
+</FrameLayout>

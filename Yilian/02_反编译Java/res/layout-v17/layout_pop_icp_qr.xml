@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:gravity="center" android:orientation="vertical" android:background="@drawable/pop_dialog_custom_service_tabui_shape" android:layout_width="match_parent" android:layout_height="match_parent" app:is_res_replace="true"
+  xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <RelativeLayout android:background="@drawable/yltp_ec_qr_download_app_bg_selector" android:layout_width="@dimen/dp_154" android:layout_height="@dimen/dp_154" android:layout_marginTop="@dimen/dp_40">
+        <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:layout_marginTop="@dimen/dp_2" android:layout_marginBottom="@dimen/dp_2" android:src="@drawable/icp_qr" android:layout_marginStart="@dimen/dp_2" android:layout_marginEnd="@dimen/dp_2" />
+    </RelativeLayout>
+    <TextView android:textSize="@dimen/sp_24" android:textColor="@color/c_t1" android:gravity="center" android:paddingLeft="@dimen/dp_40" android:paddingRight="@dimen/dp_40" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/dp_16" android:text="@string/icp_qr" app:is_res_replace="true" />
+    <LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="@dimen/dp_80" android:layout_marginTop="@dimen/dp_40">
+        <View android:background="@color/c_line" android:layout_width="match_parent" android:layout_height="@dimen/pop_dialog_line_size" app:is_res_replace="true" />
+        <Button android:textSize="@dimen/sp_24" android:textColor="@color/c_light" android:gravity="center" android:id="@id/pop_custom_service_iknow_tv" android:background="@drawable/pop_dialog_custom_service_bg_tabui_selector" android:layout_width="match_parent" android:layout_height="match_parent" android:text="@string/close" android:textAllCaps="false" app:is_res_replace="true" />
+    </LinearLayout>
+</LinearLayout>

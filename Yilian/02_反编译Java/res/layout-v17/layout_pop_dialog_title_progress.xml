@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="match_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <TextView android:textSize="@dimen/sp_30" android:textColor="@color/pop_dialog_title_text_color" android:gravity="center" android:id="@id/tvTitle" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/dp_26" android:layout_marginBottom="@dimen/dp_50" android:text="This is title" android:layout_marginStart="@dimen/dp_42" android:layout_marginEnd="@dimen/dp_42" />
+    <ImageView android:layout_gravity="center" android:id="@id/imgProgress" android:background="@drawable/progress_bg" android:layout_width="@dimen/dp_460" android:layout_height="@dimen/dp_12" android:src="@drawable/pop_dialog_progress_animation" android:layout_marginStart="@dimen/dp_40" android:layout_marginEnd="@dimen/dp_40" />
+    <FrameLayout android:layout_gravity="center_horizontal" android:id="@id/percentContent" android:visibility="gone" android:layout_width="@dimen/dp_460" android:layout_height="wrap_content" android:layout_marginTop="@dimen/dp_5" android:layout_marginBottom="@dimen/dp_40" android:layout_marginStart="@dimen/dp_40" android:layout_marginEnd="@dimen/dp_40">
+        <TextView android:textSize="@dimen/sp_24" android:textColor="@color/pop_dialog_content_text_color" android:ellipsize="end" android:id="@id/newVersionName" android:layout_width="@dimen/dp_300" android:layout_height="wrap_content" android:singleLine="true" />
+        <TextView android:textSize="@dimen/sp_24" android:textColor="@color/pop_dialog_content_text_color" android:gravity="end" android:layout_gravity="end" android:id="@id/downloadPercent" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+    </FrameLayout>
+</LinearLayout>

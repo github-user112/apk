@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:orientation="vertical" android:background="@drawable/pop_dialog_bg" android:layout_width="@dimen/dp_540" android:layout_height="match_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <TextView android:textSize="@dimen/sp_24" android:textColor="@color/yltp_tab_pay_bg_color" android:gravity="center" android:paddingLeft="@dimen/dp_30" android:paddingRight="@dimen/dp_30" android:layout_width="match_parent" android:layout_height="@dimen/dp_80" android:text="@string/yltp_dlna_dialog_support_app" />
+    <WebView android:id="@id/yltp_pop_webview_support_app" android:layout_width="@dimen/dp_540" android:layout_height="@dimen/dp_215" />
+    <Button android:textSize="@dimen/sp_24" android:textColor="@color/yltp_tab_primary_color" android:gravity="center" android:id="@id/yltp_pop_btn_ok" android:background="@drawable/yltp_pop_dialog_btn_bg_selector" android:paddingLeft="@dimen/dp_30" android:paddingRight="@dimen/dp_30" android:layout_width="match_parent" android:layout_height="@dimen/dp_80" android:text="@string/yltp_dlna_dialog_i_know" />
+</LinearLayout>

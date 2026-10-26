@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout android:orientation="vertical" android:id="@id/root_dlna_play" android:layout_width="match_parent" android:layout_height="match_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <FrameLayout android:layout_width="match_parent" android:layout_height="match_parent">
+        <ImageView android:id="@id/view_dlna_image" android:layout_width="match_parent" android:layout_height="match_parent" />
+        <net.easyconn.dlna.ecsdk.EcExoPlayer android:layout_gravity="center" android:id="@id/view_dlna_vedio" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+    </FrameLayout>
+    <RelativeLayout android:id="@id/dlna_layout_loading_mask" android:background="@color/page_bg_color" android:clickable="true" android:layout_width="match_parent" android:layout_height="match_parent">
+        <ImageView android:id="@id/dlna_mask_progress" android:background="@drawable/mask_loading_animation" android:layout_width="@dimen/dp_48" android:layout_height="@dimen/dp_48" android:layout_centerInParent="true" />
+    </RelativeLayout>
+    <RelativeLayout android:id="@id/view_preview_dlan_play" android:background="@color/yltp_tab_dlna_preview_bg_color" android:visibility="gone" android:layout_width="match_parent" android:layout_height="match_parent">
+        <TextView android:textSize="@dimen/dp_60" android:textStyle="bold" android:textColor="@color/primary_txt_color" android:id="@id/tv_time_preview_dlan_pla" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="24:08" android:layout_centerInParent="true" />
+    </RelativeLayout>
+    <RelativeLayout android:gravity="center_horizontal" android:layout_gravity="center" android:id="@id/view_dlna_net_speed" android:background="@drawable/yltp_dlna_net_speed_shape" android:visibility="gone" android:layout_width="@dimen/dp_188" android:layout_height="@dimen/dp_110">
+        <LinearLayout android:gravity="center_horizontal" android:layout_gravity="center" android:orientation="vertical" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_centerInParent="true">
+            <ImageView android:id="@id/iv_loading_dlan_play" android:background="@drawable/yltp_dlna_play_loading" android:visibility="invisible" android:layout_width="@dimen/dp_32" android:layout_height="@dimen/dp_32" />
+            <TextView android:textSize="@dimen/sp_22" android:textColor="@color/primary_txt_color" android:gravity="center" android:id="@id/tv_dlna_net_speed" android:layout_width="@dimen/dp_168" android:layout_height="wrap_content" android:layout_marginTop="@dimen/dp_10" android:text="123" />
+        </LinearLayout>
+    </RelativeLayout>
+    <LinearLayout android:gravity="bottom" android:orientation="vertical" android:layout_width="match_parent" android:layout_height="match_parent">
+        <FrameLayout android:id="@id/control_dlan_play" android:visibility="gone" android:layout_width="match_parent" android:layout_height="0.0dp" android:layout_weight="1.0">
+            <RelativeLayout android:orientation="horizontal" android:background="@drawable/yltp_dlna_title_selector" android:paddingLeft="@dimen/dp_10" android:paddingTop="@dimen/dp_16" android:paddingRight="@dimen/dp_20" android:layout_width="match_parent" android:layout_height="@dimen/dp_96">
+                <ImageView android:id="@id/btn_dlan_play_exit" android:background="@drawable/main_activity_back_btn_bg" android:layout_width="@dimen/dp_80" android:layout_height="@dimen/dp_80" android:layout_alignParentLeft="true" android:layout_centerVertical="true" />
+                <TextView android:textSize="@dimen/sp_22" android:textColor="@color/primary_txt_color" android:ellipsize="end" android:id="@id/tv_dlna_play_title" android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxWidth="@dimen/dp_720" android:singleLine="true" android:layout_centerInParent="true" />
+            </RelativeLayout>
+            <include android:layout_gravity="bottom" android:layout_width="match_parent" android:layout_height="@dimen/dp_96" layout="@layout/layout_bottom_control_dlna_yltp" />
+        </FrameLayout>
+        <LinearLayout android:gravity="center" android:orientation="horizontal" android:id="@id/yltp_dlna_view_go_pay" android:background="@color/yltp_volume_bg_color" android:visibility="gone" android:layout_width="match_parent" android:layout_height="@dimen/dp_60">
+            <TextView android:textSize="@dimen/sp_24" android:textColor="@color/primary_txt_color" android:id="@id/yltp_dlna_tv_count_down_time" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginLeft="@dimen/dp_30" android:text="@string/yltp_fragment_pay_tips" />
+            <TextView android:textSize="@dimen/sp_24" android:textColor="@color/yltp_tab_primary_color" android:id="@id/yltp_dlna_tv_go_pay" android:background="@drawable/yltp_dlna_tv_txt_selector" android:paddingLeft="@dimen/dp_16" android:paddingRight="@dimen/dp_16" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginRight="@dimen/dp_30" android:text="@string/yltp_fragment_pay_at_once" />
+        </LinearLayout>
+    </LinearLayout>
+    <FrameLayout android:layout_gravity="center" android:id="@id/volume_dlan_play" android:background="@drawable/yltp_volume_bg_selector" android:visibility="gone" android:layout_width="@dimen/dp_160" android:layout_height="@dimen/dp_160">
+        <RelativeLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_margin="@dimen/dp_20">
+            <TextView android:textSize="@dimen/dp_60" android:textStyle="bold" android:textColor="@color/primary_txt_color" android:id="@id/tv_dlna_play_volume" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="100" android:layout_centerHorizontal="true" />
+            <TextView android:textSize="@dimen/dp_20" android:textColor="@color/primary_txt_color" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/yltp_dlna_volume" android:layout_alignParentBottom="true" android:layout_centerHorizontal="true" />
+        </RelativeLayout>
+    </FrameLayout>
+</FrameLayout>

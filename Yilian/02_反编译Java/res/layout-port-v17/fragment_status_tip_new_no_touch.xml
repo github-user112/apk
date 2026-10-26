@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout android:layout_width="match_parent" android:layout_height="match_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <LinearLayout android:orientation="vertical" android:background="@drawable/home_img_bg" android:layout_width="match_parent" android:layout_height="match_parent">
+        <RelativeLayout android:layout_width="match_parent" android:layout_height="0.0dp" android:layout_weight="0.6">
+            <LinearLayout android:gravity="center" android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginLeft="@dimen/dp_60" android:layout_marginRight="@dimen/dp_60" android:layout_centerInParent="true" android:layout_marginStart="@dimen/dp_60" android:layout_marginEnd="@dimen/dp_60">
+                <LinearLayout android:layout_gravity="center_horizontal" android:orientation="horizontal" android:id="@id/layout_connection_type" android:background="@drawable/connection_type_bg_normal" android:visibility="gone" android:layout_width="@dimen/dp_360" android:layout_height="@dimen/dp_54" android:layout_marginBottom="@dimen/dp_40">
+                    <RelativeLayout android:id="@id/layout_connection_type_android" android:background="@drawable/connection_type_bg_focus" android:layout_width="0.0dp" android:layout_height="match_parent" android:layout_weight="1.0">
+                        <TextView android:textSize="@dimen/sp_20" android:textStyle="bold" android:textColor="@color/white" android:id="@id/tv_connection_type_android" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/android" android:layout_centerInParent="true" />
+                    </RelativeLayout>
+                    <RelativeLayout android:id="@id/layout_connection_type_ios" android:background="@android:color/transparent" android:layout_width="0.0dp" android:layout_height="match_parent" android:layout_weight="1.0">
+                        <TextView android:textSize="@dimen/sp_20" android:textStyle="bold" android:textColor="@color/white_50" android:id="@id/tv_connection_type_ios" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/ios" android:layout_centerInParent="true" />
+                    </RelativeLayout>
+                </LinearLayout>
+                <RelativeLayout android:id="@id/layout_qr" android:background="@drawable/qr_border_bg_white" android:layout_width="@dimen/dp_154" android:layout_height="@dimen/dp_154" android:layout_centerInParent="true">
+                    <ImageView android:id="@id/iv_status" android:padding="@dimen/dp_8" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitXY" android:layout_centerInParent="true" />
+                </RelativeLayout>
+                <TextView android:textSize="@dimen/sp_20" android:textColor="@color/status_tip_new_blue" android:layout_gravity="center" android:id="@id/tv_device_tag" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/dp_14" />
+                <RelativeLayout android:id="@id/fragment_status_tip_text_part1" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/dp_30">
+                    <ImageView android:id="@id/fragment_status_tip_progressbar" android:background="@drawable/loading_animation" android:visibility="gone" android:layout_width="@dimen/dp_24" android:layout_height="@dimen/dp_24" android:layout_marginRight="@dimen/dp_12" android:layout_toLeftOf="@id/tv_status_tip" android:layout_centerVertical="true" />
+                    <TextView android:textSize="@dimen/sp_24" android:textColor="@color/white" android:gravity="center" android:id="@id/tv_status_tip" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/status_tip_new_confirm_text" android:layout_centerHorizontal="true" />
+                </RelativeLayout>
+            </LinearLayout>
+            <androidx.appcompat.widget.AppCompatImageView android:id="@id/btn_about" android:background="@drawable/main_activity_about_btn_bg" android:layout_width="@dimen/dp_0" android:layout_height="@dimen/dp_0" android:layout_marginTop="@dimen/dp_16" android:layout_marginRight="@dimen/dp_10" android:layout_alignParentTop="true" android:layout_alignParentRight="true" android:layout_marginEnd="@dimen/dp_10" android:layout_alignParentEnd="true" />
+            <ImageView android:id="@id/btn_back" android:background="@drawable/main_activity_back_btn_bg" android:layout_width="@dimen/dp_0" android:layout_height="@dimen/dp_0" android:layout_marginLeft="@dimen/dp_10" android:layout_marginTop="@dimen/dp_16" android:layout_marginStart="@dimen/dp_10" />
+        </RelativeLayout>
+        <RelativeLayout android:layout_width="match_parent" android:layout_height="0.0dp" android:layout_weight="0.4">
+            <androidx.appcompat.widget.AppCompatImageView android:layout_width="match_parent" android:layout_height="@dimen/dp_266" app:srcCompat="@drawable/no_touch_bg" />
+            <androidx.appcompat.widget.AppCompatImageView android:visibility="gone" android:layout_width="@dimen/dp_120" android:layout_height="@dimen/dp_60" android:layout_marginBottom="@dimen/dp_100" android:layout_alignParentBottom="true" android:layout_centerHorizontal="true" app:srcCompat="@drawable/welcome_logo_cn" />
+            <LinearLayout android:orientation="vertical" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginRight="@dimen/dp_16" android:layout_marginBottom="@dimen/dp_40" android:layout_alignParentRight="true" android:layout_alignParentBottom="true" android:layout_marginEnd="@dimen/dp_16" android:layout_alignParentEnd="true">
+                <androidx.appcompat.widget.AppCompatImageView android:id="@id/tag_ap" android:visibility="gone" android:layout_width="@dimen/dp_40" android:layout_height="@dimen/dp_40" android:layout_marginBottom="@dimen/dp_12" android:src="@drawable/tag_ap" />
+                <androidx.appcompat.widget.AppCompatImageView android:id="@id/tag_wifi" android:visibility="gone" android:layout_width="@dimen/dp_40" android:layout_height="@dimen/dp_40" android:layout_marginBottom="@dimen/dp_12" android:src="@drawable/tag_wifi" />
+                <androidx.appcompat.widget.AppCompatImageView android:id="@id/tag_qr" android:visibility="gone" android:layout_width="@dimen/dp_40" android:layout_height="@dimen/dp_40" android:layout_marginBottom="@dimen/dp_12" android:src="@drawable/tag_qr" />
+                <androidx.appcompat.widget.AppCompatImageView android:id="@id/tag_usb" android:visibility="gone" android:layout_width="@dimen/dp_40" android:layout_height="@dimen/dp_40" android:src="@drawable/tag_usb" />
+            </LinearLayout>
+        </RelativeLayout>
+        <LinearLayout android:orientation="horizontal" android:id="@id/fragment_status_tip_text_part2" android:visibility="gone" android:layout_width="wrap_content" android:layout_height="@dimen/dp_120" android:layout_marginTop="@dimen/dp_20" android:layout_centerHorizontal="true">
+            <ImageView android:id="@id/img_vice_status" android:layout_width="@dimen/dp_30" android:layout_height="@dimen/dp_24" android:layout_marginRight="@dimen/dp_12" android:src="@drawable/download" />
+            <TextView android:textSize="@dimen/sp_18" android:textColor="@color/vice_txt_color" android:id="@id/tv_vice_status_tip" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/install_open_tip" />
+        </LinearLayout>
+        <include layout="@layout/fragment_connection_tip" />
+    </LinearLayout>
+    <RelativeLayout android:id="@id/view_loading_mask" android:background="@drawable/home_img_bg" android:focusable="true" android:visibility="gone" android:clickable="true" android:layout_width="match_parent" android:layout_height="match_parent">
+        <ImageView android:id="@id/img_loading_mask" android:background="@drawable/mask_loading_animation" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_centerInParent="true" />
+    </RelativeLayout>
+    <RelativeLayout android:id="@id/layout_no_touch_about" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentLeft="true" android:layout_alignParentBottom="true" android:layout_alignParentStart="true">
+        <include layout="@layout/layout_no_touch_about" />
+    </RelativeLayout>
+</RelativeLayout>

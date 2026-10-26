@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_focused="true">
+        <shape>
+            <solid android:color="@color/float_menu_bg_normal" />
+            <stroke android:width="@dimen/dp_2" android:color="@color/yltp_tab_primary_color" />
+            <corners android:radius="@dimen/dp_4" />
+        </shape>
+    </item>
+    <item android:state_pressed="true" android:drawable="@color/float_menu_bg_press" />
+    <item android:drawable="@color/float_menu_bg_normal" />
+</selector>

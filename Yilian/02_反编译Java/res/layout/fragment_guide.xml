@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout android:clickable="true" android:layout_width="match_parent" android:layout_height="match_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:src="@drawable/tip_bg" android:scaleType="centerCrop" />
+    <ImageView android:background="@drawable/guide_logo" android:layout_width="@dimen/dp_152" android:layout_height="@dimen/dp_36" android:layout_marginLeft="@dimen/dp_30" android:layout_marginTop="@dimen/dp_30" />
+    <TextView android:textSize="@dimen/sp_40" android:textColor="@color/primary_txt_color" android:id="@id/guide_info" android:visibility="gone" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/tip_info" android:layout_alignParentBottom="true" android:layout_centerHorizontal="true" android:lineSpacingExtra="12.0sp" />
+    <RelativeLayout android:layout_width="wrap_content" android:layout_height="@dimen/dp_100" android:layout_alignParentBottom="true">
+        <CheckBox android:id="@id/guide_checkbox" android:background="@drawable/introduce_checkbox_bg" android:layout_width="@dimen/dp_38" android:layout_height="@dimen/dp_38" android:layout_marginLeft="@dimen/dp_42" android:button="@null" android:layout_alignParentLeft="true" android:layout_centerVertical="true" />
+        <TextView android:textSize="@dimen/sp_24" android:textColor="@android:color/white" android:id="@id/guide_text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginLeft="@dimen/dp_16" android:text="@string/no_more_tip" android:layout_toRightOf="@id/guide_checkbox" android:layout_centerVertical="true" />
+        <Button android:id="@id/guide_back" android:background="@drawable/forward_button" android:layout_width="@dimen/dp_60" android:layout_height="@dimen/dp_60" android:layout_marginRight="@dimen/dp_20" android:layout_alignParentRight="true" android:layout_centerVertical="true" />
+    </RelativeLayout>
+</RelativeLayout>

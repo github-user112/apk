@@ -1,0 +1,18 @@
+version: 3.0.3
+apkFileName: 亿连手机互联V7.0.1.apk
+usesFramework:
+  ids:
+  - 1
+sdkInfo:
+  minSdkVersion: 16
+  targetSdkVersion: 28
+versionInfo:
+  versionCode: 1562360
+  versionName: 7.0.1-9011d330b-202404121051
+resourcesInfo:
+  packageId: 127
+doNotCompress:
+- arsc
+- jpg
+- png
+- webp

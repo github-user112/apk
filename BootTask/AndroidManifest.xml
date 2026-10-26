@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.boottask" android:versionCode="47" android:versionName="1.6.40">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.boottask" android:versionCode="48" android:versionName="1.6.41">
     <uses-sdk android:minSdkVersion="8" android:targetSdkVersion="19"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
@@ -20,10 +20,8 @@
         </activity>
         <activity android:name=".EditActivity" android:label="添加规则"/>
         <activity android:name=".AppPickActivity" android:label="选择应用"/>
-        <!-- v1.6.34 首页瘦身：三个二级页（工具箱 / Root 工具 / 已排除嫌疑） -->
-        <activity android:name=".ToolboxActivity" android:label="工具箱"/>
-        <activity android:name=".RootToolsActivity" android:label="Root 工具"/>
-        <activity android:name=".ExcludedActivity" android:label="已排除的嫌疑"/>
+        <!-- v1.6.41 功能减法：只剩「按键与监控」二级页（Root 工具/已排除页已删） -->
+        <activity android:name=".ToolboxActivity" android:label="按键与监控"/>
         <activity android:name=".BootDiagnostics$LogActivity" android:label="日志下载" android:exported="false" android:theme="@android:style/Theme.Black.NoTitleBar"/>
         <!-- v1.6.30 直连免打扰：无障碍服务自动点掉 P2P 配对弹窗。
              v1.6.29 那个 WIFI_P2P_CONNECTION_REQUESTED 接收器已删（4.4 framework 里

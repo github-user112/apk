@@ -85,6 +85,8 @@ public final class BootDiagnostics {
             // v1.6.36：快照头部记录音频状态（各流音量/铃声模式/静音标志），
             // 「开机静音」类问题从此一眼可查，不用空猜
             writer.write("audio=" + MuteGuard.describe(context) + "\n");
+            // v1.6.41：功能开关与运行状态（新版功能的状态一眼可查，不用猜配置）
+            section(writer, "功能开关与运行状态 (v1.6.41)", featureStates(context));
             writer.write("\n--- env recon (v1.4) ---\n");
             writer.flush();
             envRecon(writer);
@@ -119,6 +121,46 @@ public final class BootDiagnostics {
         } finally {
             close(writer);
         }
+    }
+
+    /** v1.6.41：各功能开关与运行状态汇总（排查「功能开没开/生效没」不用回翻 UI） */
+    private static String featureStates(Context context) {
+        StringBuilder sb = new StringBuilder(512);
+        try {
+            sb.append("【开机抢占音源】").append(MediaMute.isBootClaimEnabled(context)
+                    ? "开（" + MediaMute.bootClaimSecs(context) + " 秒）" : "关").append('\n');
+        } catch (Throwable t) {
+            sb.append("【开机抢占音源】读取失败 ").append(t).append('\n');
+        }
+        try {
+            sb.append("【亿连按键转发】\n").append(MediaKeyRelay.statusText(context)).append('\n');
+        } catch (Throwable t) {
+            sb.append("【亿连按键转发】读取失败 ").append(t).append('\n');
+        }
+        try {
+            sb.append("【弹窗自动允许】\n").append(P2pAutoAccept.statusText(context)).append('\n');
+            String[] keys = P2pAutoAccept.sceneKeys(context);
+            sb.append("  触发关键字：").append(keys == null ? "内置 P2P 词表"
+                    : "自定义 " + java.util.Arrays.toString(keys)).append('\n');
+        } catch (Throwable t) {
+            sb.append("【弹窗自动允许】读取失败 ").append(t).append('\n');
+        }
+        try {
+            sb.append("【低速蹲守】开关=").append(RateWatcher.enabled(context))
+                    .append(" 运行=").append(RateWatcher.isRunning())
+                    .append(" 状态=").append(RateWatcher.status()).append('\n');
+        } catch (Throwable t) {
+            sb.append("【低速蹲守】读取失败 ").append(t).append('\n');
+        }
+        try {
+            sb.append("【声音监控】运行=").append(AudioMonitor.isRunning())
+                    .append(" 拦截目标=")
+                    .append(java.util.Arrays.toString(AudioMonitor.blockTargets(context)))
+                    .append(" 最近动作=").append(AudioMonitor.lastAction()).append('\n');
+        } catch (Throwable t) {
+            sb.append("【声音监控】读取失败 ").append(t).append('\n');
+        }
+        return sb.toString();
     }
 
     /** 环境侦查：识别车机上的音源/蓝牙/MCU 相关 app、root 可用性、串口设备。逐段容错。 */
@@ -1309,9 +1351,9 @@ public final class BootDiagnostics {
             // 的日志（10-01 车机日志实锤：logcat 段 233 行全是本 App 自己的 pid，下面这些
             // 系统 tag 一条都出不来）。WiFi 扫描抓现行走主界面『数扫描 60 秒』（SCAN_RESULTS
             // 广播），不依赖 logcat。标签仍保留：若 ROM 放开了读取就能直接看到。
-            writer.write("[v1.6.32 说明] 本 App 只能读自己的 logcat（4.1+ 平台限制，无 READ_LOGS）。\n"
-                    + "[v1.6.32 说明] 下面若无 WifiService/wpa_supplicant 行属正常——后台扫描抓现行\n"
-                    + "[v1.6.32 说明] 请用主界面『① 数扫描 60 秒』（SCAN_RESULTS 广播，免 root）。\n");
+            writer.write("[v1.6.41 说明] 本 App 只能读自己的 logcat（4.1+ 平台限制，无 READ_LOGS）。\n"
+                    + "[v1.6.41 说明] 系统侧 WiFi/扫描日志拿不到属正常；亿连链路现场看\n"
+                    + "[v1.6.41 说明] rate_watcher.txt（低速蹲守常开自动留档）与上方各侦查段。\n");
             process = new ProcessBuilder(
                     "logcat", "-d", "-v", "time", "-s",
                     "BootTask:V",

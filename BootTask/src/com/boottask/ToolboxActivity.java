@@ -20,13 +20,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 /**
- * v1.6.34 工具箱：日常使用类功能从首页挪到这里 ——
- * 我的规则（本 App 核心）/ 开机静音 + 启动声音监控（问题2，已定位嫌疑名单，
- * 等音频时间线闭环）/ 免 root 工具 / 直连免打扰（无障碍自动点配对弹窗）。
+ * v1.6.41：本页只剩「按键与弹窗」+「声音监控」两个页签（规则/声音/工具已全部
+ * 移到首页或直接删除）。整页不滚动：页签预建，切换只换可见性。
  *
- * 编译期约束：stub android.jar 无 org.json；smali 类（RuleStore/Util/EditActivity/
- * AppPickActivity）对 javac 不可见 —— 规则存取走反射（运行时同 dex 必然存在），
- * 组件拉起一律 setClassName 字符串形式。
+ * 编译期约束：stub android.jar 无 org.json；smali 类对 javac 不可见。
  */
 public class ToolboxActivity extends Activity implements View.OnClickListener {
 
@@ -36,9 +33,6 @@ public class ToolboxActivity extends Activity implements View.OnClickListener {
     private Button amPickButton;
     private Button amClearButton;
     private TextView amStatusText;
-    private Button noRootWifiButton;
-    private Button noRootYilianButton;
-    private Button noRootSettingsButton;
     private Button p2pAaOnButton;
     private Button p2pAaOffButton;
     private Button p2pAaSettingsButton;
@@ -49,15 +43,15 @@ public class ToolboxActivity extends Activity implements View.OnClickListener {
     private TextView p2pAaText;
 
     // ---- v1.6.39 页签容器（车机屏不滚动：预建面板，切页签只换可见性）----
-    // 规则/声音已迁入首页「常用」页签；这里只留监控/按键/工具
-    private static final String[] TAB_NAMES = {"监控", "按键", "工具"};
+    // 规则/声音迁入首页；工具模块 v1.6.41 删除——只留按键/监控
+    private static final String[] TAB_NAMES = {"按键", "监控"};
     private Button[] tabButtons;
     private LinearLayout[] panels;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setTitle("工具箱");
+        setTitle("按键与监控");
 
         // v1.6.39：页签化，整页不滚动（车机滚屏卡）。页签栏 + 五个预建面板。
         LinearLayout root = new LinearLayout(this);
@@ -69,14 +63,14 @@ public class ToolboxActivity extends Activity implements View.OnClickListener {
         headRow.setOrientation(LinearLayout.HORIZONTAL);
         headRow.setGravity(Gravity.CENTER_VERTICAL);
         TextView title = new TextView(this);
-        title.setText("工具箱");
+        title.setText("按键与监控");
         title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
         title.setTypeface(Typeface.DEFAULT_BOLD);
         title.setTextColor(Color.rgb(34, 34, 34));
         headRow.addView(title, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         TextView sub = new TextView(this);
-        sub.setText("点页签切换，不用滚屏");
+        sub.setText("按键转发 / 弹窗自动允许 / 声音监控");
         sub.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
         sub.setTextColor(Color.rgb(120, 120, 120));
         LinearLayout.LayoutParams subLp = new LinearLayout.LayoutParams(
@@ -118,9 +112,8 @@ public class ToolboxActivity extends Activity implements View.OnClickListener {
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
             panels[i].setVisibility(View.GONE);
         }
-        buildMonitorPanel(panels[0]);
-        buildKeyPanel(panels[1]);
-        buildToolsPanel(panels[2]);
+        buildKeyPanel(panels[0]);
+        buildMonitorPanel(panels[1]);
         switchTab(0);
         setContentView(root);
 
@@ -158,7 +151,7 @@ public class ToolboxActivity extends Activity implements View.OnClickListener {
         addIn(card, row);
     }
 
-    // ---- 页签一：启动与声音监控 ----
+    // ---- 页签二：启动与声音监控 ----
     private void buildMonitorPanel(LinearLayout p) {
         LinearLayout cAm = card(p, "启动与声音监控",
                 "记录开机后谁被拉起、谁抢音频焦点；设拦截目标后目标一冒头就杀。"
@@ -184,7 +177,7 @@ public class ToolboxActivity extends Activity implements View.OnClickListener {
         addIn(cAm, amStatusText);
     }
 
-    // ---- 页签二：按键与弹窗（直连免打扰 + 亿连上一首/下一首）----
+    // ---- 页签一：按键与弹窗（直连免打扰 + 亿连上一首/下一首）----
     private void buildKeyPanel(LinearLayout p) {
         LinearLayout cAa = card(p, "按键与弹窗",
                 "P2P 配对弹窗自动点「允许」；亿连前台时 上一首/下一首 直接控制手机。"
@@ -230,35 +223,7 @@ public class ToolboxActivity extends Activity implements View.OnClickListener {
         addIn(cAa, p2pAaText);
     }
 
-    // ---- 页签三：免 root 工具 ----
-    private void buildToolsPanel(LinearLayout p) {
-        LinearLayout cNr = card(p, "免 root 工具",
-                "不提权、不改系统文件；写 /etc/ec.conf 那类必须 root 的活在「Root 工具」页。");
-        fillPanel(cNr);
-
-        noRootWifiButton = new Button(this);
-        noRootWifiButton.setText("高性能 WiFi 锁（免 root 版关省电）");
-        noRootWifiButton.setOnClickListener(this);
-
-        noRootYilianButton = new Button(this);
-        noRootYilianButton.setText("重启亿连 / 打开亿连设置");
-        noRootYilianButton.setOnClickListener(this);
-        gridRow(cNr, noRootWifiButton, noRootYilianButton);
-
-        noRootSettingsButton = new Button(this);
-        noRootSettingsButton.setText("打开系统设置（蓝牙/WiFi/显示/开发者选项）");
-        noRootSettingsButton.setOnClickListener(this);
-        addIn(cNr, noRootSettingsButton);
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        updateAmUi();
-        updateAaUi();
-    }
-
-    // ---------------------------------------------------------------- 监控/免打扰状态
+    // ---------------------------------------------------------------- 监控/按键状态
 
     /** v1.6.21：启动与声音监控分区状态 */
     private void updateAmUi() {
@@ -291,6 +256,13 @@ public class ToolboxActivity extends Activity implements View.OnClickListener {
         }
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        updateAmUi();
+        updateAaUi();
+    }
+
     /** v1.6.21：接收 AppPickActivity 选中的拦截目标 */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -319,51 +291,6 @@ public class ToolboxActivity extends Activity implements View.OnClickListener {
                 switchTab(k);
                 return;
             }
-        }
-        if (v == noRootWifiButton) {
-            new AlertDialog.Builder(this)
-                    .setTitle("高性能 WiFi 锁（免 root）")
-                    .setItems(new String[]{
-                            "① 申请高性能锁 + 组播锁（免 root 版关省电）",
-                            "② 释放锁（还原）"},
-                            new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface d, int w) {
-                                    runNoRoot(w == 0 ? 0 : 1);
-                                }
-                            })
-                    .show();
-            return;
-        }
-        if (v == noRootYilianButton) {
-            new AlertDialog.Builder(this)
-                    .setTitle("亿连（免 root）")
-                    .setItems(new String[]{
-                            "① 重启亿连（kill + 重新拉起）",
-                            "② 打开亿连，人肉找画质/分辨率开关"},
-                            new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface d, int w) {
-                                    runNoRoot(w == 0 ? 2 : 3);
-                                }
-                            })
-                    .show();
-            return;
-        }
-        if (v == noRootSettingsButton) {
-            new AlertDialog.Builder(this)
-                    .setTitle("跳到系统设置（第三方 App 改不了，只能人肉点）")
-                    .setItems(new String[]{
-                            "① WLAN 设置（关蓝牙/WiFi 常扫、手动重连 P2P）",
-                            "② 蓝牙设置（关蓝牙排查 2.4G 争抢）",
-                            "③ 显示设置（休眠时间/亮度）",
-                            "④ 开发者选项（保持唤醒等）"},
-                            new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface d, int w) {
-                                    String r = NoRootFixes.openSettings(ToolboxActivity.this, w + 1);
-                                    Toast.makeText(ToolboxActivity.this, r, Toast.LENGTH_LONG).show();
-                                }
-                            })
-                    .show();
-            return;
         }
         if (v == p2pAaOnButton) {
             P2pAutoAccept.setEnabled(this, true);
@@ -468,38 +395,6 @@ public class ToolboxActivity extends Activity implements View.OnClickListener {
             updateAmUi();
             return;
         }
-    }
-
-    /** 免 root 动作（code: 0=高性能锁 1=释放锁 2=重启亿连 3=打开亿连） */
-    private void runNoRoot(final int code) {
-        final Context ctx = this;
-        Toast.makeText(this, "执行中…", Toast.LENGTH_SHORT).show();
-        new Thread(new Runnable() {
-            public void run() {
-                String result;
-                switch (code) {
-                    case 0:
-                        result = NoRootFixes.wifiHighPerf(ctx);
-                        break;
-                    case 1:
-                        result = NoRootFixes.wifiLockRelease(ctx);
-                        break;
-                    case 2:
-                        result = NoRootFixes.restartYilian(ctx);
-                        break;
-                    default:
-                        result = NoRootFixes.openYilian(ctx);
-                        break;
-                }
-                final String r = result;
-                runOnUiThread(new Runnable() {
-                    public void run() {
-                        Toast.makeText(ctx, r.length() > 200 ? r.substring(0, 200) : r,
-                                Toast.LENGTH_LONG).show();
-                    }
-                });
-            }
-        }).start();
     }
 
     // ---------------------------------------------------------------- 尺寸帮手

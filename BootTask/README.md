@@ -5,9 +5,32 @@
 - 包名：`com.boottask`
 - 最低版本：Android 2.2（API 8，实际按 4.4 编写）—— 兼容一切 4.x，**包括 4.4.2 车机**
 - 构建方式：v1.6 起全部 Java/D8 + apktool 合并进单 dex（`build.sh` Linux / `build_win.sh` Windows，v1.6.26 起类清单已改 glob）
-- 成品：`dist/BootTask_v1.6.36.apk`（**纯 v1 签名**，SHA-1 摘要，无 v2/v3 签名块）；历史版本同目录留档
+- 成品：`dist/BootTask_v1.6.46.apk`（**纯 v1 签名**，SHA-1 摘要，无 v2/v3 签名块）；历史版本同目录留档
 - **v1.6.28 起文件功能已整体拆出**：文件管理 / 扫码传 APK / 卸载软件 → 独立 App
   「车机文件管家」（`FileMgr/`，包名 `com.carfiles`），本 App 不再含文件功能
+
+### v1.6.46（USB 连接手机 → 规则触发）
+
+「添加规则」的触发事件下拉新增 **USB 连接手机**（key `usb_phone`），动作照旧可选「打开应用 /
+关闭应用 / 静音 / 取消静音 / 发送广播 / Root 命令」——即插手机上线自动拉起亿连。
+
+- 检测走 Manifest 注册的 `UsbPhoneWatcher`（BroadcastReceiver，App 进程被杀也能收到）：
+  `USB_STATE`（主机口电源态）、`USB_DEVICE_ATTACHED / DETACHED`（MTP/PTP/充电档）、
+  `MEDIA_MOUNTED 路径含 usb`（大容量存储档的手机不冒 DEVICE_ATTACHED，只走这里）。
+  **单独一个 receiver，别往 BootReceiver 加第二个 intent-filter** —— 那会重复触发 boot 规则。
+- 一条线会冒 2~3 个广播 → 只认「无→有」状态跳变 + 60 秒冷却；首次事件只记基线不触发
+  （冷启瞬间可能看到瞬时/内部 USB 设备）；OEM 裁掉 `EXTRA_DEVICE` 时再起 20 秒短轮询
+  `UsbManager` 自证设备，读完自停（无常驻线程）。
+- 新增 `USB_PERMISSION`。**若 OEM 连 `USB_STATE` 一起屏蔽则无法检测**（无 root 无解）。
+- ponytail: 目前任何 USB 设备都触发（U 盘也会）；车机 USB 口日常只插手机。
+  要收紧成「仅手机」，按 `looksLikePhone()` 的 MTP/PTP 判定（0xEF 复合类 / 协议号
+  0x0500-0x0504）加一道闸门即可。
+- 「开机时已插着手机」要拉起 App，请用「开机完成」事件（本事件不认已插状态）。
+- 诊断锚点：日志（下载日志页）搜 `[UsbPhone]` —— `基线 present=` / `收到 USB_STATE state=` /
+  `轮询 设备数=` / `触发被抑制` / `触发规则事件 usb_phone`。
+- 构建复核：versionCode 53 / versionName 1.6.46，条目级 10=10，dex 198924→204172；
+  字符串 `usb_phone` / `USB 连接手机` / `Lcom/boottask/UsbPhoneWatcher;` 均在 dex；
+  Manifest receiver 4 个 action 齐全。**车机实机待验**。
 
 ### v1.6.10（开机静音一键化：不用手动配规则）
 

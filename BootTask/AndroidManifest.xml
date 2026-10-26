@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.boottask" android:versionCode="51" android:versionName="1.6.44">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.boottask" android:versionCode="53" android:versionName="1.6.46">
     <uses-sdk android:minSdkVersion="8" android:targetSdkVersion="19"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <!-- v1.6.46 USB 连接手机事件：部分车机 ROM 要求持本权限才投递 USB 广播 -->
+    <uses-permission android:name="android.permission.USB_PERMISSION"/>
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <uses-permission android:name="android.permission.KILL_BACKGROUND_PROCESSES"/>
     <uses-permission android:name="android.permission.INTERNET"/>
@@ -43,6 +45,18 @@
         <receiver android:name=".BootAudioReceiver" android:exported="true">
             <intent-filter android:priority="2147483646">
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>
+            </intent-filter>
+        </receiver>
+        <!-- v1.6.46 USB 连接手机事件：USB_STATE(主机口电源态) + 设备插拔(MTP/PTP/充电档)
+             + MEDIA_MOUNTED 路径含 usb(大容量存储档的手机不冒 DEVICE_ATTACHED，只走这里)。
+             单独一个 receiver，别往 BootReceiver 加第二个 intent-filter —— 会重复触发 boot 规则。 -->
+        <receiver android:name=".UsbPhoneWatcher" android:exported="false"
+            android:permission="android.permission.USB_PERMISSION">
+            <intent-filter>
+                <action android:name="android.intent.action.USB_STATE"/>
+                <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"/>
+                <action android:name="android.hardware.usb.action.USB_DEVICE_DETACHED"/>
+                <action android:name="android.intent.action.MEDIA_MOUNTED"/>
             </intent-filter>
         </receiver>
         <service android:name=".ExecService"/>

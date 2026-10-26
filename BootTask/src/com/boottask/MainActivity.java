@@ -82,6 +82,13 @@ public class MainActivity extends Activity implements View.OnClickListener,
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         subLp.leftMargin = dip(10);
         headRow.addView(sub, subLp);
+        headRow.addView(new View(this), new LinearLayout.LayoutParams(0, 1, 1f));
+        TextView ver = new TextView(this);
+        ver.setText(versionLabel());
+        ver.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
+        ver.setTypeface(Typeface.DEFAULT_BOLD);
+        ver.setTextColor(ACCENT);
+        headRow.addView(ver, matchWrap());
         root.addView(headRow, matchWrap());
 
         // 内容：横屏双列，整页不滚动
@@ -179,6 +186,15 @@ public class MainActivity extends Activity implements View.OnClickListener,
                       + " 秒静音）——点我改/关"
                     : "开机抢占音源：开机后播静音抢回声音（默认关，点我开）");
         } catch (Throwable ignored) {
+        }
+    }
+
+    private String versionLabel() {
+        try {
+            return "v" + getPackageManager()
+                    .getPackageInfo(getPackageName(), 0).versionName;
+        } catch (Throwable t) {
+            return "v?";
         }
     }
 

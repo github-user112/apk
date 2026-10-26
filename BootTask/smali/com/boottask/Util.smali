@@ -6,7 +6,7 @@
 .method public static eventKeys()[Ljava/lang/String;
     .locals 3
 
-    const/4 v0, 0x3
+    const/4 v0, 0x4
 
     new-array v0, v0, [Ljava/lang/String;
 
@@ -28,6 +28,12 @@
 
     aput-object v2, v0, v1
 
+    const/4 v1, 0x3
+
+    const-string v2, "usb_phone"
+
+    aput-object v2, v0, v1
+
     return-object v0
 .end method
 
@@ -36,7 +42,7 @@
 .method public static eventLabels()[Ljava/lang/String;
     .locals 3
 
-    const/4 v0, 0x3
+    const/4 v0, 0x4
 
     new-array v0, v0, [Ljava/lang/String;
 
@@ -55,6 +61,12 @@
     const/4 v1, 0x2
 
     const-string v2, "屏幕解锁"
+
+    aput-object v2, v0, v1
+
+    const/4 v1, 0x3
+
+    const-string v2, "USB 连接手机"
 
     aput-object v2, v0, v1
 

@@ -39,6 +39,7 @@ public final class MuteGuard {
     private static final String PREFS = "muteguard";
     private static final String KEY_TEMP = "tempActive";
     private static final String KEY_VOLS = "savedVols";
+    private static final String KEY_RINGER = "saved_ringer";
     private static final String KEY_HEALED = "heal_v1636";       // 旧版残留 0 音量的一次性升级自愈
 
     /** 重施时间点（相对 mute() 的毫秒，绝对值） */
@@ -65,6 +66,8 @@ public final class MuteGuard {
     private static volatile long sDeadline = 0L;
     private static volatile long sLastSelfChange = 0L;
     private static volatile int[] sSavedVolumes = null;
+    private static volatile boolean sStreamMuteApplied = false;
+    private static volatile int sSavedRinger = -1;
     private static volatile BroadcastReceiver sReceiver = null;
     private static volatile Thread sGuard = null;
 
@@ -78,15 +81,10 @@ public final class MuteGuard {
         if (app == null) {
             return;
         }
-        boolean fresh;
         synchronized (LOCK) {
-            fresh = !sMuted;
             sMuted = true;
             sTemp = false;
             sDeadline = System.currentTimeMillis() + WATCHDOG_WINDOW_MS;
-        }
-        if (fresh) {
-            captureSaved(app);
         }
         applyAll(app, true, "mute t=0");
         registerWatchdog(app);
@@ -260,7 +258,7 @@ public final class MuteGuard {
 
     // ---------------------------------------------------------------- 内部实现
 
-    private static void applyAll(Context context, String label) {
+    private static void applyAll(Context context, boolean firstPass, String label) {
         AudioManager am = audio(context);
         if (am == null) {
             BootDiagnostics.log(context, "MuteGuard: no AudioManager");
@@ -305,25 +303,11 @@ public final class MuteGuard {
             if (saved == null) {
                 saved = readSavedVols(context);
             }
-            if (saved == null || ringer < 0) {
-                SharedPreferences sp = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
-                String csv = sp.getString(KEY_SAVED, null);
-                if (csv != null) {
-                    String[] parts = csv.split(",");
-                    if (parts.length == STREAMS.length) {
-                        int[] p = new int[STREAMS.length];
-                        for (int i = 0; i < STREAMS.length; i++) {
-                            try {
-                                p[i] = Integer.parseInt(parts[i].trim());
-                            } catch (NumberFormatException e) {
-                                p[i] = 0;
-                            }
-                        }
-                        saved = p;
-                    }
-                }
-                if (ringer < 0) {
-                    ringer = sp.getInt(KEY_RINGER, -1);
+            if (ringer < 0) {
+                try {
+                    ringer = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                            .getInt(KEY_RINGER, -1);
+                } catch (Throwable ignored) {
                 }
             }
             am.setRingerMode((ringer >= 0 && ringer <= 3)
@@ -343,7 +327,6 @@ public final class MuteGuard {
             sSavedVolumes = null;
             sSavedRinger = -1;
             clearTempPrefs(context);
-            clearPersisted(context);
             BootDiagnostics.log(context, "MuteGuard restored " + describe(context));
         } catch (Throwable t) {
             BootDiagnostics.log(context, "MuteGuard restore failed: " + t);
@@ -366,7 +349,7 @@ public final class MuteGuard {
                     if (!sMuted) {
                         return;
                     }
-                    applyAll(app, "t+" + (TICKS[i] / 1000L) + "s");
+                    applyAll(app, false, "t+" + (TICKS[i] / 1000L) + "s");
                 }
                 long tail = sDeadline - System.currentTimeMillis();
                 if (tail > 0) {
@@ -425,7 +408,7 @@ public final class MuteGuard {
                         public void run() {
                             sleepQuietly(250L);
                             if (sMuted) {
-                                applyAll(target, "watchdog");
+                                applyAll(target, false, "watchdog");
                             }
                         }
                     }, "MuteGuard-hit").start();
@@ -481,17 +464,6 @@ public final class MuteGuard {
             app.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
                     .putBoolean(KEY_TEMP, true)
                     .putString(KEY_VOLS, b.toString())
-                    .commit();
-        } catch (Throwable ignored) {
-        }
-    }
-
-    private static void clearPersisted(Context context) {
-        try {
-            context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
-                    .remove(KEY_SAVED)
-                    .remove(KEY_RINGER)
-                    .putBoolean(KEY_LEFTOVER, false)
                     .commit();
         } catch (Throwable ignored) {
         }

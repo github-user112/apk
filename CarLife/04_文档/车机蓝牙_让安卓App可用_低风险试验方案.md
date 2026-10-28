@@ -519,3 +519,136 @@ adb 在这台车机上需要「工程模式开 ADB + 能进 device 模式的 USB
 3. **没开调试**：`#*32279` → ADB 模式 → `95272046`；
 4. **电脑没驱动**：Windows 设备管理器看有没有 `tcc893x` / `Android ADB Interface` 新设备；
 5. **无线 adb 可能本来就开着**：`adb connect <车机IP>:5555` 直接试（部分德赛车机默认开 5555）。
+
+---
+
+## 10. 参考项目：吉利 R621 换栈实战（SP5FWX/geely-r621-carplay）
+
+> 仓库：<https://github.com/SP5FWX/geely-r621-carplay>（Apache-2.0，8 commits，2026）
+> 环境：**吉利第四代帝豪 · ECARX R621 · MT6735 · Android 5.1（API 22）· GKUI19**
+> 状态：**真车端到端验证通过**（蓝牙 `state: 12` → iPhone 配对 → 无线 CarPlay 投屏）
+
+### 10.1 它和我们这台车机是同一类问题（独立印证 C8b）
+
+| 维度 | R621（该项目） | 18 帝豪（本机） |
+|---|---|---|
+| 原车栈 | Barrot / IVT：`brlinkd` + `libbt_platform.so` + `libbrlink.so` | 德赛西威：`com.desay_svautomotive.svbt` + `svbtmanager` |
+| 是否导出 `BluetoothAdapter` | ❌ 不导出，只服务 `com.ivt.bt` 等原车包 | ❌ 不导出，`com.android.bluetooth` 直接缺失 |
+| 第三方 App 表现 | 读不到蓝牙名、配对即崩 | `state=10`、`address=02:00:…`、`name=null` |
+| 芯片通路 | `/dev/stpbt`（brlinkd 改名成 `/dev/ivt_stpbt`） | 待取证（`bt_vendor.conf` / `/dev/ttyS*` / `/proc/*/fd`） |
+| 结论 | **换 AOSP 栈** | **同类，换栈是唯一能让所有 App 用的路** |
+
+这条独立证据很重要：**「厂商私有栈不注册 Android 蓝牙服务」不是我们瞎猜，是同类车机的通病**，
+而且已经有人做成功过一次。
+
+### 10.2 它的方案骨架（四件套）
+
+```
+DiPlay(第三方) → BluetoothAdapter
+   └ com.android.bluetooth   AOSP APK，platform 签名 + persistent=true → UID 1002
+        └ libbluetooth_jni.so
+             └ bluetooth.default.so   AOSP + 2 字节补丁（强制 bte_main_enable）
+                  └ libbt-vendor.so   自己写的 BLUETOOTH_VENDOR_LIB_INTERFACE
+                       └ /dev/stpbt    MT6620 单串口 H4
+   （原车 brlinkd 被替换成占位脚本，保留 /dev 节点权限 + 守护 adbd）
+```
+
+部署顺序（`tools/deploy_hal.py`）：
+**备份 → remount /system → 停 brlinkd → 装 HAL/vendor/JNI → 装 platform 签名的 Bluetooth.apk
+→ 禁用原车蓝牙包 → 清 Bluedroid 状态 → 重启**。`install.sh` 默认 dry-run，`rollback.sh` 按
+manifest 逐文件复原。
+
+### 10.3 六个可以直接抄的坑（每个都有判定依据）
+
+| # | 坑 | 现象 | 我们的对应做法 |
+|---|---|---|---|
+| 1 | HAL 导出的是**全局对象**不是函数 | `unable to find symbol BLUETOOTH_VENDOR_LIB_INTERFACE` | 用 4.4 的 `bluetooth.h` 编译，导出 `const bt_vendor_interface_t BLUETOOTH_VENDOR_LIB_INTERFACE` |
+| 2 | linker 要 **SysV hash + GNU hash** | `dlopen` 静默失败、"加载了但找不到符号" | 编译加 `-Wl,--hash-style=both`（4.4 也要，验证 `readelf -d` 有 `HASH`） |
+| 3 | `BT_VND_OP_FW_CFG` 必须回调 `fwcfg_cb` | `preload_wait_timeout`，5 秒后自动关 | 不需要下固件时**同步回调 SUCCESS** |
+| 4 | `USERIAL_OPEN` 的 4 条通道要指向**同一个 fd** | ACL 数据写进 stdin / EBADF | 单串口 H4 一律 `fds[0..3] = fd` |
+| 5 | **HAL 2 字节补丁**：`btif_core_state` 初值非 0 → `cbz` 跳过 `bte_main_enable` | `enableNative()` 返回 true 但 BTU 任务从不创建，5 秒后 `START_TIMEOUT` 回到 OFF | 4.4 的 `bluetooth.default.so` 若同样"enable 了但没起 BTU"，按同样思路找 `btif_enable_bluetooth` 的 `cbz` 改 `b` |
+| 6 | **必须 UID 1002 + platform 签名 + `persistent=true`** | `SecurityException: not allowed to send broadcast BOND_STATE_CHANGED from uid=10041`，配对瞬间崩 | `sharedUserId="android.uid.bluetooth"` + platform 签名 + `persistent`，装完查 `dumpsys package … | grep userId` = 1002 |
+
+第 5 条尤其值得记：**"enable() 返回 true 但什么都没发生"是有前科的**，
+R621 上就是 HAL 里的一个条件分支把 `bte_main_enable()` 跳过去了。
+我们这台连 `TURNING_ON` 都进不去（更早一层：`com.android.bluetooth` 根本不存在），
+但换栈之后很可能撞上同一个坑。
+
+### 10.4 搬到我们这台车上要改什么（4.4.2 / Broadcom / 德赛西威）
+
+| 项 | R621 | 本机 | 说明 |
+|---|---|---|---|
+| Android | 5.1（API 22） | **4.4.2（KVT49L）** | `Bluetooth.apk`、`bluetooth.default.so` 必须取 **4.4.2 同期**的，不能混用 5.1 |
+| HAL ABI | 5.1 `bt_vendor_callbacks_t`（含 `audio_state_cb`/`epilog_cb`） | 4.4 字段集不同 | **必须用 4.4 的 `hardware/libhardware/include/hardware/bluetooth.h` 编译**，源码不能照搬 |
+| vendor 库 | 自己写 `bt_vendor_mtk.c`（MTK 私有 IPC + `0xFC1A` 写地址） | **AOSP 4.4 自带 `hardware/broadcom/libbt`** | Broadcom 走标准 H4 + `bt_vendor.conf`（UartPort / BaudRate / FwPatch），**不用从零写** |
+| 串口节点 | `/dev/stpbt`（MTK STP） | 待取证（`/dev/ttyS*` / `ttyTCC*`） | 由 `bt_vendor.conf` 的 `UartPort` 决定，**别猜** |
+| 固件 | 已在 `/etc/firmware`，由原栈写入 | 待取证（`/system/etc/firmware/*.hcd`） | BCM 需要 `.hcd` patchram；没有就得从同芯片方案扒 |
+| 原车守护 | `brlinkd`（native 进程，替换成占位脚本） | `com.desay_svautomotive.svbt`（Java 进程） | **Java 进程背后可能还有 native 服务占串口**，必须查 `/proc/<pid>/fd` |
+| 签名 | platform 签名（ROM 自带） | `ro.build.tags=test-keys` | 先验 platform 证书指纹是否 == AOSP 公开 testkey（见 10.5） |
+
+### 10.5 四个 go / no-go 闸门（不满足就别动手）
+
+1. **平台签名**：`android` 包签名证书 SHA-256 是否等于 AOSP testkey
+   `c8a2e9bccf597c2fb6dc66bee293fc13f2fc47ec77bc6b2b0d52c11f51192ab8`？
+   - 等于 → 可以用公开 testkey 签 AOSP `Bluetooth.apk`，**这条路通**；
+   - 不等于 → 必须先拿到本机 `platform.pk8`，否则装上也起不来（UID 1002 + 受保护广播都会失败）。
+   > **BootTask v1.6.48 已自动采这一项**（`平台签名指纹` 段，含判定结论）。
+2. **内核通路**：`/sys/module/hci_uart` 或 `/sys/class/bluetooth` 存在？
+   双无 → 直接 C7/C8，换栈也没用（HAL 打不到芯片）。
+3. **串口归属**：`bt_vendor.conf` 有 `UartPort`，且该节点**没被别的进程独占**（`/proc/*/fd`）。
+   被 SVBT 的 native 侧占着 → 必须先停它，并确认没有看门狗把它拉回来。
+4. **芯片/固件**：确认是 Broadcom 且型号在 AOSP `libbt` 支持列表内（4330/4335/43341/43438…），
+   `/system/etc/firmware` 有对应 `.hcd`。
+
+### 10.6 如果四个闸门都过，改造步骤（照 R621 的顺序，换成 4.4 的件）
+
+```bash
+# 0) 备份（这一步不做完不许往下走）
+adb shell 'mkdir -p /data/local/aosp_bak'
+adb shell 'cp -a /system/app2/SVBT.apk /system/app2/SVBTManager.apk /data/local/aosp_bak/'
+adb shell 'cp -a /system/lib/hw/bluetooth.default.so /data/local/aosp_bak/ 2>/dev/null'
+adb shell 'cp -a /system/lib/libbt-vendor.so /data/local/aosp_bak/ 2>/dev/null'
+adb shell 'ls -l /system/etc/bluetooth > /data/local/aosp_bak/bluetooth_etc.txt'
+
+# 1) 停原车栈（先 stop 不 disable，确认电话还能不能接受）
+adb shell 'am force-stop com.desay_svautomotive.svbt'
+adb shell 'pm disable com.desay_svautomotive.svbt'
+adb shell 'ls -l /proc/*/fd 2>/dev/null | grep -E "ttyS|ttyTCC"'   # 确认串口已释放
+
+# 2) remount /system 可写
+adb shell 'mount -o rw,remount /system'
+
+# 3) 装 4.4.2 的 HAL + vendor 库 + AOSP Bluetooth.apk（platform 签名 + persistent）
+adb push bluetooth.default.so /system/lib/hw/
+adb push libbt-vendor.so      /system/lib/
+adb push bt_vendor.conf       /system/etc/bluetooth/
+adb push Bluetooth.apk        /system/app/Bluetooth/Bluetooth.apk
+adb shell 'chmod 644 /system/lib/hw/bluetooth.default.so /system/lib/libbt-vendor.so'
+adb shell 'chmod 644 /system/app/Bluetooth/Bluetooth.apk'
+
+# 4) 清 Bluedroid 状态（可逆：改名不删）
+adb shell 'mv /data/misc/bluetooth /data/misc/bluetooth.bak; mkdir /data/misc/bluetooth'
+adb shell 'chown bluetooth:bluetooth /data/misc/bluetooth; chmod 770 /data/misc/bluetooth'
+
+# 5) 重启
+adb shell 'sync; reboot'
+```
+
+验收：`dumpsys bluetooth_manager | grep state` → `12`；
+`dumpsys package com.android.bluetooth | grep -E "userId|flags"` → `userId=1002` + `PERSISTENT`；
+第三方 App 的 `BluetoothAdapter.getAddress()` 不再是 `02:00:00:00:00:00`。
+
+### 10.7 代价（该项目自己写明的）
+
+> “修改蓝牙栈后，**原车蓝牙电话/音乐功能会失效**（原车 App 依赖 IVT 栈）；回滚即可恢复。”
+
+这和我们的判断完全一致：**换栈能成功，但代价是原车电话/多媒体蓝牙**。
+R621 的车主能接受，是因为他要的是 CarPlay；如果你不能接受，就别走这条路。
+
+### 10.8 结论
+
+- **参考价值：高**。同类问题、真车验证、坑都踩过了，`install.sh` 的"默认 dry-run + manifest 回滚"值得照抄。
+- **但不是直接可用**：4.4.2 vs 5.1、Broadcom vs MTK、Java 栈 vs native 守护，三处都得重做。
+- **成功率修正**：如果四个闸门全过（尤其 platform 签名 == testkey），换栈成功率可以从 20~35% 上调到 **40~50%**；
+  任一闸门不过，仍然是 0。
+- **仍然要先取证**：`bt_vendor.conf` + `hci_uart` + 串口归属 + 平台签名指纹，四项缺一不可。

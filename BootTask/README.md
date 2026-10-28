@@ -5,9 +5,33 @@
 - 包名：`com.boottask`
 - 最低版本：Android 2.2（API 8，实际按 4.4 编写）—— 兼容一切 4.x，**包括 4.4.2 车机**
 - 构建方式：v1.6 起全部 Java/D8 + apktool 合并进单 dex（`build.sh` Linux / `build_win.sh` Windows，v1.6.26 起类清单已改 glob）
-- 成品：`dist/BootTask_v1.6.46.apk`（**纯 v1 签名**，SHA-1 摘要，无 v2/v3 签名块）；历史版本同目录留档
+- 成品：`dist/BootTask_v1.6.47.apk`（**纯 v1 签名**，SHA-1 摘要，无 v2/v3 签名块）；历史版本同目录留档
 - **v1.6.28 起文件功能已整体拆出**：文件管理 / 扫码传 APK / 卸载软件 → 独立 App
   「车机文件管家」（`FileMgr/`，包名 `com.carfiles`），本 App 不再含文件功能
+
+### v1.6.47（诊断快照新增「蓝牙侦查」段：免 root 定位 BT 栈归属）
+
+车机上报「电话/多媒体蓝牙正常，第三方 App 打不开」，而 adb 经常连不上（要工程模式
+`#*32279` + 数据线 + 驱动三件齐备）。这一段让**普通 App 权限**就能把关键证据采齐。
+
+- `BootDiagnostics.capture()` 在 MCU 段之后追加 `--- bt recon (v1.6.47) ---`，
+  实现在 `btRecon(writer, context)`，全程 try/catch，采不到只写「无/异常」不崩。
+- 采什么（全部免 root）：
+  - `com.android.bluetooth` / SVBT / SVBTManager / svengineering / Broadcom map+pbap 的安装状态
+  - `bluetooth.default.so`、`hciattach`、`brcm_patchram_plus`、`rtk_hciattach`、`bt_vendor.conf`
+    等 30 个关键路径的「有/无 + 大小」
+  - **`bt_vendor.conf` 全文**（厂商原本用哪个串口、哪份固件 —— 换栈唯一正确参数）
+  - `/sys/class/bluetooth/hci0/{address,name,type,bus}`、`/sys/class/rfkill/*/{type,state,name}`
+  - `/sys/module` 过滤 `bt/hci`、`/system/etc/firmware` 里 `.hcd/bcm/rtl`
+  - `BluetoothAdapter` 的 `isEnabled/getState/getAddress/getName/isDiscovering`（与第三方 App 同视角）
+  - `ps` 过滤 svbt、`getprop` 过滤 bt
+- 末段「自动小结（蓝牙）」直接给判读：AOSP 栈缺失 + 厂商栈在跑 + `hci_uart` 在
+  → **C8b（私有栈占用，换栈有原料但会丢电话）**；`hci_uart` 与 `/sys/class/bluetooth` 双无
+  → **C7/C8（Android 侧无通路，软件层到此为止）**。
+- 如实标注拿不到的：`dmesg`、系统 logcat、`/proc/<pid>/fd`、`/data/misc/bluetooth` 内容（需 root）。
+- 构建复核：versionCode 54 / versionName 1.6.47，条目级 10=10，dex 204172→212440；
+  字符串 `bt_vendor.conf` / `自动小结（蓝牙）` / `BluetoothAdapter（App 视角` / `hci_uart` 均在 dex；
+  **车机实机待验**（U 盘 `appsinstall` + `#*95279527` 覆盖安装）。
 
 ### v1.6.46（USB 连接手机 → 规则触发）
 

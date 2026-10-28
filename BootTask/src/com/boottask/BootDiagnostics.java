@@ -106,6 +106,9 @@ public final class BootDiagnostics {
             writer.write("\n--- mcu / audio-source recon (v1.6.11) ---\n");
             writer.flush();
             mcuRecon(writer, reconPackages + "\n" + reconPackages3);
+            writer.write("\n--- bt recon (v1.6.47) ---\n");
+            writer.flush();
+            btRecon(writer, context);
             writer.write("\n--- filtered logcat ---\n");
             writer.flush();
             dumpLogcat(writer);
@@ -1035,6 +1038,261 @@ public final class BootDiagnostics {
 
     private static String[] procKeys(String pkg) {
         return logKeys(pkg);
+    }
+
+    // ------------------------------------------------------------------ v1.6.47 蓝牙侦查
+
+    /**
+     * 免 root 的蓝牙侦查段（给「车机电话/音乐蓝牙正常、第三方 App 打不开」这类问题定性用）。
+     *
+     * <p>为什么不用 adb：本机 adb 需要工程模式 + 数据线，实际经常连不上。下面这些
+     * 全部是普通 App 就能读的（File.exists / 世界可读的 sysfs / PackageManager /
+     * BluetoothAdapter），足以把「芯片在不在 Android 侧、AOSP 栈的家当还在不在」
+     * 这两件最关键的事定死。dmesg / logcat(系统) / /proc/&lt;pid&gt;/fd 需要 root，
+     * 本段会明确写「拿不到」，不会假装拿得到。
+     */
+    private static void btRecon(Writer writer, Context context) {
+        StringBuilder verdict = new StringBuilder(512);
+
+        // 1) AOSP 蓝牙包在不在（最硬的一条：PackageManager 不需要任何权限）
+        String aosp = "(查询失败)";
+        boolean aospPresent = false;
+        try {
+            PackageInfo pi = context.getPackageManager()
+                    .getPackageInfo("com.android.bluetooth", 0);
+            aospPresent = true;
+            aosp = "存在  versionName=" + pi.versionName + "  versionCode=" + pi.versionCode
+                    + "\n  enabled=" + pi.applicationInfo.enabled
+                    + "\n  sourceDir=" + pi.applicationInfo.sourceDir;
+        } catch (android.content.pm.PackageManager.NameNotFoundException e) {
+            aosp = "缺失（NameNotFoundException）→ 系统里没有 AOSP 蓝牙服务";
+        } catch (Throwable t) {
+            aosp = "查询异常: " + t;
+        }
+        section(writer, "AOSP 蓝牙包 com.android.bluetooth", aosp);
+
+        // 2) 厂商私有栈（SVBT / SVBTManager）在不在
+        String[] vendorPkgs = {"com.desay_svautomotive.svbt",
+                "com.desay_svautomotive.svbtmanager",
+                "com.desay_svautomotive.svengineering",
+                "com.broadcom.bt.map", "com.broadcom.bt.pbap"};
+        StringBuilder vs = new StringBuilder();
+        for (String pkg : vendorPkgs) {
+            try {
+                PackageInfo pi = context.getPackageManager().getPackageInfo(pkg, 0);
+                vs.append("[有] ").append(pkg).append("  v").append(pi.versionName)
+                        .append("  ").append(pi.applicationInfo.sourceDir).append("\n");
+            } catch (Throwable t) {
+                vs.append("[无] ").append(pkg).append("\n");
+            }
+        }
+        section(writer, "厂商蓝牙相关包", vs.toString());
+
+        // 3) 关键文件/节点是否存在（这一步就能把 C5/C6/C7 分个大概）
+        String[] paths = {
+                "/system/lib/hw/bluetooth.default.so",
+                "/system/lib/hw/bluetooth.tcc893x.so",
+                "/system/lib/hw/bluetooth.telechips.so",
+                "/system/lib/libbt-vendor.so",
+                "/system/bin/hciattach",
+                "/system/bin/brcm_patchram_plus",
+                "/system/bin/rtk_hciattach",
+                "/system/bin/hciconfig",
+                "/system/bin/hcitool",
+                "/system/bin/bluetoothd",
+                "/system/bin/btld",
+                "/system/etc/bluetooth/bt_vendor.conf",
+                "/system/etc/bluetooth/bt_stack.conf",
+                "/system/etc/bluetooth/bt_config.conf",
+                "/system/etc/firmware",
+                "/data/misc/bluetooth",
+                "/sys/class/bluetooth",
+                "/sys/class/bluetooth/hci0",
+                "/sys/class/bluetooth/hci0/address",
+                "/sys/class/rfkill",
+                "/sys/module/bluetooth",
+                "/sys/module/hci_uart",
+                "/sys/module/btbcm",
+                "/dev/ttyS0", "/dev/ttyS1", "/dev/ttyS2", "/dev/ttyS3", "/dev/ttyS4",
+                "/dev/ttyHS0", "/dev/ttyHS1", "/dev/ttyMT0",
+                "/dev/ttyTCC0", "/dev/ttyTCC1", "/dev/ttyTCC2", "/dev/ttyTCC3",
+                "/dev/socket/bluetooth",
+        };
+        section(writer, "关键文件/设备节点是否存在（免 root）", pathTable(paths));
+
+        // 4) bt_vendor.conf 全文（厂商栈本来打算用哪个串口/哪份固件）
+        section(writer, "bt_vendor.conf（金钥匙：UartPort / 固件路径）",
+                readSmall("/system/etc/bluetooth/bt_vendor.conf", 8192));
+        section(writer, "bt_stack.conf（前 4KB）",
+                readSmall("/system/etc/bluetooth/bt_stack.conf", 4096));
+
+        // 5) sysfs 实况
+        StringBuilder sys = new StringBuilder(512);
+        sys.append("/sys/class/bluetooth: ").append(listDir(new File("/sys/class/bluetooth"))).append("\n");
+        sys.append("/sys/class/bluetooth/hci0: ").append(listDir(new File("/sys/class/bluetooth/hci0"))).append("\n");
+        if (new File("/sys/class/bluetooth/hci0/address").exists()) {
+            sys.append("hci0/address = ").append(trim(readSmall("/sys/class/bluetooth/hci0/address", 256))).append("\n");
+            sys.append("hci0/name    = ").append(trim(readSmall("/sys/class/bluetooth/hci0/name", 256))).append("\n");
+            sys.append("hci0/type    = ").append(trim(readSmall("/sys/class/bluetooth/hci0/type", 256))).append("\n");
+            sys.append("hci0/bus     = ").append(trim(readSmall("/sys/class/bluetooth/hci0/bus", 256))).append("\n");
+        }
+        sys.append("/sys/class/rfkill: ").append(listDir(new File("/sys/class/rfkill"))).append("\n");
+        File rf = new File("/sys/class/rfkill");
+        String[] rfNames = rf.list();
+        if (rfNames != null) {
+            java.util.Arrays.sort(rfNames);
+            for (String n : rfNames) {
+                String base = "/sys/class/rfkill/" + n;
+                sys.append("  ").append(n)
+                        .append("  type=").append(trim(readSmall(base + "/type", 64)))
+                        .append("  state=").append(trim(readSmall(base + "/state", 64)))
+                        .append("  name=").append(trim(readSmall(base + "/name", 128)))
+                        .append("\n");
+            }
+        }
+        sys.append("/sys/module 过滤(bt/hci): ")
+                .append(filterLines(AdvActions.run(new String[]{"ls", "/sys/module"}, 8000L, 16384),
+                        new String[]{"bt", "hci", "blue"}, 30)).append("\n");
+        section(writer, "sysfs 实况（HCI / rfkill / 内核模块）", sys.toString());
+
+        // 6) 固件目录里像蓝牙的文件（.hcd / bcm / rtl）
+        section(writer, "/system/etc/firmware 里像蓝牙/无线的文件",
+                filterLines(AdvActions.run(new String[]{"ls", "-l", "/system/etc/firmware"},
+                        8000L, 24576), new String[]{"hcd", "bt", "bcm", "rtl", "fw"}, 40));
+        section(writer, "/system/bin 里带 hci/bt/blue 的二进制",
+                filterLines(AdvActions.run(new String[]{"ls", "/system/bin"}, 8000L, 32768),
+                        new String[]{"hci", "bt", "blue"}, 40));
+
+        // 7) 框架侧视角（App 自己调 API，不需要 adb/dumpsys）
+        String adapter = "(查询失败)";
+        try {
+            android.bluetooth.BluetoothAdapter ba =
+                    android.bluetooth.BluetoothAdapter.getDefaultAdapter();
+            if (ba == null) {
+                adapter = "getDefaultAdapter() = null（框架认为本机没有蓝牙适配器）";
+            } else {
+                adapter = "getDefaultAdapter() != null\n  isEnabled = " + ba.isEnabled()
+                        + "\n  getState   = " + ba.getState() + "  (10=OFF 11=TURNING_ON 12=ON 13=TURNING_OFF)\n"
+                        + "  getAddress = " + safeAddress(ba) + "\n"
+                        + "  getName    = " + safeName(ba) + "\n"
+                        + "  isDiscovering = " + ba.isDiscovering();
+            }
+        } catch (Throwable t) {
+            adapter = "查询异常: " + t;
+        }
+        section(writer, "BluetoothAdapter（App 视角，等同第三方 App 看到的）", adapter);
+
+        // 8) 进程：厂商栈在不在跑
+        section(writer, "ps 过滤 svbt/bluetooth/bt",
+                filterLines(AdvActions.run(new String[]{"ps"}, 8000L, 32768),
+                        new String[]{"svbt", "bluetooth", "bt.", "krfcomm"}, 30));
+        section(writer, "getprop 过滤 bt/blue",
+                filterLines(AdvActions.run(new String[]{"getprop"}, 8000L, 16384),
+                        new String[]{"bt", "blue"}, 40));
+
+        // 9) 拿不到的（诚实交代，避免误判）
+        section(writer, "本段拿不到的东西（需要 root/adb）",
+                "dmesg（芯片上电/固件下载报错）\n"
+                        + "系统 logcat（BluetoothService/HAL 报错）\n"
+                        + "/proc/<pid>/fd（到底哪个进程占着 /dev/ttySx）\n"
+                        + "/data/misc/bluetooth 里的内容（多数是 600）\n"
+                        + "→ 见「自动小结」里的下一步建议");
+
+        // 10) 自动小结
+        boolean vendorAlive = vendorAlive();
+        verdict.append("AOSP 栈: ").append(aospPresent ? "在" : "缺失").append("\n");
+        verdict.append("厂商栈: ").append(vendorAlive ? "在跑" : "未检出").append("\n");
+        verdict.append("hci0: ")
+                .append(new File("/sys/class/bluetooth/hci0").exists() ? "有" : "无").append("\n");
+        verdict.append("hci_uart 模块: ")
+                .append(new File("/sys/module/hci_uart").exists() ? "有（内核支持 HCI over UART）" : "无").append("\n");
+        boolean tty = false;
+        for (int i = 0; i <= 4; i++) {
+            if (new File("/dev/ttyS" + i).exists()) {
+                tty = true;
+            }
+        }
+        verdict.append("ttyS0-4: ").append(tty ? "有串口节点" : "一个都没有").append("\n\n");
+        if (aospPresent) {
+            verdict.append("→ 判读：AOSP 蓝牙包在，问题更可能在 HAL/权限/栈卡死（C1~C3）。")
+                    .append("下一步（需 adb）：pm enable / chown /data/misc/bluetooth / 重启栈。");
+        } else if (vendorAlive && new File("/sys/module/hci_uart").exists()) {
+            verdict.append("→ 判读：AOSP 栈被厂商栈替换，但内核 HCI/UART 齐全（C8b）。")
+                    .append("换栈有原料，但要停 SVBT 才能腾出芯片 → 电话/多媒体会失效。");
+        } else if (!new File("/sys/module/hci_uart").exists() && !new File("/sys/class/bluetooth").exists()) {
+            verdict.append("→ 判读：Android 侧没有蓝牙通路（C7），芯片大概率归 MCU/C8。软件层到此为止。");
+        } else {
+            verdict.append("→ 判读：介于 C5~C8 之间，需要 bt_vendor.conf + 串口归属才能定死。");
+        }
+        section(writer, "自动小结（蓝牙）", verdict.toString());
+    }
+
+    /** 厂商蓝牙栈进程是否在跑（ps 里能看到 com.desay_svautomotive.svbt） */
+    private static boolean vendorAlive() {
+        try {
+            String ps = AdvActions.run(new String[]{"ps"}, 8000L, 32768);
+            return ps != null && ps.contains("com.desay_svautomotive.svbt");
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
+    private static String safeAddress(android.bluetooth.BluetoothAdapter ba) {
+        try {
+            return String.valueOf(ba.getAddress());
+        } catch (Throwable t) {
+            return "(不可用: " + t + ")";
+        }
+    }
+
+    private static String safeName(android.bluetooth.BluetoothAdapter ba) {
+        try {
+            return String.valueOf(ba.getName());
+        } catch (Throwable t) {
+            return "(不可用: " + t + ")";
+        }
+    }
+
+    /** 逐条列出路径是否存在 + 类型/大小（免 root；不存在也照实写「无」，避免漏看） */
+    private static String pathTable(String[] paths) {
+        StringBuilder sb = new StringBuilder(1024);
+        for (String p : paths) {
+            File f = new File(p);
+            String info;
+            if (!f.exists()) {
+                info = "无";
+            } else if (f.isDirectory()) {
+                info = "目录";
+            } else {
+                info = f.length() + " B" + (f.canRead() ? "" : "（不可读）");
+            }
+            sb.append(f.exists() ? "[有] " : "[无] ")
+                    .append(p).append("  →  ").append(info).append("\n");
+        }
+        return sb.toString();
+    }
+
+    private static String listDir(File dir) {
+        String[] names = dir.list();
+        if (names == null) {
+            return dir.exists() ? "(无法列出)" : "(不存在)";
+        }
+        if (names.length == 0) {
+            return "(空目录)";
+        }
+        java.util.Arrays.sort(names);
+        StringBuilder sb = new StringBuilder();
+        for (String n : names) {
+            if (sb.length() > 0) {
+                sb.append(' ');
+            }
+            sb.append(n);
+        }
+        return sb.toString();
+    }
+
+    private static String trim(String s) {
+        return s == null ? "" : s.replace("\n", "").trim();
     }
 
     // ------------------------------------------------------------------ v1.6.11 MCU 侦查

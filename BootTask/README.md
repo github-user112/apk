@@ -5,9 +5,24 @@
 - 包名：`com.boottask`
 - 最低版本：Android 2.2（API 8，实际按 4.4 编写）—— 兼容一切 4.x，**包括 4.4.2 车机**
 - 构建方式：v1.6 起全部 Java/D8 + apktool 合并进单 dex（`build.sh` Linux / `build_win.sh` Windows，v1.6.26 起类清单已改 glob）
-- 成品：`dist/BootTask_v1.6.47.apk`（**纯 v1 签名**，SHA-1 摘要，无 v2/v3 签名块）；历史版本同目录留档
+- 成品：`dist/BootTask_v1.6.48.apk`（**纯 v1 签名**，SHA-1 摘要，无 v2/v3 签名块）；历史版本同目录留档
 - **v1.6.28 起文件功能已整体拆出**：文件管理 / 扫码传 APK / 卸载软件 → 独立 App
   「车机文件管家」（`FileMgr/`，包名 `com.carfiles`），本 App 不再含文件功能
+
+### v1.6.48（蓝牙侦查段补「平台签名指纹」+ bluetooth 服务归属）
+
+换栈路线（把厂商私有 BT 栈换成 AOSP Bluedroid）的**第一道闸门**是平台签名：
+`com.android.bluetooth` 必须 platform 签名 + `android.uid.bluetooth`（UID 1002），
+否则配对时发 `BOND_STATE_CHANGED` 会被 AMS 拒绝。参考项目
+[SP5FWX/geely-r621-carplay](https://github.com/SP5FWX/geely-r621-carplay) 实测过这个坑。
+
+- 新增 `signatureTable()`：打印 `android` / `com.android.settings` / `com.android.bluetooth` /
+  `com.desay_svautomotive.svbt` / `svbtmanager` 的签名证书 **SHA-256**，
+  并与 AOSP 公开 testkey（`c8a2e9bc…92ab8`）比对，直接给「能/不能自己签」的结论。
+- 新增 `service list 过滤 bluetooth`：看框架里 `bluetooth` 服务到底有没有注册、
+  是不是厂商桩服务（这决定 `enable()` 返回 true 却什么都不做是框架层还是 HAL 层）。
+- 构建复核：versionCode 55 / versionName 1.6.48，条目级 10=10，dex 212440→214160；
+  字符串 `平台签名指纹` / testkey 指纹 / `service list 过滤 bluetooth` 均在 dex；**车机实机待验**。
 
 ### v1.6.47（诊断快照新增「蓝牙侦查」段：免 root 定位 BT 栈归属）
 

@@ -1190,7 +1190,17 @@ public final class BootDiagnostics {
                 filterLines(AdvActions.run(new String[]{"getprop"}, 8000L, 16384),
                         new String[]{"bt", "blue"}, 40));
 
-        // 9) 拿不到的（诚实交代，避免误判）
+        // 9) 平台签名指纹 —— 决定「AOSP Bluetooth.apk 能不能装上并被承认」
+        //    4.4 的 com.android.bluetooth 必须是 platform 签名 + android.uid.bluetooth，
+        //    否则配对时发 BOND_STATE_CHANGED 会被 AMS 拒绝（外部项目实测的经典坑）。
+        section(writer, "平台签名指纹（判断能否用公开 AOSP testkey 签名）", signatureTable(context));
+
+        // 10) 框架里 bluetooth 服务到底是谁注册的（SVBT 桩服务会让 enable() 假成功）
+        section(writer, "service list 过滤 bluetooth",
+                filterLines(AdvActions.run(new String[]{"service", "list"}, 8000L, 32768),
+                        new String[]{"bluetooth"}, 20));
+
+        // 11) 拿不到的（诚实交代，避免误判）
         section(writer, "本段拿不到的东西（需要 root/adb）",
                 "dmesg（芯片上电/固件下载报错）\n"
                         + "系统 logcat（BluetoothService/HAL 报错）\n"
@@ -1198,7 +1208,7 @@ public final class BootDiagnostics {
                         + "/data/misc/bluetooth 里的内容（多数是 600）\n"
                         + "→ 见「自动小结」里的下一步建议");
 
-        // 10) 自动小结
+        // 12) 自动小结
         boolean vendorAlive = vendorAlive();
         verdict.append("AOSP 栈: ").append(aospPresent ? "在" : "缺失").append("\n");
         verdict.append("厂商栈: ").append(vendorAlive ? "在跑" : "未检出").append("\n");
@@ -1225,6 +1235,65 @@ public final class BootDiagnostics {
             verdict.append("→ 判读：介于 C5~C8 之间，需要 bt_vendor.conf + 串口归属才能定死。");
         }
         section(writer, "自动小结（蓝牙）", verdict.toString());
+    }
+
+    /** 平台签名指纹是否等于 AOSP 公开 testkey（true 才有机会自己签 AOSP Bluetooth.apk） */
+    private static String signatureTable(Context context) {
+        String[] pkgs = {"android", "com.android.settings", "com.android.bluetooth",
+                "com.desay_svautomotive.svbt", "com.desay_svautomotive.svbtmanager"};
+        StringBuilder sb = new StringBuilder(512);
+        boolean platformIsTestkey = false;
+        for (String pkg : pkgs) {
+            try {
+                android.content.pm.PackageInfo pi = context.getPackageManager()
+                        .getPackageInfo(pkg, android.content.pm.PackageManager.GET_SIGNATURES);
+                android.content.pm.Signature[] sigs = pi.signatures;
+                if (sigs == null || sigs.length == 0) {
+                    sb.append(pkg).append("  (无签名信息)\n");
+                    continue;
+                }
+                for (int i = 0; i < sigs.length; i++) {
+                    String sha256 = sha256Hex(sigs[i].toByteArray());
+                    sb.append(pkg).append("  sig[").append(i).append("]\n  SHA-256 = ")
+                            .append(sha256).append("\n");
+                    if ("android".equals(pkg) && i == 0) {
+                        platformIsTestkey = AOSP_TESTKEY_SHA256.equalsIgnoreCase(sha256);
+                    }
+                }
+            } catch (Throwable t) {
+                sb.append(pkg).append("  (查不到: ").append(t.getClass().getSimpleName()).append(")\n");
+            }
+        }
+        sb.append("\nAOSP testkey(platform) 的 SHA-256 = ").append(AOSP_TESTKEY_SHA256).append("\n");
+        sb.append("判定：");
+        if (platformIsTestkey) {
+            sb.append("本机 platform 签名 == AOSP testkey → 可以用公开 testkey 给 AOSP Bluetooth.apk 签名（换栈可行）");
+        } else {
+            sb.append("本机 platform 签名 != AOSP testkey → 需要本机 platform.pk8，否则 AOSP Bluetooth.apk 装不上/被拒");
+        }
+        return sb.toString();
+    }
+
+    /** AOSP build/target/product/security/platform.x509.pem 的 SHA-256（公开 testkey，人尽皆知） */
+    private static final String AOSP_TESTKEY_SHA256 =
+            "c8a2e9bccf597c2fb6dc66bee293fc13f2fc47ec77bc6b2b0d52c11f51192ab8";
+
+    private static String sha256Hex(byte[] data) {
+        try {
+            java.security.MessageDigest md = java.security.MessageDigest.getInstance("SHA-256");
+            byte[] d = md.digest(data);
+            StringBuilder sb = new StringBuilder(d.length * 2);
+            for (int i = 0; i < d.length; i++) {
+                int v = d[i] & 0xff;
+                if (v < 16) {
+                    sb.append('0');
+                }
+                sb.append(Integer.toHexString(v));
+            }
+            return sb.toString();
+        } catch (Throwable t) {
+            return "(sha256 失败: " + t + ")";
+        }
     }
 
     /** 厂商蓝牙栈进程是否在跑（ps 里能看到 com.desay_svautomotive.svbt） */

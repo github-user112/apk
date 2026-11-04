@@ -10,6 +10,22 @@
 - **v1.6.28 起文件功能已整体拆出**：文件管理 / 扫码传 APK / 卸载软件 → 独立 App
   「车机文件管家」（`FileMgr/`，包名 `com.carfiles`），本 App 不再含文件功能
 
+### v1.6.54（「添加规则」页重写：下拉 → RadioGroup 单选）
+
+**动机**：车机多媒体套壳弹下拉框体验差（点不中/被套壳截获），用户要求把下拉改成
+单选框。页面两个下拉（触发事件 / 执行动作）都改为 `RadioGroup` 单选，整页 `ScrollView`
+包裹，触点 ≥ 48dp，动作与其联动显隐（broadcast/rootcmd 才显示参数行；open/close 才显示应用行）。
+
+**实现**：smali → Java 重写（`src/com/boottask/EditActivity.java`），删 `EditActivity.smali`。
+JSON 走反射 `newInstance`（stub 无 org.json），`RuleStore.add` 走反射（Java 对 smali 不可见）
+——MainActivity 同套路。事件/动作选项值/文案在 Java 里硬编码为常量（不再经 Util 中转）。
+ExecService 拉起、TvAGToast、未选应用校验、arg 校验全部沿用原逻辑；
+「等待秒数」/「选择应用」/「保存规则」字段不变。
+
+**构建验证**：versionCode 65 / 1.6.54；dist 双包（普通版 sha256 `76ecb8ab…` / 系统版 `06d584ac…`）；
+`EditActivity` 已在 dex 确认、`添加规则`/`保存规则`/`usb_phone`/`打开应用` 字符串全命中；
+**实机待验**：触发与动作各 4/6 项单选可切换、参数/应用行显隐正确、保存后 `rules.xml` 落盘正常。
+
 ### v1.6.53（MuMu 实测复查的四项修复：P1×1 / P3×2 / P2×1）
 
 **P1**（MainActivity）：矮屏（1440x810 muMu / 1024x600 车机）「声音/按键/设备/系统」四卡右列装不下，

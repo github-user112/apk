@@ -62,6 +62,15 @@ public final class BootDiagnostics {
 
     public static void capture(Context context) {
         log(context, "diagnostic snapshot requested");
+        // v1.6.49：打开"下载日志"页时顺带把亿连原生文件日志（/sdcard/logger/logs_*.csv）
+        // 收进 files/log/，随 boottask-logs.zip 一起走 logxfer 管线下载。
+        // 失败只进报告文本，绝不影响诊断快照生成。
+        String yilianReport = null;
+        try {
+            yilianReport = YilianLogCollector.collect(context);
+        } catch (Throwable t) {
+            yilianReport = "收集异常: " + t;
+        }
         Writer writer = null;
         try {
             File dir = logDir(context);
@@ -109,6 +118,15 @@ public final class BootDiagnostics {
             writer.write("\n--- bt recon (v1.6.47) ---\n");
             writer.flush();
             btRecon(writer, context);
+            writer.write("\n--- yilian file logs (v1.6.49) ---\n");
+            writer.flush();
+            section(writer, "亿连文件日志收集 (v1.6.49)", yilianReport);
+            writer.write("\n--- root session probe (v1.6.49) ---\n");
+            writer.flush();
+            section(writer, "root 会话探测 (v1.6.49)", RootSession.probe(context));
+            writer.write("\n--- system state (v1.6.50) ---\n");
+            writer.flush();
+            section(writer, "系统开关/权限/禁用清单 (v1.6.50)", SystemTools.diagnostics(context));
             writer.write("\n--- filtered logcat ---\n");
             writer.flush();
             dumpLogcat(writer);

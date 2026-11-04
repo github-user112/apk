@@ -24,5 +24,11 @@ public class BootAudioReceiver extends BroadcastReceiver {
             context.startService(new Intent(context, YilianWatcher.class));
         } catch (Throwable ignored) {
         }
+        // v1.6.50：把 UI 里维护的「禁用自启清单」在开机时重应用一遍（幂等；
+        // 无系统权限时只记日志）。放在最后：不影响前面的启动链路。
+        try {
+            SystemTools.applyDisabledAtBoot(context);
+        } catch (Throwable ignored) {
+        }
     }
 }

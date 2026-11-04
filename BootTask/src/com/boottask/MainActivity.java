@@ -52,6 +52,11 @@ public class MainActivity extends Activity implements View.OnClickListener,
     private Button keysButton;
     private Button rebootYlButton;
     private Button logButton;
+    private Button adbToggleButton;
+    private TextView adbStatusText;
+    private Button pkgManageButton;
+    private Button hotspotTestButton;
+    private TextView hotspotStatusText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,7 +80,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
         headRow.addView(title, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         TextView sub = new TextView(this);
-        sub.setText("规则 / 开机抢占音源 / 按键转发 / 设备重启");
+        sub.setText("规则 / 开机抢占 / 按键 / 无线ADB / 禁用自启");
         sub.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
         sub.setTextColor(Color.rgb(120, 120, 120));
         LinearLayout.LayoutParams subLp = new LinearLayout.LayoutParams(
@@ -158,6 +163,31 @@ public class MainActivity extends Activity implements View.OnClickListener,
         logButton.setOnClickListener(this);
         addIn(cDev, logButton);
 
+        // v1.6.50 系统开关（需装成系统 App；普通安装点了会得到「需要系统权限」提示）
+        LinearLayout cSys = card(right, "系统", null);
+        adbToggleButton = new Button(this);
+        adbToggleButton.setOnClickListener(this);
+        addIn(cSys, adbToggleButton);
+        adbStatusText = new TextView(this);
+        adbStatusText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11);
+        adbStatusText.setTextColor(Color.rgb(110, 116, 128));
+        adbStatusText.setPadding(0, dip(4), 0, dip(2));
+        addIn(cSys, adbStatusText);
+        pkgManageButton = new Button(this);
+        pkgManageButton.setText("禁用开机自启软件（勾选禁用/恢复）");
+        pkgManageButton.setOnClickListener(this);
+        addIn(cSys, pkgManageButton);
+        // v1.6.52：检测车机能否开热点（会短暂关 WiFi）
+        hotspotTestButton = new Button(this);
+        hotspotTestButton.setText("检测车机能否开热点（会短暂关 WiFi）");
+        hotspotTestButton.setOnClickListener(this);
+        addIn(cSys, hotspotTestButton);
+        hotspotStatusText = new TextView(this);
+        hotspotStatusText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11);
+        hotspotStatusText.setTextColor(Color.rgb(110, 116, 128));
+        hotspotStatusText.setPadding(0, dip(4), 0, dip(2));
+        addIn(cSys, hotspotStatusText);
+
         setContentView(root);
 
         BootDiagnostics.log(this, "MainActivity opened");
@@ -176,6 +206,19 @@ public class MainActivity extends Activity implements View.OnClickListener,
         super.onResume();
         refresh();
         updateMuteUi();
+        refreshSystemUi();
+    }
+
+    /** v1.6.50：无线 ADB 开关文案 + 状态行 */
+    private void refreshSystemUi() {
+        try {
+            int v = SystemTools.adbWifiEnabled(this);
+            adbToggleButton.setText(v == 1
+                    ? "无线 ADB：已开启——点我关闭"
+                    : "无线 ADB：点我默认开启（重启仍生效，端口 5555）");
+            adbStatusText.setText(SystemTools.adbWifiStatus(this));
+        } catch (Throwable ignored) {
+        }
     }
 
     /** v1.6.38：开机抢占音源按钮文案随设置刷新 */
@@ -259,6 +302,33 @@ public class MainActivity extends Activity implements View.OnClickListener,
         if (v == logButton) {
             // 快照抓取（su 探测 + logcat 可达 30s）由 LogActivity.onCreate 的后台线程执行
             startActivity(new Intent(this, BootDiagnostics.LogActivity.class));
+            return;
+        }
+        if (v == adbToggleButton) {
+            final String r = SystemTools.toggleAdbWifi(this);
+            Toast.makeText(this, r, Toast.LENGTH_LONG).show();
+            refreshSystemUi();
+            return;
+        }
+        if (v == pkgManageButton) {
+            startActivity(new Intent(this, PackageEnableActivity.class));
+            return;
+        }
+        if (v == hotspotTestButton) {
+            hotspotStatusText.setText("检测中…（WiFi 可能短暂关闭）");
+            new Thread(new Runnable() {
+                public void run() {
+                    final String r = HotspotCheck.probe(MainActivity.this);
+                    runOnUiThread(new Runnable() {
+                        public void run() {
+                            hotspotStatusText.setText(r);
+                            Toast.makeText(MainActivity.this,
+                                    "检测完成（日志存 files/log/hotspot_check.txt，可下载）",
+                                    Toast.LENGTH_LONG).show();
+                        }
+                    });
+                }
+            }, "hotspot-check").start();
             return;
         }
     }

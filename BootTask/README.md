@@ -5,10 +5,25 @@
 - 包名：`com.boottask`
 - 最低版本：Android 2.2（API 8，实际按 4.4 编写）—— 兼容一切 4.x，**包括 4.4.2 车机**
 - 构建方式：v1.6 起全部 Java/D8 + apktool 合并进单 dex（`build.sh` Linux / `build_win.sh` Windows，v1.6.26 起类清单已改 glob）
-- 成品：`dist/BootTask_v1.6.53.apk`（**纯 v1 签名**，SHA-1 摘要，无 v2/v3 签名块）；
-  **`dist/BootTask_v1.6.53-system.apk`**（**平台 testkey 签名 + sharedUserId=android.uid.system —— 给 test-keys 固件车机的「无损 root」包**，见 v1.6.50-system / v1.6.52 / v1.6.53 三节）；历史版本同目录留档
+- 成品：`dist/BootTask_v1.6.55.apk`（**纯 v1 签名**，SHA-1 摘要，无 v2/v3 签名块）；
+  **`dist/BootTask_v1.6.55-system.apk`**（**平台 testkey 签名 + sharedUserId=android.uid.system —— 给 test-keys 固件车机的「无损 root」包**，见 v1.6.50-system / v1.6.52 / v1.6.53 / v1.6.55 各节）；历史版本同目录留档
 - **v1.6.28 起文件功能已整体拆出**：文件管理 / 扫码传 APK / 卸载软件 → 独立 App
   「车机文件管家」（`FileMgr/`，包名 `com.carfiles`），本 App 不再含文件功能
+
+### v1.6.55（「添加规则」/「选择应用」页面：一行展示多个选项）
+
+**动机**：车机屏点选太费劲，RadioGroup 每项纵向堆叠，页面过长要来回滑。
+
+- 「添加规则」：触发事件（4 项）每行 2 个（2 行），执行动作（6 项）每行 3 个（2 行）；
+  两段选项各省一行半；RadioButton 触点仍 ≥ 44dp。
+- 「选择应用」页：smali ListView（单列） → Java GridView（3 列/行，按 label 排序、按包去重），
+  不再有长列表滑动。
+- 内部：RadioButton 打 tag = 数组下标，递归解析被选中的（容器换成行后指 ID 映射失效）；
+  `AppPickActivity` 新写 Java（删 smali）。page 现在是一屏能看全的尺寸。
+
+**验证**：构建 0 error；versionCode 67/68（普通版/system 版）。**实机待验**：
+「添加规则」两组单选各行都能点、可切到「USB 连接手机」等全集；「选择应用」页 3 列应用列表、
+点选返回上页。
 
 ### v1.6.54（「添加规则」页重写：下拉 → RadioGroup 单选）
 

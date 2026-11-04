@@ -74,9 +74,7 @@ public class EditActivity extends Activity {
         addLabel(rEvent, "触发事件");
         rgEvent = new RadioGroup(this);
         rgEvent.setOrientation(RadioGroup.VERTICAL);
-        for (int i = 0; i < EVENT_LABELS.length; i++) {
-            rgEvent.addView(radio(EVENT_LABELS[i], i == 0));
-        }
+        addRadioRows(rgEvent, EVENT_LABELS, 2);
         rEvent.addView(rgEvent, wrap());
 
         // ---- 执行动作 ----
@@ -86,9 +84,7 @@ public class EditActivity extends Activity {
         addLabel(rAction, "执行动作");
         rgAction = new RadioGroup(this);
         rgAction.setOrientation(RadioGroup.VERTICAL);
-        for (int i = 0; i < ACTION_LABELS.length; i++) {
-            rgAction.addView(radio(ACTION_LABELS[i], i == 0));
-        }
+        addRadioRows(rgAction, ACTION_LABELS, 3);
         rAction.addView(rgAction, wrap());
 
         // 参数（广播填 action；Root 填命令）——只在 broadcast/rootcmd 时可见
@@ -170,14 +166,34 @@ public class EditActivity extends Activity {
 
     // ---------------------------------------------------------------- 视图帮手
 
+    /** 把 labels 每行 perRow 个摆进去（多行），第一个默认选中 */
+    private void addRadioRows(RadioGroup group, String[] labels, int perRow) {
+        int i = 0;
+        while (i < labels.length) {
+            LinearLayout row = new LinearLayout(this);
+            row.setOrientation(LinearLayout.HORIZONTAL);
+            row.setWeightSum(perRow);
+            int end = Math.min(i + perRow, labels.length);
+            for (int j = i; j < end; j++) {
+                RadioButton rb = radio(labels[j], j == 0);
+                rb.setTag(Integer.valueOf(j));
+                LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                        0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+                row.addView(rb, lp);
+            }
+            group.addView(row, wrap());
+            i = end;
+        }
+    }
+
     private RadioButton radio(String label, boolean checked) {
         RadioButton rb = new RadioButton(this);
         rb.setText(label);
-        rb.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+        rb.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
         rb.setTextColor(Color.rgb(34, 34, 34));
         rb.setChecked(checked);
-        rb.setPadding(dp(6), dp(8), dp(6), dp(8));
-        rb.setMinHeight(dp(48));
+        rb.setPadding(dp(4), dp(6), dp(4), dp(6));
+        rb.setMinHeight(dp(44));
         return rb;
     }
 
@@ -213,31 +229,34 @@ public class EditActivity extends Activity {
     }
 
     private String currentEvent() {
-        int idx = rgEvent.getCheckedRadioButtonId();
-        if (idx == View.NO_ID) {
-            return EVENT_KEYS[0];
-        }
-        for (int i = 0; i < rgEvent.getChildCount(); i++) {
-            View child = rgEvent.getChildAt(i);
-            if (child.getId() == idx && i < EVENT_KEYS.length) {
-                return EVENT_KEYS[i];
-            }
-        }
-        return EVENT_KEYS[0];
+        int idx = checkedIndexInternal(rgEvent);
+        return EVENT_KEYS[idx >= 0 ? idx : 0];
     }
 
     private String currentAction() {
-        int idx = rgAction.getCheckedRadioButtonId();
-        if (idx == View.NO_ID) {
-            return ACTION_KEYS[0];
+        int idx = checkedIndexInternal(rgAction);
+        return ACTION_KEYS[idx >= 0 ? idx : 0];
+    }
+
+    /** 递归找被 checked 的 RadioButton 的 tag（它们下标），radio group 子项可能被行容器包着 */
+    private int checkedIndexInternal(View root) {
+        if (root instanceof RadioButton) {
+            RadioButton rb = (RadioButton) root;
+            if (rb.isChecked() && rb.getTag() instanceof Integer) {
+                return (Integer) rb.getTag();
+            }
+            return -1;
         }
-        for (int i = 0; i < rgAction.getChildCount(); i++) {
-            View child = rgAction.getChildAt(i);
-            if (child.getId() == idx && i < ACTION_KEYS.length) {
-                return ACTION_KEYS[i];
+        if (root instanceof ViewGroup) {
+            ViewGroup vg = (ViewGroup) root;
+            for (int i = 0; i < vg.getChildCount(); i++) {
+                int r = checkedIndexInternal(vg.getChildAt(i));
+                if (r >= 0) {
+                    return r;
+                }
             }
         }
-        return ACTION_KEYS[0];
+        return -1;
     }
 
     // ---------------------------------------------------------------- 回调

@@ -27,7 +27,7 @@
 <body>
   <h1>传文件到车机</h1>
   <div class="sub">选一个 APK（或其它文件）传到车机。<br>
-    传完车机会自动安装；没开自动就到车机点「安装最新收到的 APK」。</div>
+    传完车机**不会自动安装**（车机上未勾选「自动安装」），请到车机点「安装最新收到的 APK」。</div>
 
   <label class="pick" id="pickLbl" for="file">＋ 选择文件</label>
   <input type="file" id="file" name="file">
@@ -45,6 +45,18 @@
   var bari = document.getElementById('bari');
   var msg = document.getElementById('msg');
   var cur = null;
+
+  // v1.0.1：URL 里必须带 ?k=xxxx，扫车机屏上的二维码就有了；手输少了 k 直接拒
+  var K = '';
+  try {
+    var m = location.search.match(/[?&]k=([a-z0-9]{8})/i);
+    if (m) { K = m[1]; }
+  } catch (e) { }
+  if (!K) {
+    msg.className = 'msg err';
+    msg.textContent = '缺少访问码 k（请重新扫车机上的二维码，地址里会带 ?k=xxxxxxxx）';
+    go.disabled = true;
+  }
 
   function fmt(n) {
     if (n < 1024) { return n + ' B'; }
@@ -73,7 +85,8 @@
     var fd = new FormData();
     fd.append('file', cur, cur.name);
     var xhr = new XMLHttpRequest();
-    xhr.open('POST', '/upload', true);
+    // v1.0.1：k 从 URL 里读出再带回去，不走「无鉴权上传」
+    xhr.open('POST', '/upload?k=' + encodeURIComponent(K), true);
     xhr.upload.onprogress = function (e) {
       if (e.lengthComputable) {
         var p = Math.round(e.loaded * 100 / e.total);

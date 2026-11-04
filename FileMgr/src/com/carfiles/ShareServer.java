@@ -296,7 +296,7 @@ public final class ShareServer {
         String[] parts = req.split(" ");
         String method = parts.length > 0 ? parts[0] : "GET";
         String target = parts.length > 1 ? parts[1] : "/";
-        Log.i(TAG, "REQ " + req);
+        Log.i(TAG, "REQ " + redactK(req));
 
         String p = target.startsWith("/api/") ? param(target, "k") : null;
         if (target.startsWith("/api/") && (p == null || !p.equals(sKey))) {
@@ -810,14 +810,47 @@ public final class ShareServer {
         }
     }
 
-    /** 浏览器发的 Origin 是否指向别的站点（跨源 CSRF 特征）。curl 等不带 Origin 视为同源 */
+    /** 日志打码 k（避免会话码进 logcat） */
+    private static String redactK(String req) {
+        if (req == null) {
+            return "";
+        }
+        int i = req.indexOf("k=");
+        if (i < 0) {
+            return req;
+        }
+        int end = req.indexOf('&', i + 2);
+        if (end < 0) {
+            end = req.length();
+        }
+        StringBuilder b = new StringBuilder(req);
+        b.replace(i + 2, end, "********");
+        return b.toString();
+    }
+
+    /**
+     * 浏览器发的 Origin 是否指向别的站点（跨源 CSRF 特征）。curl 等不带 Origin 视为同源。
+     * v1.0.1 严格化：必须是 http://<host>:18083（后面只允许 / ? # 或结尾），
+     * 192.168.x.x:180830 / host:18083abc 这类都判为跨源拒绝。
+     */
     private static boolean isCrossOrigin(String origin) {
         if (origin == null || origin.length() == 0) {
             return false;
         }
         String o = origin.toLowerCase(Locale.US);
-        // 形如 http://192.168.49.1:18083 —— 只要是本服务地址就放行
-        return !(o.startsWith("http://") && o.indexOf(":18083") > 0);
+        if (!o.startsWith("http://")) {
+            return true;   // https 的跨源一律拒（本服务是 http）
+        }
+        int p = o.indexOf(":18083");
+        if (p < 0) {
+            return true;   // 不是本服务的端口
+        }
+        int end = p + ":18083".length();
+        if (end >= o.length()) {
+            return false;   // 恰好这个服务
+        }
+        char c = o.charAt(end);
+        return c != '/' && c != '?' && c != '#';
     }
 
     /** "/" 或 "/xxx"（一级目录）——删这些几乎必然是灾难，直接拒 */

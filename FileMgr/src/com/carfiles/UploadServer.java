@@ -49,6 +49,59 @@ public final class UploadServer {
     private static UploadServer sInst;
     private static Context sCtx;
     private static Listener sListener;
+    /** v1.0.1：本次启动的访问码（跟 18083 同规则，扫码时带在 URL 里） */
+    private static volatile String sKey;
+
+    /** 本次启动的访问码（二维码 URL 里带着它） */
+    public static String key() {
+        return sKey;
+    }
+
+    /** 8 位小写字母数字随机码（与 18083 同一规格，鉴权失败强制延迟 300ms） */
+    private static String newKey() {
+        char[] cs = new char[8];
+        java.security.SecureRandom r = new java.security.SecureRandom();
+        for (int i = 0; i < cs.length; i++) {
+            int v = r.nextInt(36);
+            cs[i] = (char) (v < 10 ? '0' + v : 'a' + v - 10);
+        }
+        return new String(cs);
+    }
+
+    /** 从 target 里取参数 k（同 ShareServer.param） */
+    private static String param(String target, String name) {
+        int q = target.indexOf('?');
+        if (q < 0) {
+            return null;
+        }
+        String[] pairs = target.substring(q + 1).split("&");
+        for (int i = 0; i < pairs.length; i++) {
+            int eq = pairs[i].indexOf('=');
+            if (eq <= 0) {
+                continue;
+            }
+            if (pairs[i].substring(0, eq).equals(name)) {
+                try {
+                    String v = pairs[i].substring(eq + 1).replace("+", "%2B");
+                    return java.net.URLDecoder.decode(v, "UTF-8");
+                } catch (Throwable t) {
+                    return pairs[i].substring(eq + 1);
+                }
+            }
+        }
+        return null;
+    }
+
+    /** 手机要访问的地址列表（直连 > WiFi > 热点 > 有线优先），带访问码 */
+    public static String[] uploadUrls() {
+        String[] ips = com.baidu.carlifevehicle.logxfer.LogHttpServer.localIps();
+        String[] urls = new String[ips.length];
+        String k = sKey == null ? "" : sKey;
+        for (int i = 0; i < ips.length; i++) {
+            urls[i] = "http://" + ips[i] + ":" + PORT + "/?k=" + k;
+        }
+        return urls;
+    }
 
     private static volatile String sLastName;
     private static volatile long sLastBytes;
@@ -95,16 +148,6 @@ public final class UploadServer {
         return sLastError;
     }
 
-    /** 手机要访问的地址列表（与日志下载同一套 IP 优先级：直连 > WiFi > 热点 > 有线） */
-    public static String[] uploadUrls() {
-        String[] ips = com.baidu.carlifevehicle.logxfer.LogHttpServer.localIps();
-        String[] urls = new String[ips.length];
-        for (int i = 0; i < ips.length; i++) {
-            urls[i] = "http://" + ips[i] + ":" + PORT;
-        }
-        return urls;
-    }
-
     /** 收件目录：getExternalFilesDir 一定能写（4.4 起无需 WRITE_EXTERNAL_STORAGE） */
     public static File inboxDir() {
         File base = null;
@@ -138,6 +181,8 @@ public final class UploadServer {
         if (mRunning) {
             return;
         }
+        // v1.0.1：每次启动换新码（18083 同规则）；鉴权失败一律延迟 300ms 再应答
+        sKey = newKey();
         try {
             mServer = new ServerSocket();
             mServer.setReuseAddress(true);
@@ -154,6 +199,7 @@ public final class UploadServer {
         } catch (Throwable t) {
             mRunning = false;
             mServer = null;
+            sKey = null;
             Log.e(TAG, "upload server start failed: " + t);
         }
     }
@@ -163,6 +209,7 @@ public final class UploadServer {
             return;
         }
         mRunning = false;
+        sKey = null;
         try {
             if (mServer != null) {
                 mServer.close();
@@ -219,6 +266,26 @@ public final class UploadServer {
                 expectContinue = true;
             }
         }
+
+        String[] parts = req.split(" ");
+        String method = parts.length > 0 ? parts[0] : "GET";
+        String target = parts.length > 1 ? parts[1] : "/";
+        Log.i(TAG, "REQ " + redactK(req));
+
+        // POST /upload 需要访问码 k（v1.0.1）——未授权：300ms 延迟后拒
+        if ("POST".equals(method) && target.startsWith("/upload")) {
+            String k = param(target, "k");
+            if (k == null || !k.equals(sKey)) {
+                try {
+                    Thread.sleep(300L);
+                } catch (InterruptedException ignored) {
+                }
+                respond(s, 403, "text/plain; charset=utf-8",
+                        "需要访问码 k".getBytes("UTF-8"), null);
+                return;
+            }
+        }
+
         if (expectContinue) {
             // 不回应 100-continue，浏览器/curl 会一直等着不发包（表现为上传卡住）
             OutputStream os = s.getOutputStream();
@@ -227,12 +294,29 @@ public final class UploadServer {
         }
 
         boolean post = req.startsWith("POST");
-        Log.i(TAG, "REQ " + req);
         if (post) {
             receiveFile(s, in);
         } else {
             sendUploadPage(s);
         }
+    }
+
+    /** 日志打码：只保留 k 的位数，不泄露会话码 */
+    private static String redactK(String req) {
+        if (req == null) {
+            return "";
+        }
+        int i = req.indexOf("k=");
+        if (i < 0) {
+            return req;
+        }
+        int end = req.indexOf('&', i + 2);
+        if (end < 0) {
+            end = req.length();
+        }
+        StringBuilder b = new StringBuilder(req);
+        b.replace(i + 2, end, "********");
+        return b.toString();
     }
 
     /** 从 assets 读出上传页给手机浏览器；WebView 不可用时至少不会白屏 */

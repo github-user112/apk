@@ -194,11 +194,29 @@ public final class AdvActions {
             }
         }
         if (!exited) {
+            // v1.0.1：destroy() 后再裸 waitFor 会永久挂住（4.4 上 native 进程被 SIGTERM
+            // 挂住不会退——BootTask 的 v1.6.51 同款问题）。改用 daemon 线程 join 1.5s，
+            // 拿不到退出值就按 timeout 返回。
+            final Process p = process;
+            Thread wt = new Thread(new Runnable() {
+                public void run() {
+                    try {
+                        p.waitFor();
+                    } catch (Throwable ignored) {
+                    }
+                }
+            }, "run-wait");
+            wt.setDaemon(true);
+            wt.start();
             try {
-                process.waitFor();
-                exit = process.exitValue();
+                wt.join(1500L);
+            } catch (InterruptedException ignored) {
+            }
+            try {
+                exit = p.exitValue();
                 exited = true;
-            } catch (Throwable ignored) {
+            } catch (Throwable stillRunning) {
+                exit = -1;
             }
         }
         if (builder.length() == 0 && (exited ? exit != 0 : true)) {

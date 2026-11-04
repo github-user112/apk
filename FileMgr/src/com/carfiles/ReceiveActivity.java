@@ -97,10 +97,10 @@ public class ReceiveActivity extends Activity implements UploadServer.Listener {
         root.addView(mState, mw());
 
         mAuto = new CheckBox(this);
-        mAuto.setText("收到后自动安装（有 root 静默装；无 root 拉起系统安装界面）");
+        mAuto.setText("收到后自动安装（默认关；车机点「安装最新收到的 APK」由你手动触发）");
         mAuto.setTextColor(FG);
         mAuto.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
-        mAuto.setChecked(true);
+        mAuto.setChecked(false);
         LinearLayout.LayoutParams alp = mw();
         alp.topMargin = dp(10);
         root.addView(mAuto, alp);

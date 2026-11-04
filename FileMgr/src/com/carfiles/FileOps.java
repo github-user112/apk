@@ -426,30 +426,39 @@ public final class FileOps {
     // ------------------------------------------------------------------ 写操作
 
     /**
-     * 保存文本。root 模式先写 App 私有临时文件再 su cp 过去
-     * （shell 里 echo 重定向处理换行和特殊字符太容易出错，还可能被 SELinux 拦）。
+     * 保存文本。v1.0.1：先写同目录 .tmp 再 renameTo（ec.conf 这类文件写一半掉电 = 半截文件），
+     * 原子替换；renameTo 失败退回直写。
      *
      * @return null = 成功；否则返回错误信息
      */
     public static String writeText(String path, String text) {
         boolean rootMode = !canDirectWrite(path);
         if (!rootMode) {
-            FileOutputStream fos = null;
+            File f = new File(path);
+            File tmp = new File(path + ".carfiles_tmp");
             try {
+                FileOutputStream fos = new FileOutputStream(tmp, false);
+                fos.write(text.getBytes("UTF-8"));
+                fos.flush();
+                fos.close();
+                if (tmp.renameTo(f)) {
+                    return null;
+                }
+                // renameTo 跨 fs/不支持时：退回直写
+                Log.w(TAG, "renameTo failed for " + path + " - fallback to direct write");
                 fos = new FileOutputStream(path, false);
                 fos.write(text.getBytes("UTF-8"));
                 fos.flush();
+                fos.close();
+                tmp.delete();
                 return null;
             } catch (Throwable t) {
+                try {
+                    tmp.delete();
+                } catch (Throwable ignored) {
+                }
                 Log.w(TAG, "writeText: " + t);
                 return String.valueOf(t);
-            } finally {
-                if (fos != null) {
-                    try {
-                        fos.close();
-                    } catch (Throwable ignored) {
-                    }
-                }
             }
         }
         if (!suOk()) {

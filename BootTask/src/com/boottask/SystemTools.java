@@ -25,7 +25,7 @@ import java.util.List;
  * 诊断快照里会显示每个权限的授予状态，一眼能判断系统 App 装没装上。
  *
  * 调用方：
- *   主界面按钮 H -> toggleAdbWifi() / adbWifiStatus()
+ *   主界面顶部状态条 -> ensureWirelessAdbOn() / adbWifiEnabled()
  *   PackageEnableActivity 勾选应用 -> setPackageDisabled()
  *   BootAudioReceiver 开机 -> applyDisabledAtBoot()
  *   BootDiagnostics 诊断段 -> diagnostics()
@@ -88,25 +88,33 @@ public final class SystemTools {
         return sb.toString();
     }
 
-    /** 切换 adb_wifi_enabled；返回给 Toast/日志的结果文本（短） */
-    public static String toggleAdbWifi(Context ctx) {
-        if (!hasSecureSettings(ctx)) {
-            BootDiagnostics.log(ctx, "wireless adb: 无 WRITE_SECURE_SETTINGS（未装系统 App）");
-            return "需要系统 App 权限——请先用 U 盘 appsinstall 覆盖安装（见说明），再回来点这个按钮";
-        }
-        int cur = adbWifiEnabled(ctx);          // 读不出来当 0 处理（行为上按「未开」切过去）
-        int target = cur == 1 ? 0 : 1;
+    /**
+     * v1.6.56：无线 ADB 默认开——装上就自动开，不提供关闭入口。
+     *  - 没权限（未装系统 App）：只报告，不动车机；
+     *  - 有权限 + 已是 1：报告"已开启"；
+     *  - 有权限 + 不是 1：自动写 1，重读一遍验证并报告。
+     */
+    public static String ensureWirelessAdbOn(Context ctx) {
         try {
-            Object ok = writeGlobal(ctx, KEY_ADB_WIFI, target);
-            boolean done = ok instanceof Boolean && ((Boolean) ok).booleanValue();
-            BootDiagnostics.log(ctx, "wireless adb -> " + target + " (write " + (done ? "ok" : "fail") + ")");
-            return target == 1
-                    ? "已开启无线 ADB（adb_wifi_enabled=1）。\n重启车机后仍生效；电脑上：adb connect 车机IP:5555"
-                    : "已关闭无线 ADB（adb_wifi_enabled=0）";
+            if (!hasSecureSettings(ctx)) {
+                BootDiagnostics.log(ctx, "wireless adb ensure: 无 WRITE_SECURE_SETTINGS（未装系统 App）");
+                return "无线 ADB：未授权（需装成系统 App 并重启）";
+            }
+            int v = adbWifiEnabled(ctx);
+            if (v == 1) {
+                return "无线 ADB：已开启（5555，重启后自动生效）";
+            }
+            Object r = writeGlobal(ctx, KEY_ADB_WIFI, 1);
+            boolean ok = r instanceof Boolean && ((Boolean) r).booleanValue();
+            int after = adbWifiEnabled(ctx);
+            BootDiagnostics.log(ctx, "wireless adb auto-enable -> " + (ok ? "ok" : "write failed")
+                    + " (after=" + after + ")");
+            return after == 1
+                    ? "无线 ADB：已自动开启（5555，永久生效）"
+                    : "无线 ADB：自动开启写入失败";
         } catch (Throwable t) {
-            BootDiagnostics.log(ctx, "wireless adb toggle failed: " + t);
-            return "写入被拒绝：" + oneLine(String.valueOf(t))
-                    + "\n（需要系统 App 权限：WRITE_SECURE_SETTINGS）";
+            BootDiagnostics.log(ctx, "wireless adb ensure failed: " + t);
+            return "无线 ADB：自动开启失败";
         }
     }
 

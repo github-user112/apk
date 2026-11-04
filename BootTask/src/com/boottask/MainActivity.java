@@ -52,8 +52,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
     private Button keysButton;
     private Button rebootYlButton;
     private Button logButton;
-    private Button adbToggleButton;
-    private TextView adbStatusText;
+    private TextView adbBanner;
     private Button pkgManageButton;
     private Button hotspotTestButton;
     private TextView hotspotStatusText;
@@ -95,6 +94,18 @@ public class MainActivity extends Activity implements View.OnClickListener,
         ver.setTextColor(ACCENT);
         headRow.addView(ver, matchWrap());
         root.addView(headRow, matchWrap());
+
+        // v1.6.56：无线 ADB 状态条（装上就自动开，不提供关闭；状态常显在最上面）
+        adbBanner = new TextView(this);
+        adbBanner.setText("无线 ADB：检测中…");
+        adbBanner.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
+        adbBanner.setTypeface(Typeface.DEFAULT_BOLD);
+        adbBanner.setTextColor(ACCENT);
+        adbBanner.setBackgroundColor(Color.WHITE);
+        adbBanner.setPadding(dip(10), dip(5), dip(10), dip(5));
+        LinearLayout.LayoutParams banLp = matchWrap();
+        banLp.topMargin = dip(4);
+        root.addView(adbBanner, banLp);
 
         // 内容：横屏双列，整页不滚动
         LinearLayout cols = new LinearLayout(this);
@@ -170,16 +181,8 @@ public class MainActivity extends Activity implements View.OnClickListener,
         logButton.setOnClickListener(this);
         addIn(cDev, logButton);
 
-        // v1.6.50 系统开关（需装成系统 App；普通安装点了会得到「需要系统权限」提示）
+        // v1.6.56 系统分区：无线 ADB 自动开（见顶部状态条），下面是可选动作
         LinearLayout cSys = card(right, "系统", null);
-        adbToggleButton = new Button(this);
-        adbToggleButton.setOnClickListener(this);
-        addIn(cSys, adbToggleButton);
-        adbStatusText = new TextView(this);
-        adbStatusText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11);
-        adbStatusText.setTextColor(Color.rgb(110, 116, 128));
-        adbStatusText.setPadding(0, dip(4), 0, dip(2));
-        addIn(cSys, adbStatusText);
         pkgManageButton = new Button(this);
         pkgManageButton.setText("禁用开机自启软件（勾选禁用/恢复）");
         pkgManageButton.setOnClickListener(this);
@@ -216,16 +219,24 @@ public class MainActivity extends Activity implements View.OnClickListener,
         refreshSystemUi();
     }
 
-    /** v1.6.50：无线 ADB 开关文案 + 状态行 */
+    /** v1.6.56：无线 ADB 状态条 + 自动开（装上即自动开，不提供关闭） */
     private void refreshSystemUi() {
-        try {
-            int v = SystemTools.adbWifiEnabled(this);
-            adbToggleButton.setText(v == 1
-                    ? "无线 ADB：已开启——点我关闭"
-                    : "无线 ADB：点我默认开启（重启仍生效，端口 5555）");
-            adbStatusText.setText(SystemTools.adbWifiStatus(this));
-        } catch (Throwable ignored) {
-        }
+        // 首装/每次回到前台都尝试自动开 —— 需要后台线程，避免 binder 慢调用卡 UI
+        new Thread(new Runnable() {
+            public void run() {
+                final String s = SystemTools.ensureWirelessAdbOn(MainActivity.this);
+                runOnUiThread(new Runnable() {
+                    public void run() {
+                        try {
+                            adbBanner.setText(s);
+                            adbBanner.setTextColor(s.indexOf("已开") >= 0
+                                    ? ACCENT : Color.rgb(176, 69, 40));
+                        } catch (Throwable ignored) {
+                        }
+                    }
+                });
+            }
+        }, "adb-ensure").start();
     }
 
     /** v1.6.38：开机抢占音源按钮文案随设置刷新 */
@@ -309,12 +320,6 @@ public class MainActivity extends Activity implements View.OnClickListener,
         if (v == logButton) {
             // 快照抓取（su 探测 + logcat 可达 30s）由 LogActivity.onCreate 的后台线程执行
             startActivity(new Intent(this, BootDiagnostics.LogActivity.class));
-            return;
-        }
-        if (v == adbToggleButton) {
-            final String r = SystemTools.toggleAdbWifi(this);
-            Toast.makeText(this, r, Toast.LENGTH_LONG).show();
-            refreshSystemUi();
             return;
         }
         if (v == pkgManageButton) {

@@ -30,5 +30,10 @@ public class BootAudioReceiver extends BroadcastReceiver {
             SystemTools.applyDisabledAtBoot(context);
         } catch (Throwable ignored) {
         }
+        // v1.6.56：无线 ADB 开机自动开（幂等：已是 1 只是一次读）
+        try {
+            SystemTools.ensureWirelessAdbOn(context);
+        } catch (Throwable ignored) {
+        }
     }
 }

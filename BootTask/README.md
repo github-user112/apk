@@ -5,10 +5,22 @@
 - 包名：`com.boottask`
 - 最低版本：Android 2.2（API 8，实际按 4.4 编写）—— 兼容一切 4.x，**包括 4.4.2 车机**
 - 构建方式：v1.6 起全部 Java/D8 + apktool 合并进单 dex（`build.sh` Linux / `build_win.sh` Windows，v1.6.26 起类清单已改 glob）
-- 成品：`dist/BootTask_v1.6.55.apk`（**纯 v1 签名**，SHA-1 摘要，无 v2/v3 签名块）；
-  **`dist/BootTask_v1.6.55-system.apk`**（**平台 testkey 签名 + sharedUserId=android.uid.system —— 给 test-keys 固件车机的「无损 root」包**，见 v1.6.50-system / v1.6.52 / v1.6.53 / v1.6.55 各节）；历史版本同目录留档
+- 成品：`dist/BootTask_v1.6.56.apk`（**纯 v1 签名**，SHA-1 摘要，无 v2/v3 签名块）；
+  **`dist/BootTask_v1.6.56-system.apk`**（**平台 testkey 签名 + sharedUserId=android.uid.system —— 给 test-keys 固件车机的「无损 root」包**，见 v1.6.50-system / v1.6.52 / v1.6.53 / v1.6.55 / v1.6.56 各节）；历史版本同目录留档
 - **v1.6.28 起文件功能已整体拆出**：文件管理 / 扫码传 APK / 卸载软件 → 独立 App
   「车机文件管家」（`FileMgr/`，包名 `com.carfiles`），本 App 不再含文件功能
+
+### v1.6.56（无线 ADB：装上即自动开，不提供开关，首页常显状态）
+
+**行为改动**：
+- 移除「无线 ADB：点我开启/关闭」按钮——**没有关的选项**；
+- MainActivity 顶部增加一行 **无线 ADB 状态横幅（常驻）**：白底 + 主题蓝字；
+  每次回到 onResume 会在后台**自动尝试设置 adb_wifi_enabled=1**（有系统权限时）；
+- BootAudioReceiver（开机 BOOT_COMPLETED）也走一遍 `ensureWirelessAdbOn`：车机重启后 App 没开它也生效；
+- 普通安装（未装成系统 App）：横幅显示「无线 ADB：未授权（需装成系统 App 并重启）」，不抛异常不崩。
+
+**验证**：构建 0 error；versionCode 69/70（普通/system）；**实机待验**：
+「装上 system 包 → 开 App 顶部应出现『已自动开启』；重启车机看横幅仍是『已开启』；电脑 adb connect 车机IP:5555 应能连」。
 
 ### v1.6.55（「添加规则」/「选择应用」页面：一行展示多个选项）
 

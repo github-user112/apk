@@ -5,10 +5,30 @@
 - 包名：`com.boottask`
 - 最低版本：Android 2.2（API 8，实际按 4.4 编写）—— 兼容一切 4.x，**包括 4.4.2 车机**
 - 构建方式：v1.6 起全部 Java/D8 + apktool 合并进单 dex（`build.sh` Linux / `build_win.sh` Windows，v1.6.26 起类清单已改 glob）
-- 成品：`dist/BootTask_v1.6.56.apk`（**纯 v1 签名**，SHA-1 摘要，无 v2/v3 签名块）；
-  **`dist/BootTask_v1.6.56-system.apk`**（**平台 testkey 签名 + sharedUserId=android.uid.system —— 给 test-keys 固件车机的「无损 root」包**，见 v1.6.50-system / v1.6.52 / v1.6.53 / v1.6.55 / v1.6.56 各节）；历史版本同目录留档
+- 成品：`dist/BootTask_v1.6.57.apk`（**纯 v1 签名**，SHA-1 摘要，无 v2/v3 签名块）；
+  **`dist/BootTask_v1.6.57-system.apk`**（**平台 testkey 签名 + sharedUserId=android.uid.system —— 给 test-keys 固件车机的「无损 root」包**，见 v1.6.50-system / v1.6.52 / v1.6.53 / v1.6.55 / v1.6.56 / v1.6.57 各节）；历史版本同目录留档
 - **v1.6.28 起文件功能已整体拆出**：文件管理 / 扫码传 APK / 卸载软件 → 独立 App
   「车机文件管家」（`FileMgr/`，包名 `com.carfiles`），本 App 不再含文件功能
+
+### v1.6.57（应用选择：统一共享组件——「添加规则」与「禁用开机自启」都用它）
+
+**动机**：两个地方都需要「在车机屏选应用」，已有两个实现——「添加规则」选应用（作为规则目标包）、
+「禁用开机自启」勾选一批禁用。合并成一个 `AppPickActivity`，参数化。
+
+**`AppPickActivity`（共享应用选择器）**：
+- extras：`mode=pick_one|multi` × `filter=launcher|third_party` × `title` × `selected`（多选预勾选）
+- 共用：GridView **3 列一行**、按 label 排序、按包名去重，一屏看全、尽量不滚动；
+- `pick_one`：点格 → 返回 `pkg`（「添加规则」页点击「选择应用」进来时就这种模式）；
+- `multi`：每格右侧 checkbox（整行可击），点「确定选择」→ 返回 `pkgs`（String[]）。
+
+**`PackageEnableActivity`（禁用开机自启）**：
+- 原列表页不再嵌内格，改成两个按钮：「📋 选择要禁用/停用的应用」→ 启动 mode=multi picker；
+- 选完返回后按 diff：新选上的→DISABLED_USER，之前禁用里被取消的→DEFAULT 恢复；
+- 「全部恢复启用」按钮保留；顶部展示「已授权（系统App）/ 未系统 App」、「已禁用 N 个包」与包名列表；
+- 无系统权限时按钮内部也会拒绝（普通安装点提示生效，不会影响车机）。
+
+**验证**：构建 0 error；versionCode 71/72（普通版/system 版）；**实机待验**：
+「添加规则 → 选 open/close → 入口选项正常；禁用自启 → 勾选/取消勾选后正常 - 返回列表当前禁用清单刷新」。
 
 ### v1.6.56（无线 ADB：装上即自动开，不提供开关，首页常显状态）
 

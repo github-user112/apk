@@ -61,3 +61,6 @@ desktop.ini
 # BootTask 构建日志（临时产物）
 BootTask/_build_*.log
 BootTask/build_*.log
+
+# 车机日志（脱敏；不入库）
+BootTask/carlogs/

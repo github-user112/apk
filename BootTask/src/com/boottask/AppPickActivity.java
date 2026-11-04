@@ -52,12 +52,13 @@ public class AppPickActivity extends Activity {
 
     private String mMode = "pick_one";
     private String mFilter = "launcher";
-    private String mSubTitle = "点击一个应用返回上一页";
+    private String mSubTitle = "勾选后点「确定」返回";
     private final List<AppEntry> mItems = new ArrayList<AppEntry>();
-    private final Set<Integer> mChecked = new HashSet<Integer>();          // 下标集合（渲染用）
+    private final Set<Integer> mChecked = new HashSet<Integer>();          // pick_one 记 -1 个；multi 记索引集合
     private final Set<String>  mSelectedPkgs = new HashSet<String>();     // pkg 集合（返回用）
     private TextView mCount;
     private AppAdapter mAdapter;
+    private Button mDoneButton;
 
     static final class AppEntry {
         String pkg;
@@ -109,35 +110,36 @@ public class AppPickActivity extends Activity {
             @Override
             public void onItemClick(android.widget.AdapterView<?> parent, View view,
                                     int position, long id) {
-                if ("multi".equals(mMode)) {
-                    toggleAt(position);
-                } else {
-                    Intent data = new Intent();
-                    data.putExtra(EXTRA_PKG, mItems.get(position).pkg);
-                    setResult(RESULT_OK, data);
-                    finish();
-                }
+                toggleAt(position);
             }
         });
         LinearLayout.LayoutParams glp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f);
         root.addView(grid, glp);
 
-        if ("multi".equals(mMode)) {
-            Button done = new Button(this);
-            done.setText("确定选择");
-            done.setTextColor(Color.WHITE);
-            done.setBackgroundColor(ACCENT);
-            done.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    finishMulti();
+        // v1.6.58：单选和多选都用「确定」返回（点格只选不退）
+        Button done = new Button(this);
+        done.setText("确定");
+        done.setTextColor(Color.WHITE);
+        done.setBackgroundColor(ACCENT);
+        done.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mChecked.isEmpty()) {
+                    Toast.makeText(AppPickActivity.this, "未选任何应用", Toast.LENGTH_SHORT).show();
+                    return;
                 }
-            });
-            LinearLayout.LayoutParams dlp = matchWrap();
-            dlp.topMargin = dp(8);
-            root.addView(done, dlp);
-        }
+                if ("multi".equals(mMode)) {
+                    finishMulti();
+                } else {
+                    finishOne();
+                }
+            }
+        });
+        LinearLayout.LayoutParams dlp = matchWrap();
+        dlp.topMargin = dp(8);
+        root.addView(done, dlp);
+        mDoneButton = done;
 
         setContentView(root);
         loadAppsAsync(grid);
@@ -175,17 +177,48 @@ public class AppPickActivity extends Activity {
     private void toggleAt(int position) {
         Integer key = Integer.valueOf(position);
         String pkg = mItems.get(position).pkg;
-        if (mChecked.contains(key)) {
-            mChecked.remove(key);
-            mSelectedPkgs.remove(pkg);
+        if ("multi".equals(mMode)) {
+            if (mChecked.contains(key)) {
+                mChecked.remove(key);
+                mSelectedPkgs.remove(pkg);
+            } else {
+                mChecked.add(key);
+                mSelectedPkgs.add(pkg);
+            }
         } else {
+            mChecked.clear();
+            mSelectedPkgs.clear();
             mChecked.add(key);
             mSelectedPkgs.add(pkg);
         }
         updateCount();
+        if (mDoneButton != null) {
+            mDoneButton.setText(doneText());
+            if (mMode.equals("pick_one")) {
+                mDoneButton.setBackgroundColor(ACCENT);
+            }
+        }
         if (mAdapter != null) {
             mAdapter.notifyDataSetChanged();
         }
+    }
+
+    private String doneText() {
+        if ("multi".equals(mMode)) {
+            return mChecked.isEmpty() ? "确定（未选）" : ("确定（已选 " + mChecked.size() + "）");
+        }
+        return "确定";
+    }
+
+    private void finishOne() {
+        String pkg = null;
+        for (Integer idx : mChecked) {
+            pkg = mItems.get(idx).pkg;
+        }
+        Intent data = new Intent();
+        data.putExtra(EXTRA_PKG, pkg);
+        setResult(RESULT_OK, data);
+        finish();
     }
 
     private void updateCount() {

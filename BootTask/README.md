@@ -5,10 +5,22 @@
 - 包名：`com.boottask`
 - 最低版本：Android 2.2（API 8，实际按 4.4 编写）—— 兼容一切 4.x，**包括 4.4.2 车机**
 - 构建方式：v1.6 起全部 Java/D8 + apktool 合并进单 dex（`build.sh` Linux / `build_win.sh` Windows，v1.6.26 起类清单已改 glob）
-- 成品：`dist/BootTask_v1.6.57.apk`（**纯 v1 签名**，SHA-1 摘要，无 v2/v3 签名块）；
-  **`dist/BootTask_v1.6.57-system.apk`**（**平台 testkey 签名 + sharedUserId=android.uid.system —— 给 test-keys 固件车机的「无损 root」包**，见 v1.6.50-system / v1.6.52 / v1.6.53 / v1.6.55 / v1.6.56 / v1.6.57 各节）；历史版本同目录留档
+- 成品：`dist/BootTask_v1.6.58.apk`（**纯 v1 签名**，SHA-1 摘要，无 v2/v3 签名块）；
+  **`dist/BootTask_v1.6.58-system.apk`**（**平台 testkey 签名 + sharedUserId=android.uid.system —— 给 test-keys 固件车机的「无损 root」包**，见 v1.6.50-system / v1.6.52 / v1.6.53 / v1.6.55 / v1.6.56 / v1.6.57 / v1.6.58 各节）；历史版本同目录留档
 - **v1.6.28 起文件功能已整体拆出**：文件管理 / 扫码传 APK / 卸载软件 → 独立 App
   「车机文件管家」（`FileMgr/`，包名 `com.carfiles`），本 App 不再含文件功能
+
+### v1.6.58（应用选择页走「确定」返回 + 添加规则按钮回显已选应用名）
+
+**动机**：用户要求「选择应用之后，选择应用的按钮上显示现在选择的应用名称；选择应用页面增加个确定，点击确定再返回，不管是单选还是多选」——确实，禁用开机自启那个页面就是要从同一个选择器里选软件。
+
+- `AppPickActivity`：单选/多选都走「确定」返回——点格只选/替换，不立即退；点底部大按钮才 finish；
+  多选时按钮文案实时显示已选个数（确定（已选 N）），单选时只显示「确定」；
+- 「添加规则」页的按钮回显：`btnPick` 选过后变文案为「已选：<应用名>」；`tvPkg` 下仍显示包名；
+- 禁用开机自启（PackageEnableActivity，mode=multi）不受影响——同一套「确定」机制，只是删掉它的「搓」最后的「已选」x。
+
+**验证**：构建 0 error；versionCode 73/74（普通版/system 版）；**实机待验**：
+「选择应用」页点格只选不退、点确定返回、按钮文案显示「已选：亿连」等；多选「确定（已选 3）」。
 
 ### v1.6.57（应用选择：统一共享组件——「添加规则」与「禁用开机自启」都用它）
 

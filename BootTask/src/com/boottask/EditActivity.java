@@ -38,6 +38,7 @@ public class EditActivity extends Activity {
     private EditText etArg;
     private EditText etDelay;
     private TextView tvPkg;
+    private Button btnPick;
     private RadioGroup rgEvent;
     private RadioGroup rgAction;
     private LinearLayout rowApp;
@@ -115,13 +116,20 @@ public class EditActivity extends Activity {
 
         // ---- 选择应用 ----
         LinearLayout rApp = buildRow(root, "选择应用（打开/关闭应用时必选）");
-        Button btnPick = new Button(this);
+        btnPick = new Button(this);
         btnPick.setText("选择应用…");
         btnPick.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivityForResult(new Intent().setClassName(getPackageName(),
-                        getPackageName() + ".AppPickActivity"), 1);
+                Intent it = new Intent().setClassName(getPackageName(),
+                        getPackageName() + ".AppPickActivity");
+                it.putExtra("mode", "pick_one");
+                it.putExtra("filter", "launcher");
+                it.putExtra("title", "选择要打开/关闭的应用");
+                if (selectedPkg != null && selectedPkg.length() > 0) {
+                    it.putExtra("selected", new String[]{selectedPkg});
+                }
+                startActivityForResult(it, 1);
             }
         });
         rApp.addView(btnPick, matchWrap());
@@ -271,7 +279,27 @@ public class EditActivity extends Activity {
         if (p != null && p.length() > 0) {
             selectedPkg = p;
             tvPkg.setText(p);
+            refreshPickButtonText();
         }
+    }
+
+    /** 选择应用按钮：选了显示「已选：<应用名>」，没选显示默认 */
+    private void refreshPickButtonText() {
+        if (selectedPkg == null || selectedPkg.length() == 0) {
+            btnPick.setText("选择应用…");
+            return;
+        }
+        String label = selectedPkg;
+        try {
+            android.content.pm.PackageManager pm = getPackageManager();
+            android.content.pm.ApplicationInfo ai = pm.getApplicationInfo(selectedPkg, 0);
+            CharSequence l = ai.loadLabel(pm);
+            if (l != null && l.length() > 0) {
+                label = String.valueOf(l);
+            }
+        } catch (Throwable ignored) {
+        }
+        btnPick.setText("已选：" + label);
     }
 
     private void saveRule() {

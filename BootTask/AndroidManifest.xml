@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.boottask" android:versionCode="55" android:versionName="1.6.48">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.boottask" android:versionCode="61" android:versionName="1.6.52">
     <uses-sdk android:minSdkVersion="8" android:targetSdkVersion="19"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <!-- v1.6.46 USB 连接手机事件：部分车机 ROM 要求持本权限才投递 USB 广播 -->
     <uses-permission android:name="android.permission.USB_PERMISSION"/>
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <!-- v1.6.50：无线 ADB 默认开启 / 禁用开机自启软件。signature|system ——
+         装成系统 App（/system/app 或 priv-app）才生效；普通安装被静默拒绝（本代码据此降级） -->
+    <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS"/>
+    <uses-permission android:name="android.permission.CHANGE_COMPONENT_ENABLED_STATE_USER"/>
     <uses-permission android:name="android.permission.KILL_BACKGROUND_PROCESSES"/>
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
@@ -24,6 +28,7 @@
         <activity android:name=".AppPickActivity" android:label="选择应用"/>
         <!-- v1.6.42 功能减法：只剩「按键与弹窗」二级页（Root 工具/已排除页/监控页签已删） -->
         <activity android:name=".ToolboxActivity" android:label="按键与弹窗"/>
+        <activity android:name=".PackageEnableActivity" android:label="禁用开机自启" android:exported="false"/>
         <activity android:name=".BootDiagnostics$LogActivity" android:label="日志下载" android:exported="false" android:theme="@android:style/Theme.Black.NoTitleBar"/>
         <!-- v1.6.30 直连免打扰：无障碍服务自动点掉 P2P 配对弹窗。
              v1.6.29 那个 WIFI_P2P_CONNECTION_REQUESTED 接收器已删（4.4 framework 里

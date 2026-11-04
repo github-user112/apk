@@ -194,11 +194,30 @@ public final class AdvActions {
             }
         }
         if (!exited) {
+            // v1.6.51：destroy() 后默认进程马上退出，但 4.4 上被 SIGTERM 挂住的 native
+            // 进程会让后面的 waitFor() 永久阻塞 —— 这就是诊断快照总卡在
+            // 「CPU 频率/负载/温度 → top -n 1」的元凶。改成 daemon 线程 join 最多 1500ms，
+            // 拿不到退出值就按 timeout 返回。
+            final Process p = process;
+            Thread wt = new Thread(new Runnable() {
+                public void run() {
+                    try {
+                        p.waitFor();
+                    } catch (Throwable ignored) {
+                    }
+                }
+            }, "run-wait");
+            wt.setDaemon(true);
+            wt.start();
             try {
-                process.waitFor();
-                exit = process.exitValue();
+                wt.join(1500L);
+            } catch (InterruptedException ignored) {
+            }
+            try {
+                exit = p.exitValue();
                 exited = true;
-            } catch (Throwable ignored) {
+            } catch (Throwable stillRunning) {
+                exit = -1;
             }
         }
         if (builder.length() == 0 && (exited ? exit != 0 : true)) {

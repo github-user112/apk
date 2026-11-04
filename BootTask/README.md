@@ -5,9 +5,170 @@
 - 包名：`com.boottask`
 - 最低版本：Android 2.2（API 8，实际按 4.4 编写）—— 兼容一切 4.x，**包括 4.4.2 车机**
 - 构建方式：v1.6 起全部 Java/D8 + apktool 合并进单 dex（`build.sh` Linux / `build_win.sh` Windows，v1.6.26 起类清单已改 glob）
-- 成品：`dist/BootTask_v1.6.48.apk`（**纯 v1 签名**，SHA-1 摘要，无 v2/v3 签名块）；历史版本同目录留档
+- 成品：`dist/BootTask_v1.6.52.apk`（**纯 v1 签名**，SHA-1 摘要，无 v2/v3 签名块）；
+  **`dist/BootTask_v1.6.52-system.apk`**（**平台 testkey 签名 + sharedUserId=android.uid.system —— 给 test-keys 固件车机的「无损 root」包**，见 v1.6.50-system 一节和 v1.6.52 一节）；历史版本同目录留档
 - **v1.6.28 起文件功能已整体拆出**：文件管理 / 扫码传 APK / 卸载软件 → 独立 App
   「车机文件管家」（`FileMgr/`，包名 `com.carfiles`），本 App 不再含文件功能
+
+### v1.6.52（热点能力检测按钮——到底能不能开热点）
+
+**背景**：车机「便携式热点」菜单开了没反应，SoftAP 探测四时间点一致（零 softap 属性、零 AP 接口、
+`/system/bin/hostapd` 存在但无配置）。用户问「到底能不能开热点」——被动软探测不够，要主动试一次。
+
+**新增 `HotspotCheck` + 主界面「系统」卡片按钮「检测车机能否开热点（会短暂关 WiFi）」**：
+1. `iw phy0 info`（找不到也会尝试 `iw list` / `iwconfig`）→ 抓 `Supported interface modes` 段，
+   看驱动/芯片本身有没有 AP 能力（有些 Broadcom 2.4G 单发单收芯片驱动不带 AP，这是硬件级结论）；
+2. `WifiManager.setWifiApEnabled(null, true)`（stub jar 没这个方法，全反射）→ 看框架返回什么：
+   接受 / false / SecurityException / 方法不存在——每个都是不同的「不行」；
+3. `netcfg` 前后对比有没有 AP 接口（`wl0.1`/`ap0`）/ `192.168.43.x`；
+4. `Settings.Global.wifi_ap_on`（能拿读回拿）；
+5. 结束后自动 `setWifiApEnabled(null, false)` 关回去（1.5s 窗口，不会一直挂 SSID）。
+6. 全过程落 `files/log/hotspot_check.txt`（**会进 boottask-logs.zip**）。
+
+普通版就能跑 1、2（2 大概率被 OEM 附加校验或权限拒；uid 1000 的 system 身份版能真正推一次）；
+`v1.6.52-system.apk` 也同步重打了（versionCode 62，fingerprint c8a2e9bc… 已验证）。
+按下后 toast 只给结论摘要，完整报告进 zip。**实机待验**。
+
+### v1.6.51（修诊断快照中断在「CPU 频率/负载/温度」的 Bug）
+
+**现象**（用户实机 2 次独立抓包复现）：诊断快照导出的 diagnostic.txt 在
+`cpu0 min/max = ...` 行之后直接 EOF——后续 `top 快照` / 系统开关 / WiFi 省电状态 /
+yilian recon / 修复历史 / boot audio recon / MCU recon / bt recon / logcat 全部丢失；
+而 v1.6.15 / v1.6.21 抓的包是完整的。
+
+**根因**：`AdvActions.run()` 在命令超时被 `process.destroy()` 之后，
+还会无条件再 `process.waitFor()`——4.4 上被 SIGTERM 挂住的 native top 永远等不到退出，
+后台线程永久卡死，诊断文件就停在这里（不是异常吞掉，是线程没跑完，所以
+「诊断快照」页打开里面看还是一直停在 CPU 仪表后）。
+
+**修复**：`destroy()` 之后不再裸 `waitFor()`——daemon 线程 `join` 最多 **1.5s**，
+拿到退出值算成功，否则按 timeout 返回原样输出（诊断不会因一个外部命令卡死）。
+
+**连带产物**：同源码重打 `dist/BootTask_v1.6.51-system.apk`（versionCode 60，
+平台 testkey 签名 + sharedUserId=android.uid.system），45 验证步骤、退路都与
+v1.6.50-system 完全一致；v1.6.51 普通版仍为首推（先用来确认车机指纹）。
+
+**验证**：构建 0 error；dist 双包齐备；复查 diagnostic 时应能看到
+`=== top 快照 ===` 起的全部后续段落；**实机待验**。
+
+### v1.6.50-system（平台签名版，针对 test-keys 固件车机，「无损 root」）
+
+**背景**：车机为 `ro.build.type=eng` / `ro.build.tags=test-keys` 的 4.4.2 TCC893X
+（德赛 SV，TELECHIPS）。test-keys 意味着系统本身可能用的是 AOSP 公开 platform
+testkey 编译的，签名固件 = 任何人都能算出平台签名指纹（public artifact）。
+
+- 下载 `platform.x509.pem/platform.pk8`，验证其 SHA-256 DER 指纹 == `c8a2e9bccf597c2fb6dc66bee293fc13f2fc47ec77bc6b2b0d52c11f51192ab8`（AOSP 平台 testkey）；
+- 变体包：manifest 加 `android:sharedUserId="android.uid.system"`（uid 1000 = system），
+  versionCode 58 / versionName 1.6.50-system，纯 v1 签名，`dist/BootTask_v1.6.50-system.apk`；
+- 指纹验证：`apksigner verify --print-certs` 显示 SHA-256 == `c8a2e9…ab8`；解包回读
+  baked manifest 里 `sharedUserId="android.uid.system"` 确认无误。
+
+**行为**：
+- 装在该固件上 → PM 认可 sharedUserId=system（固件本身就是 testkey 签名，签名校验必通过）
+  → BootTask 运行时就是 **uid 1000 (system)**，「无线 ADB 开关」「禁用开机自启」「下载日志」全都
+  直接可用（全不用 /system 写、不用 su，安装器就是普通第三方安装路径 /data/app）。
+- **不一致的情况**（车机是厂商私有 testkey/普通私有 test-keys）：PackageManager 会在**安装时**
+  直接拒绝（`INSTALL_FAILED_SHARED_USER_INCOMPATIBLE` / signature mismatch），App 不会进系统、
+  车机不会有任何改动；App 内本来就有「需要系统 App 权限」的降级提示。
+  ——所以这条「如果不一致就不安装 + 提示」满足你说的不生效方式。
+
+**安装步骤（U 盘 appsinstall 即可，仍无需 adb）**：
+1. 先卸载原来的 `BootTask`（签名不同，覆盖装必被拒；/data/data/com.boottask 会删，备份/重建规则就是一条 `boot → open net.easyconn` 记录）；
+2. U 盘根目录放 `BootTask_v1.6.50-system.apk`（ASCII 名）→ `#*95279527` 覆盖安装；
+3. 重启车机（sharedUserId 在进程创建/升级时按次应用，普通安装无需重启，这一个建议重启）；
+4. 打开 App：「无线 ADB」按钮应显示 `adb_wifi_enabled = 1`（点一下直接开），
+   「系统开关/权限」段两个权限均为「已授权」。
+
+**复原（你说的「再锁上」）**：`pm uninstall com.boottask`（或设置→应用里卸载）→
+uid 1000 身份消失、规则清空——完全等价于从未装过。已被「全部恢复」复原的禁用包不受影响。
+
+**注意**：这是针对该车机固件 test-keys 缺陷的变通做法，只用于**你自己这一台车**；
+不要分享到任何群/论坛。U盘 appsinstall 不要求重启，但这一版建议重启（uid 按升级后的 manifest 应用）。
+构建复现（一次性，不进发布树）：
+`platform.x509.pem/pk8` 经 https://aosp-mirror（branch android-4.4.2_r2）curl 下载；
+SHA-256 已与 `c8a2e9bc…ab8` 比对一致；manifest/apktool.yml / build.sh 的签名段修改
+全部落在 `/tmp/opencode/bt-sys/` 临时副本，仓库 `BootTask/` 原件未改。
+
+### v1.6.50（无 su 车机的系统开关：无线 ADB 默认开启 + 勾选禁用开机自启）
+
+背景（用户反馈）：「车机上没有 su；我想禁用一些开机启动的软件，并默认打开无线adb」。
+之前做的 RootSession 模板（v1.6.49）在这台车上没有 su，跑不起来；这版换成了
+**不搞提权、只借系统 App 权限**的路线，全部只写 /data，可逆、无损：
+
+**① 无线 ADB 默认开启（端口 5555）**：`settings put global adb_wifi_enabled 1` —— 4.2+ AOSP 的
+SystemServer 监听这个键，1 = adbd 自动切到 TCP 5555 且**重启仍有效**（存 Settings 库，不碰 /system）。
+新增 `SystemTools` 类：
+- 主界面「系统」分区新增按钮「无线 ADB：点我默认开启」——已开显示「已开启——点我关闭」，
+  一键切换；切换结果 Toast + 落 boottask.log。
+- 需要 WRITE_SECURE_SETTINGS（signature|system）—— 4.4 只有**系统 App** 装在 `/system/app`
+  （或 priv-app）才会被授予；普通安装时点按钮得到人话提示（不崩、不动车机）。
+
+**② 禁用开机自启软件（车机上勾选）**：新增 `PackageEnableActivity`（主界面→系统分区→禁用开机自启）：
+- 列表 `pm list packages -3`（第三方）+ 每个包当前启用状态；勾选 = `setApplicationEnabledSetting(
+  DISABLED_USER)`，取消勾选恢复默认 —— **不删任何文件、不动 /system，随时恢复**。
+- 底部有防误操作确认弹窗 + 应用/全部恢复/勾选即改态（点「应用」才落盘）。
+- 禁用清单持久化到 prefs（`system_tools.xml:disabled_pkgs`）；`BootAudioReceiver` 开机后
+  幂等重应用一遍（缺权限时只记日志，不动车机）。
+- 只列第三方包 —— 系统框架包一个都不列，防手滑把车搞砖。
+
+**③ 诊断快照新增段「系统开关/权限/禁用清单 (v1.6.50)」**：两个权限的授予状态、
+`adb_wifi_enabled` 当前值、已禁用清单 —— 打开「下载日志」即可确认系统功能是否到位。
+
+**装到车机上**（无电脑 adb 时）：U 盘根目录放 `BootTask_v1.6.50.apk`（ASCII 文件名）→
+车机拨号 `#*95279527`（appsinstall）覆盖安装 → 重启车机。
+普通安装 ≠ 系统 App，无线 ADB / 禁用功能都不生效（按钮会提示原因，诊断快照显示 PERMISSION_DENIED）。
+
+**验收点**：
+1. `adb connect 车机IP:5555` —— 装好并重启后，无线能直接连上（不插 USB）；
+2. 勾选 2 个包 → 重启车机 → 两个包都停（`ls -d /data/app/...abc/lib` 无法替代，`dumpsys package <pkg> | grep enabled`）；「全部恢复」后重启一切照旧；
+3. 诊断快照「系统开关/权限/禁用清单」段两个权限均为「已授权（系统 App）」。
+
+**保底退路**（如果 U 盘 appsinstall 装出来的还是普通 App）：联系车机管理员/工程模式 USB adb 联上后，
+一次性 `pm disable-user <包名>` / `settings put global adb_wifi_enabled 1`（shell uid 有权限，免 root）。
+
+### v1.6.49（下载日志含亿连原生日志 + 通用 Root 会话模板「无损 root·用完锁回」）
+
+用户需求原话：「下载日志包括亿连的运行日志」「我还想让他能把我的车机无损的root，执行某些操作之后，在锁上」。
+> 注：root 现状未确认（用户选「不确定，需先确认」），故本版先做「通用 root 会话模板 +
+> 诊断快照里的 root 探测段」，具体「某些操作」待用户定后按模板接。
+
+**1. 下载日志（18081）现在带亿连原生运行日志**
+
+- 新增 `YilianLogCollector.java`：打开「下载日志」页时（`BootDiagnostics.capture()` 里）自动把
+  `/sdcard/logger/logs_*.csv`（亿连无条件开启、500KB 轮转的文件日志）**最新 3 份**复制到
+  `files/log/yilian_*.txt`（改名过扩展名过 logxfer 的 .log/.txt/.zip 白名单；mtime 回填保日期序），
+  随 `boottask-logs.zip` 一起下载。幂等（同名同大小跳过）；直读失败走 `su -c cat` 兜底。
+- 诊断快照新增段落：`亿连文件日志收集 (v1.6.49)` —— 找到几份、复制几份、总多大、源目录。
+- 顺带修：旧版 zip 里一份亿连原生日志都没有（目录不在收集名单、扩展名也不过白名单）。
+
+**2. 通用 Root 会话模板（「无损 root，操作完再锁上」）**
+
+- 新增 `RootSession.java`：任何「要动 /system 的操作」统一走这里：
+  `su probe → 记录 /system 挂载 → remount rw /system（失败则整段放弃，不碰操作）→
+   依次执行操作命令（每条带回显）→ 【无论成败 finally】remount,ro /system（失败回退 remount,ro /）→
+   **再读 /proc/mounts 复核真的是 ro**`。
+- 会话全过程落 `files/log/root_session.txt`（随日志 zip 走）+ boottask.log 一行；
+  `probe()` 段进诊断快照（`root 会话探测 (v1.6.49)`）：su 可用性、/system 挂载选项、当前 ro/rw。
+- **顺带修 P1**：`QuickRepair.writeYilianConf()`（亿连降码率等 5 个预设）原来 `remount,rw` 后写完
+  **从不锁回 ro**，/system 就此一直可写——现在改走 RootSession，写完必锁回并复核。
+- 具体「某些操作」尚未确定，模板已留好接入口（`RootSession.run(ctx, name, cmds)`），
+  用户给出操作清单后一条条接即可。
+
+**3. 顺手修了 YilianWatcher 的 RSS 字段错位**
+
+- `/proc/<pid>/stat` 去 comm 后第 21 个 token 才是 RSS（页数×4KB），
+  旧代码用了 `t[17]`（= num_threads），日志里 `rss=` 永远是几十 KB 的假值。已修正并把
+  边界判断从 `>17` 改为 `>21`。
+- RPM 编译不受影响的改动：Manifest/apktool.yml versionCode 56 / versionName 1.6.49。
+
+**构建验证**：本机 Linux(aarch64) 首次直接构建 aapt2 报 `126/cannot execute binary file`（x86-64 prebuilt，
+README v1.2 记载过同坑）。按文档口径 `sudo podman run --privileged --rm docker.io/tonistiigi/binfmt --install x86_64`
+注册 qemu-x86_64 仿真后构建成功（**全局副作用：x86_64 ELF 经 qemu 运行，重启即清**）。产物
+`dist/BootTask_v1.6.49.apk`，纯 v1 签名，10 条目，dex 含新类与新字符串；**实机待验**：
+
+1. 装 1.6.49 → 「下载日志」扫码取 zip → 解压应有 `yilian_*.txt`（亿连原生日志）与 `root_session` 行；
+2. 诊断快照里应看到「亿连文件日志收集」与「root 会话探测」两段（车机有 su 时探测出 uid=0；不能拿到 su 时照实写明）；
+3. 亿连降码率按钮执行后，/system 应被 remount 回 ro（诊断里再探测一次确认）。
 
 ### v1.6.48（蓝牙侦查段补「平台签名指纹」+ bluetooth 服务归属）
 

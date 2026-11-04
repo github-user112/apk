@@ -195,9 +195,9 @@ public class YilianWatcher extends Service {
             int close = stat.lastIndexOf(')');
             if (close >= 0 && close + 1 < stat.length()) {
                 String[] t = stat.substring(close + 1).trim().split("\\s+");
-                if (t.length > 17) {
+                if (t.length > 21) {
                     ticks = parseLong(t[11]) + parseLong(t[12]);   // utime + stime
-                    rssKb = parseLong(t[17]) * 4;                 // RSS 页数 × 4KB
+                    rssKb = parseLong(t[21]) * 4;                 // RSS 页数 × 4KB（t[17] 是 num_threads，旧版误用）
                 }
             }
             return new ProcInfo(Integer.parseInt(n), ticks, rssKb);

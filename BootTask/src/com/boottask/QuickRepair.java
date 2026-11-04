@@ -268,18 +268,19 @@ public final class QuickRepair {
         if (!hasRoot(rep)) {
             return finish(ctx, rep);
         }
-        AdvActions.run(new String[]{"su", "-c", "mount -o remount,rw /system"}, 8000L, 4096);
-        AdvActions.run(new String[]{"su", "-c",
-                "printf '" + content.replace("'", "") + "' > /etc/ec.conf"}, 8000L, 8192);
-        AdvActions.run(new String[]{"su", "-c", "chmod 644 /etc/ec.conf"}, 6000L, 2048);
+        AdvActions.run(new String[]{"su", "-c", "sync"}, 8000L, 256);
+        // v1.6.49：统一走 RootSession —— remount rw → 写 → 【无论成败 remount ro 锁回】并校验
+        String sess = RootSession.run(ctx, tag + "(ec.conf)", new String[]{
+                "printf '" + content.replace("'", "") + "' > /etc/ec.conf",
+                "chmod 644 /etc/ec.conf"});
         String verify = AdvActions.run(new String[]{"cat", "/etc/ec.conf"}, 6000L, 4096);
         boolean ok = verify != null && verify.indexOf("mirror_width") >= 0;
         if (ok) {
             AdvActions.run(new String[]{"am", "force-stop", "net.easyconn"}, 6000L, 2048);
             restartYilian();
-            rep.append(okMsg);
+            rep.append(okMsg).append("；").append(sess);
         } else {
-            rep.append("写入失败: ").append(oneLine(verify));
+            rep.append("写入失败: ").append(oneLine(verify)).append("；会话: ").append(sess);
         }
         return finish(ctx, rep);
     }

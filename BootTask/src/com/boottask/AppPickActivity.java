@@ -117,7 +117,7 @@ public class AppPickActivity extends Activity {
                 ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f);
         root.addView(grid, glp);
 
-        // v1.6.58：单选和多选都用「确定」返回（点格只选不退）
+        // v1.6.58：单选和多选都用「确定」返回（点格只选不退）——无条件渲染，不再进 if "multi"
         Button done = new Button(this);
         done.setText("确定");
         done.setTextColor(Color.WHITE);

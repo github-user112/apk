@@ -5,10 +5,24 @@
 - 包名：`com.boottask`
 - 最低版本：Android 2.2（API 8，实际按 4.4 编写）—— 兼容一切 4.x，**包括 4.4.2 车机**
 - 构建方式：v1.6 起全部 Java/D8 + apktool 合并进单 dex（`build.sh` Linux / `build_win.sh` Windows，v1.6.26 起类清单已改 glob）
-- 成品：`dist/BootTask_v1.6.58.apk`（**纯 v1 签名**，SHA-1 摘要，无 v2/v3 签名块）；
-  **`dist/BootTask_v1.6.58-system.apk`**（**平台 testkey 签名 + sharedUserId=android.uid.system —— 给 test-keys 固件车机的「无损 root」包**，见 v1.6.50-system / v1.6.52 / v1.6.53 / v1.6.55 / v1.6.56 / v1.6.57 / v1.6.58 各节）；历史版本同目录留档
+- 成品：`dist/BootTask_v1.6.59.apk`（**纯 v1 签名**，SHA-1 摘要，无 v2/v3 签名块）；
+  **`dist/BootTask_v1.6.59-system.apk`**（**平台 testkey 签名 + sharedUserId=android.uid.system —— 给 test-keys 固件车机的「无损 root」包**，见 v1.6.50-system / v1.6.52 / v1.6.53 / v1.6.55 / v1.6.56 / v1.6.57 / v1.6.58 各节）；历史版本同目录留档
 - **v1.6.28 起文件功能已整体拆出**：文件管理 / 扫码传 APK / 卸载软件 → 独立 App
   「车机文件管家」（`FileMgr/`，包名 `com.carfiles`），本 App 不再含文件功能
+
+### v1.6.59（修「添加规则」里选应用没有「确定」按钮的问题）
+
+**现象**（用户实机反馈）：v1.6.58 里「添加规则」页点「选择应用…」→ 跳进应用选择器，
+**单选时底部没有「确定」按钮**（多选时有）。
+
+**根因**：`AppPickActivity.onCreate` 里 v1.6.58 的「无条件渲染」改动没落地——
+实际文件里「确定」按钮仍在 `if ("multi".equals(mMode))` 里面，单选时不存在。
+（注释里写的是无条件，但真正写进磁盘的是旧版 if 包裹）。
+
+**修复**：把 `Button done` 的构造移出 if 块，注释同步，永远渲染底部。
+
+**验证**：构建 0 error；versionCode 75/76（普通版/system 版）；**实机待验**：
+「选择应用」页单选和多选底部都出现「确定」按钮，点后均返回。
 
 ### v1.6.58（应用选择页走「确定」返回 + 添加规则按钮回显已选应用名）
 

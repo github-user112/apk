@@ -117,7 +117,8 @@ public final class SystemTools {
         String out = AdvActions.run(new String[]{"pm", "list", "packages", "-3"}, 15000L, 262144);
         List<String> pkgs = new ArrayList<String>();
         if (out == null) {
-            BootDiagnostics.log(null, "listThirdPartyPackages: pm 无输出");
+            // v1.6.53 review P3：不再传 null ctx（BootDiagnostics.log 会走 logDir(null) 走 NPE）
+            Log.w(TAG, "listThirdPartyPackages: pm 无输出（pm list packages -3 失败）");
             return pkgs;
         }
         String[] lines = out.split("\n");

@@ -5,10 +5,32 @@
 - 包名：`com.boottask`
 - 最低版本：Android 2.2（API 8，实际按 4.4 编写）—— 兼容一切 4.x，**包括 4.4.2 车机**
 - 构建方式：v1.6 起全部 Java/D8 + apktool 合并进单 dex（`build.sh` Linux / `build_win.sh` Windows，v1.6.26 起类清单已改 glob）
-- 成品：`dist/BootTask_v1.6.52.apk`（**纯 v1 签名**，SHA-1 摘要，无 v2/v3 签名块）；
-  **`dist/BootTask_v1.6.52-system.apk`**（**平台 testkey 签名 + sharedUserId=android.uid.system —— 给 test-keys 固件车机的「无损 root」包**，见 v1.6.50-system 一节和 v1.6.52 一节）；历史版本同目录留档
+- 成品：`dist/BootTask_v1.6.53.apk`（**纯 v1 签名**，SHA-1 摘要，无 v2/v3 签名块）；
+  **`dist/BootTask_v1.6.53-system.apk`**（**平台 testkey 签名 + sharedUserId=android.uid.system —— 给 test-keys 固件车机的「无损 root」包**，见 v1.6.50-system / v1.6.52 / v1.6.53 三节）；历史版本同目录留档
 - **v1.6.28 起文件功能已整体拆出**：文件管理 / 扫码传 APK / 卸载软件 → 独立 App
   「车机文件管家」（`FileMgr/`，包名 `com.carfiles`），本 App 不再含文件功能
+
+### v1.6.53（MuMu 实测复查的四项修复：P1×1 / P3×2 / P2×1）
+
+**P1**（MainActivity）：矮屏（1440x810 muMu / 1024x600 车机）「声音/按键/设备/系统」四卡右列装不下，
+「系统」标题只剩 2px、按钮不可达。改成**只右列可滚动**（ScrollView + fillViewport，左列规则列表
+满高不滚动）；注释里的「整页不滚动」旧设计判断一并去掉。
+
+**P2**（RootSession）：`op 阶段`不在 finally 时，`opCommands` 之外的一切异常路径会漏走锁回 ro。
+按复查意见，把 op 循环整体包 try/finally —— **无论成败都走 finally 锁回 ro + 落盘**（修掉
+「注释承诺与实现不一致」的问题；原来只有 run / probe 两条显式分支锁）。
+
+**P3**（SystemTools）：`listThirdPartyPackages()` 里 `BootDiagnostics.log(null, …)` 在
+`logDir(null)` 处 NPE、只吞不进日志 —— 改为直接 `Log.w`（本场景自己不需要 ctx）。
+
+**P3**（PackageEnableActivity）：CheckBox 复用时旧 listener 未先摘，程序化 `setChecked`
+误写到旧条目的状态 —— `getView` 改成先 `setOnCheckedChangeListener(null)` 再 setChecked、
+最后再挂新 listener。
+
+**构建验证**：versionCode 63 / versionName 1.6.53；dist 双包 `BootTask_v1.6.53.apk`
+（普通版 v1 签名，ecfc5fbe…）与 `BootTask_v1.6.53-system.apk`（平台 testkey 签名+
+sharedUserId，指纹 c8a2e9bc…，3dc753af…）；**MuMu 实测待跑**：P1 在 wm size 增至 1600 之前
+「系统」四按钮可见可点、诊断快照完整、热点检测全链。
 
 ### v1.6.52（热点能力检测按钮——到底能不能开热点）
 

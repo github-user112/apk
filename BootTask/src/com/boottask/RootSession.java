@@ -96,30 +96,32 @@ public final class RootSession {
             return name + "：/system 无法 remount rw（" + (cur == null ? "读不到挂载" : oneLine(cur)) + "），操作未执行。";
         }
 
-        // 3) 执行操作（每个都回显）
-        boolean ok = true;
-        if (opCommands != null) {
-            for (int i = 0; i < opCommands.length; i++) {
-                String cmd = opCommands[i];
-                String out = AdvActions.run(new String[]{"su", "-c", cmd}, 30000L, 8192);
-                detail.append("[op ").append(i).append("] ").append(cmd).append("\n     -> ")
-                        .append(out == null ? "(无输出/失败)" : oneLine(out)).append('\n');
+        // 3)+4) 执行操作；无论成败都必须经 finally —— 锁回只读
+        try {
+            if (opCommands != null) {
+                for (int i = 0; i < opCommands.length; i++) {
+                    String cmd = opCommands[i];
+                    String out = AdvActions.run(new String[]{"su", "-c", cmd}, 30000L, 8192);
+                    detail.append("[op ").append(i).append("] ").append(cmd).append("\n     -> ")
+                            .append(out == null ? "(无输出/失败)" : oneLine(out)).append('\n');
+                }
             }
-        }
-
-        // 4) 【finally】锁回 ro —— 无论上面成败都必须走到
-        String roResult = relockReadOnly(detail);
-        detail.append("remount,ro /system -> ").append(roResult).append('\n');
-        String after = findSystemMountLine();
-        detail.append("操作后 /system: ").append(after == null ? "(未找到条目)" : after).append('\n');
-        String afterState = after == null ? "未知" : mountStateOf(after);
-        detail.append("最终状态: ").append(afterState).append('\n');
-        writeSession(ctx, detail);
-
-        BootDiagnostics.log(ctx, "RootSession " + name + "：完成，/system=" + afterState);
-        rep.append(name).append(" 完成，/system 最终").append(afterState);
-        if (after != null && isRw(after)) {
-            rep.append(" ⚠ 未能锁回只读！");
+        } catch (Throwable t) {
+            detail.append("op 阶段异常: ").append(t).append('\n');
+        } finally {
+            // 无论上面成败都必须走到：锁回只读 + 落盘 + 返回摘要
+            String roResult = relockReadOnly(detail);
+            detail.append("remount,ro /system -> ").append(roResult).append('\n');
+            String after = findSystemMountLine();
+            detail.append("操作后 /system: ").append(after == null ? "(未找到条目)" : after).append('\n');
+            String afterState = after == null ? "未知" : mountStateOf(after);
+            detail.append("最终状态: ").append(afterState).append('\n');
+            writeSession(ctx, detail);
+            BootDiagnostics.log(ctx, "RootSession " + name + "：完成，/system=" + afterState);
+            rep.append(name).append(" 完成，/system 最终").append(afterState);
+            if (after != null && isRw(after)) {
+                rep.append(" ⚠ 未能锁回只读！");
+            }
         }
         return rep.toString();
     }

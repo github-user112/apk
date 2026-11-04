@@ -133,13 +133,20 @@ public class MainActivity extends Activity implements View.OnClickListener,
         cRule.addView(lv2, lvLp);
         this.lv = lv2;
 
-        // 右列：声音 + 按键入口 + 设备
-        LinearLayout right = new LinearLayout(this);
-        right.setOrientation(LinearLayout.VERTICAL);
+        // 右列：声音 + 按键入口 + 设备 + 系统。矮屏（1024x600 / 1024x768）装不下时可滚动，
+        // 避免「系统」卡片被挤到屏幕外（P1 实锤：1440x810 下系统标题只剩 2px）
+        android.widget.ScrollView rightScroll = new android.widget.ScrollView(this);
+        rightScroll.setFillViewport(true);
+        rightScroll.setHorizontalScrollBarEnabled(false);
         LinearLayout.LayoutParams rlp = new LinearLayout.LayoutParams(
                 0, ViewGroup.LayoutParams.MATCH_PARENT, 1.1f);
         rlp.leftMargin = dip(4);
-        cols.addView(right, rlp);
+        cols.addView(rightScroll, rlp);
+
+        LinearLayout right = new LinearLayout(this);
+        right.setOrientation(LinearLayout.VERTICAL);
+        rightScroll.addView(right, new android.widget.ScrollView.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
         LinearLayout cMute = card(right, "声音", null);
         claimBootButton = new Button(this);

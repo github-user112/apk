@@ -173,6 +173,9 @@ public class PackageEnableActivity extends Activity {
                     cb.setTextColor(Color.rgb(34, 34, 34));
                     cb.setPadding(dp(8), dp(4), dp(8), dp(4));
                 }
+                // v1.6.53 review P3：先摘 listener 再程序化 setChecked，
+                // 避免触发旧持有项（复用视图上的上一条目的条目被误写）
+                cb.setOnCheckedChangeListener(null);
                 cb.setText(item.pkg);
                 cb.setChecked(item.disabled);
                 cb.setOnCheckedChangeListener(new PkgToggleListener(PackageEnableActivity.this, item));

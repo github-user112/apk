@@ -35,7 +35,7 @@ import java.util.Set;
  *   filter=launcher     只列有入口的 App（添加规则「打开应用」用）；
  *   filter=third_party  只列第三方 App（禁用开机自启软件用；排除系统预装与本程序自己）。
  *
- * title：顶部提示文案；selected (String[])：多选模式下预勾选（pkg 名）。
+ * title：顶部提示文案；selected (String[])：预勾选/回显（multi 多选，pick_one 回显上次所选）。
  * 3 列一行，尽量不滚动。
  */
 public class AppPickActivity extends Activity {
@@ -194,7 +194,7 @@ public class AppPickActivity extends Activity {
         updateCount();
         if (mDoneButton != null) {
             mDoneButton.setText(doneText());
-            if (mMode.equals("pick_one")) {
+            if ("pick_one".equals(mMode)) {
                 mDoneButton.setBackgroundColor(ACCENT);
             }
         }
@@ -250,12 +250,10 @@ public class AppPickActivity extends Activity {
                         }
                         mItems.clear();
                         mItems.addAll(items);
-                        // 多选：回填包名勾选的应用
-                        if ("multi".equals(mMode)) {
-                            for (int i = 0; i < mItems.size(); i++) {
-                                if (mSelectedPkgs.contains(mItems.get(i).pkg)) {
-                                    mChecked.add(Integer.valueOf(i));
-                                }
+                        // 回填包名勾选的应用（multi 多选、pick_one 回显上次所选）
+                        for (int i = 0; i < mItems.size(); i++) {
+                            if (mSelectedPkgs.contains(mItems.get(i).pkg)) {
+                                mChecked.add(Integer.valueOf(i));
                             }
                         }
                         mAdapter = new AppAdapter();

@@ -53,6 +53,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
     private Button rebootYlButton;
     private Button logButton;
     private TextView adbBanner;
+    private LinearLayout cSysCard;   // 系统卡片（没权限时整卡隐藏）
     private Button pkgManageButton;
     private Button hotspotTestButton;
     private TextView hotspotStatusText;
@@ -183,6 +184,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
 
         // v1.6.56 系统分区：无线 ADB 自动开（见顶部状态条），下面是可选动作
         LinearLayout cSys = card(right, "系统", null);
+        cSysCard = cSys;
         pkgManageButton = new Button(this);
         pkgManageButton.setText("禁用开机自启软件（勾选禁用/恢复）");
         pkgManageButton.setOnClickListener(this);
@@ -219,8 +221,16 @@ public class MainActivity extends Activity implements View.OnClickListener,
         refreshSystemUi();
     }
 
-    /** v1.6.56：无线 ADB 状态条 + 自动开（装上即自动开，不提供关闭） */
+    /** v1.6.62：无线 ADB 状态条 + 自动开（装上即自动开，不提供关闭）——
+     *  普通安装没有 WRITE_SECURE_SETTINGS → 横幅整行隐藏，不显示误导性状态 */
     private void refreshSystemUi() {
+        boolean adbPerm = SystemTools.hasSecureSettings(this);
+        adbBanner.setVisibility(adbPerm ? android.view.View.VISIBLE : android.view.View.GONE);
+        if (!adbPerm) {
+            applySystemCardVisibility();
+            return;
+        }
+        adbBanner.setText("无线 ADB：检测中…");
         // 首装/每次回到前台都尝试自动开 —— 需要后台线程，避免 binder 慢调用卡 UI
         new Thread(new Runnable() {
             public void run() {
@@ -228,6 +238,9 @@ public class MainActivity extends Activity implements View.OnClickListener,
                 runOnUiThread(new Runnable() {
                     public void run() {
                         try {
+                            if (!SystemTools.hasSecureSettings(MainActivity.this)) {
+                                return;     // 权限没了就保持隐藏
+                            }
                             adbBanner.setText(s);
                             adbBanner.setTextColor(s.indexOf("已开") >= 0
                                     ? ACCENT : Color.rgb(176, 69, 40));
@@ -237,6 +250,17 @@ public class MainActivity extends Activity implements View.OnClickListener,
                 });
             }
         }, "adb-ensure").start();
+        applySystemCardVisibility();
+    }
+
+    /** 普通安装：无 CHANGE_COMPONENT_ENABLED_STATE → 只隐藏「禁用开机自启」按钮；
+     *  「检测车机能否开热点」普通 App 自己就能做，保留；系统卡片跟着按钮留下。 */
+    private void applySystemCardVisibility() {
+        boolean canDisable = SystemTools.hasChangeEnabledState(this);
+        pkgManageButton.setVisibility(canDisable
+                ? android.view.View.VISIBLE : android.view.View.GONE);
+        hotspotTestButton.setVisibility(android.view.View.VISIBLE);
+        cSysCard.setVisibility(android.view.View.VISIBLE);
     }
 
     /** v1.6.38：开机抢占音源按钮文案随设置刷新 */
@@ -323,6 +347,11 @@ public class MainActivity extends Activity implements View.OnClickListener,
             return;
         }
         if (v == pkgManageButton) {
+            if (!SystemTools.hasChangeEnabledState(this)) {
+                Toast.makeText(this, "需要系统 App 权限（CHANGE_COMPONENT_ENABLED_STATE）",
+                        Toast.LENGTH_LONG).show();
+                return;
+            }
             startActivity(new Intent(this, PackageEnableActivity.class));
             return;
         }

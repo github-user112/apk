@@ -10,6 +10,37 @@
 - **v1.6.28 起文件功能已整体拆出**：文件管理 / 扫码传 APK / 卸载软件 → 独立 App
   「车机文件管家」（`FileMgr/`，包名 `com.carfiles`），本 App 不再含文件功能
 
+### v1.6.62（普通安装看不到的按钮直接藏起来）
+
+**动机**：用户反馈——普通权限的 App 干不了的事，按钮不能留在那误导人。
+车机普通安装既没 `WRITE_SECURE_SETTINGS` 也没 `CHANGE_COMPONENT_ENABLED_STATE`，
+只有两个能露面的操作：开机规则（纯用户态）、热点检测（`setWifiApEnabled` 普通 App 就能反射）。
+其余需要系统权限的按钮全部隐藏，不再弹“提示再点不做”的小黑框。
+
+| 界面 | 普通权限 | 系统 App/`uid=1000` |
+|---|---|---|
+| **无线 ADB 状态横幅**（主界面顶部） | **隐藏**——装了普通版看只会是“检测中…→未授权”，没意义 | 显示 `无线 ADB：已开启（5555，永久生效）` |
+| **禁用开机自启软件** 按钮（系统卡） | **隐藏**——没 `CHANGE_COMPONENT_ENABLED_STATE` 是空谈 | 显示，点进去能勾选禁用 |
+| **检测车机能否开热点** 按钮 | 保留（普通 App 就能测驱动有没有装出来） | 保留 |
+| **禁用开机自启软件** 页内 | 顶部改为一行人话+隐藏“选择要禁用/全部恢复启用”两个按钮 | 正常 |
+| 下载日志 / 添加规则 / 声音 / 按键 / 重启亿连 | 全部保留 | 全部保留 |
+
+实现细节：
+- `MainActivity.refreshSystemUi` 开头直接读 `SystemTools.hasSecureSettings(this)`：
+  无权限 → `adbBanner.setVisibility(GONE)` + 只调 `applySystemCardVisibility()`，不再跑后台线程；
+  有权限才起 `adb-ensure` 线程、写 `adb_wifi_enabled=1`、显示“已自动开启（5555，永久生效）”。
+- `applySystemCardVisibility()`：读 `hasChangeEnabledState()`，`false` → `pkgManageButton.GONE`；
+  热点检测按钮无条件 `VISIBLE`，系统卡片一直留。
+- 点 `pkgManageButton` 的逻辑额外加了守门：万一被残旧包引用到运行时都要再核一次权限，
+  直接 Toast “需要系统 App 权限（CHANGE_COMPONENT_ENABLED_STATE）” 退出，不进禁用页。
+- `PackageEnableActivity`：两个按钮 `pickBtn`/`restoreBtn` 在 `refreshUi()` 尾巴里按权限 GONE/VISIBLE；
+  无权限时 `list` 改写成一句“普通安装拿不到 …”（不让残留的“已禁用 N 个”字样误导人）；
+  顶部 hint 文案去掉“普通安装点了只会提示”那句（没按钮了就别再提了）。
+
+构建 0 error；普通版 `BootTask_v1.6.62.apk`（vc 78，sha256 `4c798c69…6d84`）；**实机待验**：
+普通装打开主界面不应看到“无线 ADB”横幅和“禁用开机自启软件”按钮；“检测车机能否开热点”仍在；
+点入“禁用开机自启软件”页（外部 Intent 直达时）不应显示两个按钮。
+
 ### v1.6.61（MuMu 实测抓到并修掉的两个 P1）
 
 **① 「添加规则」单选互斥失效**

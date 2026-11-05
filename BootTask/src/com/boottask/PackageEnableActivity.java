@@ -34,6 +34,9 @@ public class PackageEnableActivity extends Activity {
 
     private TextView status;
     private TextView list;
+    private TextView hint;
+    private Button pickBtn;
+    private Button restoreBtn;
     private volatile boolean busy = false;
 
     @Override
@@ -53,9 +56,8 @@ public class PackageEnableActivity extends Activity {
         head.setTextColor(Color.rgb(34, 34, 34));
         root.addView(head, matchWrap());
 
-        TextView hint = new TextView(this);
-        hint.setText("勾选的=开机不跑、桌面不显示；取消勾选=恢复。【需要系统 App 权限】"
-                + "\n普通安装点了只会提示，不会影响车机。");
+        hint = new TextView(this);
+        hint.setText("勾选的=开机不跑、桌面不显示；取消勾选=恢复。【需要系统 App 权限】");
         hint.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
         hint.setTextColor(Color.rgb(90, 98, 112));
         LinearLayout.LayoutParams hlp = matchWrap();
@@ -77,11 +79,11 @@ public class PackageEnableActivity extends Activity {
         list.setPadding(dp(8), dp(8), dp(8), dp(8));
         root.addView(list, llp);
 
-        Button pick = new Button(this);
+        pickBtn = new Button(this);
         // v1.6.60：4.4 KXmlSerializer 遇 emoji 代理项 d83d 会抛异常，
         // 导致 uiautomator dump 产出 0 字节 XML（无障碍/自动化链全断）。
-        pick.setText("选择要禁用/停用的应用");
-        pick.setOnClickListener(new View.OnClickListener() {
+        pickBtn.setText("选择要禁用/停用的应用");
+        pickBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 openPicker();
@@ -89,11 +91,11 @@ public class PackageEnableActivity extends Activity {
         });
         LinearLayout.LayoutParams pLp = matchWrap();
         pLp.topMargin = dp(14);
-        root.addView(pick, pLp);
+        root.addView(pickBtn, pLp);
 
-        Button restore = new Button(this);
-        restore.setText("全部恢复启用");
-        restore.setOnClickListener(new View.OnClickListener() {
+        restoreBtn = new Button(this);
+        restoreBtn.setText("全部恢复启用");
+        restoreBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 confirmRestore();
@@ -101,7 +103,7 @@ public class PackageEnableActivity extends Activity {
         });
         LinearLayout.LayoutParams rLp = matchWrap();
         rLp.topMargin = dp(6);
-        root.addView(restore, rLp);
+        root.addView(restoreBtn, rLp);
 
         setContentView(root);
         refreshUi();
@@ -117,10 +119,18 @@ public class PackageEnableActivity extends Activity {
         List<String> disabled = SystemTools.readDisabledList(this);
         boolean perm = SystemTools.hasChangeEnabledState(this);
         StringBuilder sb = new StringBuilder();
+        int noPermVis = perm ? android.view.View.VISIBLE : android.view.View.GONE;
+        pickBtn.setVisibility(noPermVis);
+        restoreBtn.setVisibility(noPermVis);
+        hint.setTextColor(perm ? Color.rgb(90, 98, 112) : Color.rgb(120, 60, 40));
         if (!perm) {
-            status.setText("⚠ 本 App 未装成系统 App：这个功能不可用。");
+            status.setText("⚠ 本 App 未装成系统 App：禁用功能不可用。");
+            list.setText("普通安装拿不到 CHANGE_COMPONENT_ENABLED_STATE，禁用开机自启按钮已隐藏。");
         } else {
             status.setText("已授权（系统 App）。已禁用 " + disabled.size() + " 个包");
+        }
+        if (!perm) {
+            return;   // 不再渲染禁用清单细节
         }
         if (disabled.isEmpty()) {
             list.setText("（当前没有被禁用的第三方 App）");

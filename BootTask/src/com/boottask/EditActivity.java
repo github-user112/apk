@@ -10,6 +10,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
@@ -157,13 +158,9 @@ public class EditActivity extends Activity {
         slp.topMargin = dp(10);
         root.addView(save, slp);
 
-        // 根据动作联动显示「参数/应用」行
-        rgAction.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(RadioGroup group, int checkedId) {
-                applyActionVisibility();
-            }
-        });
+        // v1.6.61：RadioButton 被「行容器」包着，RadioGroup 的 onCheckedChanged
+        // 永远不触发（框架只管直接子 RadioButton），联动改由每个按钮自己的
+        // listener 触发（见 addRadioRows）。这里只做一次初始状态同步。
         applyActionVisibility();
 
         android.widget.ScrollView sv = new android.widget.ScrollView(this);
@@ -175,7 +172,7 @@ public class EditActivity extends Activity {
     // ---------------------------------------------------------------- 视图帮手
 
     /** 把 labels 每行 perRow 个摆进去（多行），第一个默认选中 */
-    private void addRadioRows(RadioGroup group, String[] labels, int perRow) {
+    private void addRadioRows(final RadioGroup group, String[] labels, int perRow) {
         int i = 0;
         while (i < labels.length) {
             LinearLayout row = new LinearLayout(this);
@@ -183,14 +180,49 @@ public class EditActivity extends Activity {
             row.setWeightSum(perRow);
             int end = Math.min(i + perRow, labels.length);
             for (int j = i; j < end; j++) {
-                RadioButton rb = radio(labels[j], j == 0);
+                final RadioButton rb = radio(labels[j], j == 0);
                 rb.setTag(Integer.valueOf(j));
+                // v1.6.61 P1：RadioButton 是「行 LinearLayout」的孙子，不是 RadioGroup 的
+                // 直接子 View —— Android RadioGroup 的 PassThroughHierarchyChangeListener
+                // 只给直接子 RadioButton 挂互斥逻辑，嵌套的一律不管。不手动互斥就会：
+                //   ① 点「静音」后「打开应用」仍 checked=true（多个同时亮）；
+                //   ② RadioGroup.onCheckedChanged 永不触发 → 参数/应用行联动是死代码；
+                //   ③ checkedIndexInternal 递归永远返回「第一个」勾选项 → 存进规则的
+                //      event/action 恒为 boot/open，用户选了也白选。
+                rb.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                    @Override
+                    public void onCheckedChanged(CompoundButton b, boolean isChecked) {
+                        if (!isChecked) {
+                            return;     // 取消选中不做处理，避免递归
+                        }
+                        exclusiveCheck(group, rb);
+                        if (group == rgAction) {
+                            applyActionVisibility();
+                        }
+                    }
+                });
                 LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                         0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
                 row.addView(rb, lp);
             }
             group.addView(row, wrap());
             i = end;
+        }
+    }
+
+    /** 递归取消同组里其余 RadioButton 的选中态（行容器里的也要走到） */
+    private void exclusiveCheck(ViewGroup group, RadioButton keep) {
+        for (int i = 0; i < group.getChildCount(); i++) {
+            View v = group.getChildAt(i);
+            if (v instanceof RadioButton) {
+                RadioButton other = (RadioButton) v;
+                if (other != keep && other.isChecked()) {
+                    // 触发它的 listener，但 isChecked=false 会直接 return，不会回环
+                    other.setChecked(false);
+                }
+            } else if (v instanceof ViewGroup) {
+                exclusiveCheck((ViewGroup) v, keep);
+            }
         }
     }
 

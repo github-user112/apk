@@ -16,7 +16,13 @@
 ★**CarLife 直连被官方硬编码关闭（改配置无效）**：`zb1.J()` 读 prefs `HOME_CONNECT_MODE==2` → 强制 `N(0)` 回退有线（日志 `direct entry disabled, coerce home mode DIRECT -> WIRED`）；`u00.b(I)` 里类型 2 → cond_2 把目标主机设成 **127.0.0.1**/7200；日志 `【直连连接】直连入口已关闭（DIRECT_MODE_ENABLED=false），拒绝启动`。UI 连接方式只有「有线/热点」。实测 sed 改 prefs 启动后被自动改回 0。**蓝牙 enable() 在 CarLife 侧 0 处**（只有 DiPlay 侧有）→ 你车机「蓝牙起不来」堵点它一点没解。**对你车机无直连价值，别折腾。**
 ★但**按键映射页很强**：厂商按键广播协议 + 逐键映射 + 按键检测 + 导入导出 + 恢复默认；另有权限页、USB设备扫描、热点加入修复（需 root/SDK≥33）。详见 `.workbuddy/memory/2026-10-23.md`。
 
-## BootTask（com.boottask）现状：v1.6.36（vc43）
+## BootTask（com.boottask）现状：v1.6.61（vc77，普通版，2026-11-05 定案）
+
+★ **`-system` 变体已废弃**：车机固件平台签名与 AOSP testkey 不同，用户实测「system 装不上」（`INSTALL_FAILED_SHARED_USER_INCOMPATIBLE`）。**只交付普通版**（`boottask.p12`，CN=BootTask，SHA-256 `d2519f98…39fd`）。普通版 uid≠1000 → `WRITE_SECURE_SETTINGS` / `CHANGE_COMPONENT_ENABLED_STATE` 两个签名级权限拿不到，**无线 ADB 自动开 + 禁用开机自启两项优雅拦截并弹窗**，其余功能全可用；别再拿 MuMu 的 uid=1000 结果当普通版结论。
+★ 4.4 框架权限真名是 `CHANGE_COMPONENT_ENABLED_STATE`（**无 `_USER` 后缀**），查不存在的名字永远 DENIED；`hasChangeEnabledState()` 用 `myUid()==1000 || 真名已授予` 双判定。
+★ v1.6.61 两个 P1（MuMu 实机抓到）：① `EditActivity.addRadioRows` 把 RadioButton 包在行容器里 → RadioGroup 不管嵌套孙子 → 多个同时 checked、`onCheckedChanged` 死代码、`checkedIndexInternal` 恒返回第一个 → 存的 event/action 恒 `boot`/`open`；修法=每个 rb 自己挂 `CompoundButton` listener + `exclusiveCheck()` 递归互斥。② `ExecService.smali` 残留 `MuteGuard.mute/unmute` 死调用（类 v1.6.44 已删）→ Dalvik `VFY unable to resolve static method` 把 opcode 换成抛异常；删两行即可，真正生效的是紧跟其后的 `MediaMute.muteAll/unmuteAll`。修后 VFY 归零、SCREEN_ON 规则真实执行。
+★ 日志下载 HTTP 端口是 **18081**（不是 18080），`adb forward tcp:18081` + curl `--noproxy '*'`；MuMu 会弹 superuser 请求挡住页面，需放行一次。
+★ 仍挂起：用户要求的「按钮缩小、提示改弹窗」——v1.6.53 只做了右栏 ScrollView 滚动。
 功能分区：P2pGuard 直连保护、WifiRateProbe 复刻亿连判定、HotspotProbe 热点蹲守、AudioMonitor 启动/声音监控+静音强杀、LowRateFix 一键修复、P2pDialogClicker 直连免打扰（无障碍自动点弹窗）。
 ★ v1.6.29 审查定论（2026-10-12，MuMu 4.4.4 framework.jar 实锤）：**P2pAutoAccept 整体无效**——广播 `android.net.wifi.p2p.connection.WIFI_P2P_CONNECTION_REQUESTED` 在 4.4 framework 不存在（4.4 只有 6 个标准 p2p action）；隐藏方法 `requestGroupInfo(WifiP2pDevice)` 不存在（只有 Channel+Listener 签名）；EXTRA 真实 key 是 "wifiP2pDevice"。接收器永不触发，seen 恒 0。别信 AI 博客编造的 API。
 ★ v1.6.30 修复（vc37）：改用**无障碍服务** `P2pDialogClicker`——4.4 上唯一能拿到「弹窗出现了」的合法途径（系统弹窗也在可访问性树里）。收窗口事件→`getRootInActiveWindow()` 取节点树→命中同意按钮→`performAction(ACTION_CLICK)`。误点防护硬约束：不碰自己窗口 / 必须有 P2P 场景特征文本 / 见「取消·拒绝·不允许」立刻放弃 / 同意按钮「排除优先+短文本精确匹配」（「不允许连接」不会被点）/ 3 秒冷却 / 全程日志含未点原因。主界面开关 + 「①去系统设置启用无障碍」（系统不给自动开）+ 「②立刻测试一次」+ 计数状态行。
@@ -24,6 +30,7 @@
 v1.6.25 教训：**新功能日志必须落 files/log/**（LogHttpServer.refreshFiles() 枚举的唯一内部目录），否则抓不回来。
 构建：`bash BootTask/build_win.sh`，产物名从 versionName 推导。stub android.jar 无 org.json；Java 访问 smali 类走反射；dex 查类用 `Lpkg/Class;` 分号结尾。adb 实测：realme streamed install 会挂起→用 push+`pm install -r`；ColorOS 弹安装确认会卡死后续 pm（杀 com.android.packageinstaller 或 reboot）；桌面图标缓存要卸载重装才刷新。
 ★ 开机静音双链（2026-10-19 实锤，互不联动）：①规则链 prefs`rules`（boot+mute，ExecService 执行，点「开机静音保存」必加 15s 兜底规则，勾没勾软件都加）②拦截目标链 prefs`audiomon`的`blockPkgs`（BootAudioReceiver 每次开机拉 AudioMonitor，目标免 root 杀不掉→2 轮自动静音+3min 看门狗）。删规则只断①；工具箱「取消开机静音（含关软件拦截）」一键断两条。v1.6.34 后规则列表只在工具箱页，首页看不到。
+★ v1.6.61 更正：`MuteGuard` 类在 v1.6.44 已删，下面这节只剩历史语义价值；`ExecService` 里残留的 `MuteGuard.mute/unmute` 死调用已清除，实际生效的是 `MediaMute.muteAll/unmuteAll`。
 ★ v1.6.36 静音语义定案（别再改回）：`MuteGuard.mute()`=长期静音（smali ExecService 规则链调用，语义不变）；`muteTemp()`=临时静音（AudioMonitor 拦截兜底用，**看门狗到期自动 restore 音量**，目标存活期间每轮重施故 deadline 顺延=持续静音）；prefs`muteguard`记`tempActive`+`savedVols`，BootAudioReceiver 开机`restoreIfPending()`自愈（上次临时静音未到期就重启）。**旧版看门狗到期不恢复 + setStreamVolume(0) 被系统持久化 = 「删光规则还每次开机静音」的根因（残留状态，非开机行为）**。`applyAll` 首采快照只在 `sSavedVolumes==null` 时做（重施不能把 0 存成原始值）。`isPickable` 排除 `android.process.media`（常驻进程杀不掉，选中必致静音兜底空转）。
 
 ## FileMgr（com.carfiles 车机文件管家）v1.0.0

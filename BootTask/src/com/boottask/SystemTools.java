@@ -19,7 +19,7 @@ import java.util.List;
  *      COMPONENT_ENABLED_STATE_DISABLED_USER, 0) —— 不动 /system、不删任何文件，
  *      数据只写在 /data 的用户状态里，pm enable / 勾选恢复 即完全还原。
  *
- * 两个操作分别需要 WRITE_SECURE_SETTINGS / CHANGE_COMPONENT_ENABLED_STATE_USER，
+ * 两个操作分别需要 WRITE_SECURE_SETTINGS / CHANGE_COMPONENT_ENABLED_STATE，
  * 都是 signature|system 保护级（4.4 安装时只给系统 App）。普通安装时所有写操作会
  * 抛 SecurityException —— 本类全程 try/catch 且返回人话结果，绝不让 App 崩掉；
  * 诊断快照里会显示每个权限的授予状态，一眼能判断系统 App 装没装上。
@@ -54,8 +54,14 @@ public final class SystemTools {
 
     public static boolean hasChangeEnabledState(Context ctx) {
         try {
+            // v1.6.60 修：4.4 框架只有 CHANGE_COMPONENT_ENABLED_STATE（无 _USER 后缀），
+            // 查不存在的权限名永远 DENIED —— -system 包 uid=1000 也被误拦（MuMu 实测）。
+            // 双重判定：① uid==1000（共享 system uid，框架全放行）② 真名已授予
+            if (android.os.Process.myUid() == 1000) {
+                return true;
+            }
             return ctx.getPackageManager()
-                    .checkPermission("android.permission.CHANGE_COMPONENT_ENABLED_STATE_USER",
+                    .checkPermission("android.permission.CHANGE_COMPONENT_ENABLED_STATE",
                             ctx.getPackageName())
                     == PackageManager.PERMISSION_GRANTED;
         } catch (Throwable t) {
@@ -165,29 +171,41 @@ public final class SystemTools {
      */
     public static String setPackageDisabled(Context ctx, String pkg, boolean disable) {
         if (!hasChangeEnabledState(ctx)) {
-            BootDiagnostics.log(ctx, "disable " + pkg + ": 无 CHANGE_COMPONENT_ENABLED_STATE_USER（未装系统 App）");
+            BootDiagnostics.log(ctx, "disable " + pkg + ": 无 CHANGE_COMPONENT_ENABLED_STATE（未装系统 App）");
             return pkg + "：需要系统 App 权限，未改动";
         }
+        // v1.6.60：清单维护必须在 pm 调用之外——包已卸载时
+        // setApplicationEnabledSetting 抛 Unknown package，旧代码在 catch 直接返回，
+        // prefs 记录永远清不掉（界面「已禁用 1 个包」但系统里 enabled=0 的幽灵条目）。
+        boolean ok = false;
+        Throwable err = null;
         try {
             ctx.getPackageManager().setApplicationEnabledSetting(pkg,
                     disable ? PackageManager.COMPONENT_ENABLED_STATE_DISABLED_USER
                             : PackageManager.COMPONENT_ENABLED_STATE_DEFAULT,
                     0);
+            ok = true;
+        } catch (Throwable t) {
+            err = t;
+            BootDiagnostics.log(ctx, "setPackageDisabled " + pkg + " failed: " + t);
+        }
+        try {
             List<String> list = readDisabledList(ctx);
-            if (disable) {
+            if (disable && ok) {
                 if (!list.contains(pkg)) {
                     list.add(pkg);
                 }
             } else {
-                list.remove(pkg);
+                list.remove(pkg);   // 恢复 / 禁用失败（包不存在）都清掉
             }
             writeDisabledList(ctx, list);
-            BootDiagnostics.log(ctx, (disable ? "disabled " : "enabled ") + pkg);
-            return pkg + (disable ? " 已禁用" : " 已恢复");
-        } catch (Throwable t) {
-            BootDiagnostics.log(ctx, "setPackageDisabled " + pkg + " failed: " + t);
-            return pkg + " 操作失败: " + oneLine(String.valueOf(t));
+        } catch (Throwable ignored) {
         }
+        if (!ok) {
+            return pkg + " 操作失败: " + oneLine(String.valueOf(err));
+        }
+        BootDiagnostics.log(ctx, (disable ? "disabled " : "enabled ") + pkg);
+        return pkg + (disable ? " 已禁用" : " 已恢复");
     }
 
     /** 开机自愈：把 prefs 里的禁用清单重新应用（幂等；无系统权限时只记日志不动） */
@@ -198,7 +216,7 @@ public final class SystemTools {
                 return;
             }
             if (!hasChangeEnabledState(ctx)) {
-                BootDiagnostics.log(ctx, "boot re-apply: 无 CHANGE_COMPONENT_ENABLED_STATE_USER，跳过（"
+                BootDiagnostics.log(ctx, "boot re-apply: 无 CHANGE_COMPONENT_ENABLED_STATE，跳过（"
                         + list.size() + " 个待禁用包）——系统 App 没装上？");
                 return;
             }
@@ -223,7 +241,7 @@ public final class SystemTools {
     public static String diagnostics(Context ctx) {
         StringBuilder sb = new StringBuilder(512);
         sb.append(adbWifiStatus(ctx)).append('\n');
-        sb.append("CHANGE_COMPONENT_ENABLED_STATE_USER：")
+        sb.append("CHANGE_COMPONENT_ENABLED_STATE：")
                 .append(hasChangeEnabledState(ctx) ? "已授权（系统 App）" : "未授权").append('\n');
         List<String> list = readDisabledList(ctx);
         sb.append("已禁用清单（").append(list.size()).append(" 个）：");

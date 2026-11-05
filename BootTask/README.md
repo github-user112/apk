@@ -5,10 +5,62 @@
 - 包名：`com.boottask`
 - 最低版本：Android 2.2（API 8，实际按 4.4 编写）—— 兼容一切 4.x，**包括 4.4.2 车机**
 - 构建方式：v1.6 起全部 Java/D8 + apktool 合并进单 dex（`build.sh` Linux / `build_win.sh` Windows，v1.6.26 起类清单已改 glob）
-- 成品：`dist/BootTask_v1.6.59.apk`（**纯 v1 签名**，SHA-1 摘要，无 v2/v3 签名块）；
-  **`dist/BootTask_v1.6.59-system.apk`**（**平台 testkey 签名 + sharedUserId=android.uid.system —— 给 test-keys 固件车机的「无损 root」包**，见 v1.6.50-system / v1.6.52 / v1.6.53 / v1.6.55 / v1.6.56 / v1.6.57 / v1.6.58 各节）；历史版本同目录留档
+- 成品：`dist/BootTask_v1.6.61.apk`（**纯 v1 签名**，SHA-1 摘要，无 v2/v3 签名块）——**唯一交付包**；
+  历史 `-system.apk` 变体（平台 testkey + `sharedUserId=android.uid.system`）**已废弃**：车机固件平台签名与 AOSP testkey 不同，实测装不上（`INSTALL_FAILED_SHARED_USER_INCOMPATIBLE`），别再折腾；历史版本同目录留档
 - **v1.6.28 起文件功能已整体拆出**：文件管理 / 扫码传 APK / 卸载软件 → 独立 App
   「车机文件管家」（`FileMgr/`，包名 `com.carfiles`），本 App 不再含文件功能
+
+### v1.6.61（MuMu 实测抓到并修掉的两个 P1）
+
+**① 「添加规则」单选互斥失效**
+
+**现象**：v1.6.54 起「添加规则」页点「静音」后，`uiautomator dump` 里
+「打开应用」和「静音」**同时 `checked=true`**；「选择应用」行也不消失。
+
+**根因**：`addRadioRows()` 把 RadioButton 放进「行 LinearLayout」再塞进 `RadioGroup`。
+Android 的 `RadioGroup.PassThroughHierarchyChangeListener` **只给直接子 RadioButton**
+挂互斥逻辑，嵌套的孙子一律不管。三个连锁后果：
+① 多个选项同时亮；② `RadioGroup.setOnCheckedChangeListener` 永不触发 →
+`applyActionVisibility()` 联动是死代码；③ `checkedIndexInternal()` 递归返回
+**第一个**勾选项 → `saveRule()` 存进去的 event/action 恒为 `boot`/`open`，
+用户选了别的动作等于白选。
+
+**修复**：每个 RadioButton 自己挂 `CompoundButton.OnCheckedChangeListener`，
+选中时调 `exclusiveCheck(group, rb)` 递归清掉同组其余选中态，并直接触发
+`applyActionVisibility()`（触发事件组同理互斥）。清掉那个永不触发的
+`rgAction.setOnCheckedChangeListener`。
+
+**② 静音规则执行路径上的死调用（logcat VFY 实锤）**
+
+`ExecService.smali` 的 `mute` / `unmute` 分支里还留着
+`invoke-static Lcom/boottask/MuteGuard;->mute/unmute(Context)`，
+但 `MuteGuard` 类在 v1.6.44 已随 `AudioMonitor` 一起删掉，dex 里不存在。
+Dalvik 报 `VFY: unable to resolve static method ... MuteGuard.mute` 并把
+opcode 替换成抛异常指令 —— 规则一执行到就 `NoSuchMethodError`。
+后面其实**已经**跟了正确的 `MediaMute.muteAll/unmuteAll`，
+只是旧调用没人删。修复：删两行死调用 + 更新注释，不重复调用。
+
+**MuMu 4.4.4 验证（普通版 uid=10042，versionCode 77）**：点「静音」后仅静音
+checked、「选择应用」行消失；点「屏幕亮屏」后仅亮屏 checked；保存规则落盘
+`{"action":"mute","event":"screen_on","delay":0}` 与所选一致；
+重打包后 logcat 里 `VFY: unable to resolve ... MuteGuard` 归零。
+
+### v1.6.60（普通版审查修复汇总，本地分支）
+
+- `SystemTools.hasChangeEnabledState()`：4.4 框架只有 `CHANGE_COMPONENT_ENABLED_STATE`
+  （**无 `_USER` 后缀**），查不存在的权限名永远 DENIED，连 uid=1000 的 -system 包都被误拦；
+  改「`myUid()==1000` 或真名已授予」双判定，Manifest / 界面文案同步。
+- `setPackageDisabled()`：清单维护移到 pm 调用之外，包已卸载（`Unknown package`）、
+  禁用失败、恢复三种情况一律清掉 prefs 记录，消除界面「已禁用 1 个」但系统里
+  `enabled=0` 的幽灵清单。
+- `PackageEnableActivity`：去掉 emoji `📋` —— 4.4 `KXmlSerializer` 遇代理项 `d83d`
+  会抛异常，`uiautomator dump` 产出 0 字节，整条无障碍/自动化链全断。
+- `listThirdPartyPackages()`：pm 无输出时改 `Log.w`，不再给
+  `BootDiagnostics.log(null, ...)` 传空 ctx 触发 NPE。
+
+> 普通版（未装成系统 App）拿不到 `WRITE_SECURE_SETTINGS` /
+> `CHANGE_COMPONENT_ENABLED_STATE` 两个签名级权限：无线 ADB 自动开、
+> 禁用开机自启会**优雅拦截并弹窗说明**，不会改动车机、不会崩。其余功能全部可用。
 
 ### v1.6.59（修「添加规则」里选应用没有「确定」按钮的问题）
 

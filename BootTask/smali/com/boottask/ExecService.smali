@@ -421,9 +421,10 @@
     return-void
 
     :cond_2
-    # v1.5: 静音/取消静音整体交给 MuteGuard —— 全流静音 + 延时重施 + 音量变化看门狗。
-    # v1.4 只在 BOOT_COMPLETED 打一次 setRingerMode/setStreamVolume/setStreamMute，
-    # 车机实测「日志显示已静音但声音照放」，改成守卫式重施并回读状态定位。
+    # v1.6.61：删掉 MuteGuard 死调用 —— 该类在 v1.6.44 已随 AudioMonitor 一起删除，
+    # dex 里根本不存在，Dalvik 报「VFY: unable to resolve static method MuteGuard.mute/unmute」
+    # 并把 opcode 换成抛异常指令，静音/取消静音规则一执行就炸。
+    # 真正生效的是下面 MediaMute.muteAll / unmuteAll（v1.5 起就已补上），别重复调。
     const-string v2, "mute"
 
     invoke-virtual {v0, v2}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
@@ -431,8 +432,6 @@
     move-result v2
 
     if-eqz v2, :cond_3
-
-    invoke-static {p1}, Lcom/boottask/MuteGuard;->mute(Landroid/content/Context;)V
 
     invoke-static {p1}, Lcom/boottask/MediaMute;->muteAll(Landroid/content/Context;)V
 
@@ -446,8 +445,6 @@
     move-result v2
 
     if-eqz v2, :cond_4
-
-    invoke-static {p1}, Lcom/boottask/MuteGuard;->unmute(Landroid/content/Context;)V
 
     invoke-static {p1}, Lcom/boottask/MediaMute;->unmuteAll(Landroid/content/Context;)V
 

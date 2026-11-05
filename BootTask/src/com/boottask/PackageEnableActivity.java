@@ -78,7 +78,9 @@ public class PackageEnableActivity extends Activity {
         root.addView(list, llp);
 
         Button pick = new Button(this);
-        pick.setText("📋 选择要禁用/停用的应用");
+        // v1.6.60：4.4 KXmlSerializer 遇 emoji 代理项 d83d 会抛异常，
+        // 导致 uiautomator dump 产出 0 字节 XML（无障碍/自动化链全断）。
+        pick.setText("选择要禁用/停用的应用");
         pick.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -138,7 +140,7 @@ public class PackageEnableActivity extends Activity {
         if (!SystemTools.hasChangeEnabledState(this)) {
             new AlertDialog.Builder(this)
                     .setTitle("缺少系统权限")
-                    .setMessage("需要 CHANGE_COMPONENT_ENABLED_STATE_USER（签名/系统级权限），\n"
+                    .setMessage("需要 CHANGE_COMPONENT_ENABLED_STATE（签名/系统级权限），\n"
                             + "普通安装拿不到。\n\n请先用 U 盘 appsinstall 覆盖安装并重启车机。")
                     .setPositiveButton("知道了", null)
                     .show();

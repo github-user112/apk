@@ -5,10 +5,40 @@
 - 包名：`com.boottask`
 - 最低版本：Android 2.2（API 8，实际按 4.4 编写）—— 兼容一切 4.x，**包括 4.4.2 车机**
 - 构建方式：v1.6 起全部 Java/D8 + apktool 合并进单 dex（`build.sh` Linux / `build_win.sh` Windows，v1.6.26 起类清单已改 glob）
-- 成品：`dist/BootTask_v1.6.61.apk`（**纯 v1 签名**，SHA-1 摘要，无 v2/v3 签名块）——**唯一交付包**；
+- 成品：`dist/BootTask_v1.6.63.apk`（**纯 v1 签名**，SHA-1 摘要，无 v2/v3 签名块）——**唯一交付包**；
   历史 `-system.apk` 变体（平台 testkey + `sharedUserId=android.uid.system`）**已废弃**：车机固件平台签名与 AOSP testkey 不同，实测装不上（`INSTALL_FAILED_SHARED_USER_INCOMPATIBLE`），别再折腾；历史版本同目录留档
 - **v1.6.28 起文件功能已整体拆出**：文件管理 / 扫码传 APK / 卸载软件 → 独立 App
   「车机文件管家」（`FileMgr/`，包名 `com.carfiles`），本 App 不再含文件功能
+
+### v1.6.63（蓝牙闸门：解锁/熄屏不打开，点火亮屏 3s 后才开）
+
+**动机**：用户要求「汽车解锁之后蓝牙就打开了，能把这个关一下吗？就是只有点火之后，
+车机亮屏之后再打开蓝牙」——蓝牙在解锁阶段开着，白占 2.4GHz，也白连（车还没点火，
+开着蓝牙没事干，还容易在直连时与 WLAN 抢射频）。
+
+**实现**（普通 App 就能做，无需 root，`BLUETOOTH_ADMIN` 普通权限）：
+- 新增 `BtGate`（开关+动作）+ `BtGateService`（常驻监听，`START_STICKY`，动态注册
+  `SCREEN_ON`/`SCREEN_OFF`/`USER_PRESENT`，4.4 上 manifest 注册不稳定故走动态）；
+- `BOOT_COMPLETED` → `BootAudioReceiver` 拉起 `BtGateService` + 立刻关蓝牙；
+- `SCREEN_OFF` → 立刻关蓝牙；`USER_PRESENT`（解锁）→ 故意忽略，只记日志；
+- `SCREEN_ON`（点火+亮屏）→ 延迟 3 秒后开蓝牙（等系统稳住），3 秒内又熄屏则跳过；
+- 主界面「设备」卡新增按钮「蓝牙：只在点火亮屏后开（已开/已关）」+ 状态行，
+  开关存 `SharedPreferences(btgate)`，默认开（用户这次点名要它）；
+- 诊断快照「功能开关与运行状态」段追加 `【蓝牙闸门】` 行，日志落 `files/log/btgate.txt`。
+
+**如实边界**：本闸门只控制 **Android 层 `BluetoothAdapter`**（`bluetooth_on` 开关）。
+车机还有一层 **厂商蓝牙栈 svbt/svbtmanager**（`com.desay_svautomotive.svbt*`），手机直连车载
+电话/音乐走那层，不走 `BluetoothAdapter`——普通 App 关不掉那层，需要 root/adb 禁 svbt 自启。
+诊断里 `getDefaultAdapter()=null` / `disable() 返回 true 但 isEnabled 仍 true` 这两种就是
+厂商桩顶住的指征，日志已如实记录。
+
+**与其他闸门的关系**：`LowRateFix`/`P2pGuard` 的 btGuard（直连活跃时压蓝牙）是独立闸门，
+两边一起开会打架（P2pGuard 每 8s 压回去）。本闸门默认开，P2pGuard 的 btGuard 按需再开。
+
+**验证**：构建 0 error；dex 含 `BtGate/BtGateService/蓝牙闸门/点火亮屏`；manifest 含
+`BtGateService`；versionCode 79。**实机待验**：普通装开主界面，设备卡应看到闸门按钮+状态行；
+解锁（埋屏状态）后蓝牙应关，点火亮屏 3s 后蓝牙应开；下载日志里 `btgate.txt` 与「蓝牙闸门」段
+应有解锁忽略/亮屏延迟开/熄屏关三条记录。
 
 ### v1.6.62（普通安装看不到的按钮直接藏起来）
 

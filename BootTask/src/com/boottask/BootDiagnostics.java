@@ -172,6 +172,11 @@ public final class BootDiagnostics {
         } catch (Throwable t) {
             sb.append("【亿连进程监视】读取失败 ").append(t).append('\n');
         }
+        try {
+            sb.append(BtGate.statusText(context)).append('\n');
+        } catch (Throwable t) {
+            sb.append("【蓝牙闸门】读取失败 ").append(t).append('\n');
+        }
         return sb.toString();
     }
 

@@ -35,5 +35,14 @@ public class BootAudioReceiver extends BroadcastReceiver {
             SystemTools.ensureWirelessAdbOn(context);
         } catch (Throwable ignored) {
         }
+        // v1.6.63：蓝牙闸门 —— 开机先关蓝牙，拉起 BtGateService，
+        // 等 SCREEN_ON（点火亮屏）再延迟 3s 开。解锁(USER_PRESENT)不开。
+        try {
+            if (BtGate.isEnabled(context)) {
+                context.startService(new Intent(context, BtGateService.class));
+                BtGate.turnOffNow(context, "开机");
+            }
+        } catch (Throwable ignored) {
+        }
     }
 }

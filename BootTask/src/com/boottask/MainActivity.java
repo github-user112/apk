@@ -52,6 +52,8 @@ public class MainActivity extends Activity implements View.OnClickListener,
     private Button keysButton;
     private Button rebootYlButton;
     private Button logButton;
+    private Button btGateButton;      // v1.6.63 蓝牙闸门开关
+    private TextView btGateStatusText;
     private TextView adbBanner;
     private LinearLayout cSysCard;   // 系统卡片（没权限时整卡隐藏）
     private Button pkgManageButton;
@@ -182,6 +184,16 @@ public class MainActivity extends Activity implements View.OnClickListener,
         logButton.setOnClickListener(this);
         addIn(cDev, logButton);
 
+        // v1.6.63：蓝牙闸门 —— 解锁/熄屏不打开，点火亮屏 3s 后打开（普通权限可做）
+        btGateButton = new Button(this);
+        btGateButton.setOnClickListener(this);
+        addIn(cDev, btGateButton);
+        btGateStatusText = new TextView(this);
+        btGateStatusText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11);
+        btGateStatusText.setTextColor(Color.rgb(110, 116, 128));
+        btGateStatusText.setPadding(0, dip(4), 0, dip(2));
+        addIn(cDev, btGateStatusText);
+
         // v1.6.56 系统分区：无线 ADB 自动开（见顶部状态条），下面是可选动作
         LinearLayout cSys = card(right, "系统", null);
         cSysCard = cSys;
@@ -211,6 +223,14 @@ public class MainActivity extends Activity implements View.OnClickListener,
             startService(new Intent(this, YilianWatcher.class));
         } catch (Throwable ignored) {
         }
+        // v1.6.63：闸门开时顺手拉起蓝牙闸门服务（开机一路也会拉）
+        try {
+            if (BtGate.isEnabled(this)) {
+                startService(new Intent(this, BtGateService.class));
+            }
+        } catch (Throwable ignored) {
+        }
+        updateBtGateUi();
     }
 
     @Override
@@ -218,7 +238,20 @@ public class MainActivity extends Activity implements View.OnClickListener,
         super.onResume();
         refresh();
         updateMuteUi();
+        updateBtGateUi();
         refreshSystemUi();
+    }
+
+    /** v1.6.63：蓝牙闸门按钮文案 + 状态行刷新 */
+    private void updateBtGateUi() {
+        try {
+            boolean on = BtGate.isEnabled(this);
+            btGateButton.setText(on
+                    ? "蓝牙：只在点火亮屏后开（已开，点我关）"
+                    : "蓝牙：只在点火亮屏后开（已关，点我开）");
+            btGateStatusText.setText(BtGate.statusText(this));
+        } catch (Throwable ignored) {
+        }
     }
 
     /** v1.6.62：无线 ADB 状态条 + 自动开（装上即自动开，不提供关闭）——
@@ -344,6 +377,23 @@ public class MainActivity extends Activity implements View.OnClickListener,
         if (v == logButton) {
             // 快照抓取（su 探测 + logcat 可达 30s）由 LogActivity.onCreate 的后台线程执行
             startActivity(new Intent(this, BootDiagnostics.LogActivity.class));
+            return;
+        }
+        if (v == btGateButton) {
+            boolean nowOn = !BtGate.isEnabled(this);
+            BtGate.setEnabled(this, nowOn);
+            if (nowOn) {
+                try {
+                    startService(new Intent(this, BtGateService.class));
+                } catch (Throwable ignored) {
+                }
+                Toast.makeText(this, "已开启：解锁不打开蓝牙，亮屏 3s 后才开",
+                        Toast.LENGTH_LONG).show();
+            } else {
+                Toast.makeText(this, "已关闭：蓝牙回到系统/手动控制（需自己开）",
+                        Toast.LENGTH_LONG).show();
+            }
+            updateBtGateUi();
             return;
         }
         if (v == pkgManageButton) {

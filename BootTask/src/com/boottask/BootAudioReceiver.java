@@ -37,10 +37,16 @@ public class BootAudioReceiver extends BroadcastReceiver {
         }
         // v1.6.63：蓝牙闸门 —— 开机先关蓝牙，拉起 BtGateService，
         // 等 SCREEN_ON（点火亮屏）再延迟 3s 开。解锁(USER_PRESENT)不开。
+        // v1.6.64：WiFi 闸门同理（开机先关 WiFi，亮屏 3s 后开）。
         try {
-            if (BtGate.isEnabled(context)) {
+            if (BtGate.isEnabled(context) || WifiGate.isEnabled(context)) {
                 context.startService(new Intent(context, BtGateService.class));
-                BtGate.turnOffNow(context, "开机");
+                if (BtGate.isEnabled(context)) {
+                    BtGate.turnOffNow(context, "开机");
+                }
+                if (WifiGate.isEnabled(context)) {
+                    WifiGate.turnOffNow(context, "开机");
+                }
             }
         } catch (Throwable ignored) {
         }

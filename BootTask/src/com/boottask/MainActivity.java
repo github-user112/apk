@@ -54,6 +54,8 @@ public class MainActivity extends Activity implements View.OnClickListener,
     private Button logButton;
     private Button btGateButton;      // v1.6.63 蓝牙闸门开关
     private TextView btGateStatusText;
+    private Button wifiGateButton;    // v1.6.64 WiFi 闸门开关
+    private TextView wifiGateStatusText;
     private TextView adbBanner;
     private LinearLayout cSysCard;   // 系统卡片（没权限时整卡隐藏）
     private Button pkgManageButton;
@@ -194,6 +196,16 @@ public class MainActivity extends Activity implements View.OnClickListener,
         btGateStatusText.setPadding(0, dip(4), 0, dip(2));
         addIn(cDev, btGateStatusText);
 
+        // v1.6.64：WiFi 闸门 —— 息屏关 WiFi，亮屏 3s 后开 WiFi（普通权限可做）
+        wifiGateButton = new Button(this);
+        wifiGateButton.setOnClickListener(this);
+        addIn(cDev, wifiGateButton);
+        wifiGateStatusText = new TextView(this);
+        wifiGateStatusText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11);
+        wifiGateStatusText.setTextColor(Color.rgb(110, 116, 128));
+        wifiGateStatusText.setPadding(0, dip(4), 0, dip(2));
+        addIn(cDev, wifiGateStatusText);
+
         // v1.6.56 系统分区：无线 ADB 自动开（见顶部状态条），下面是可选动作
         LinearLayout cSys = card(right, "系统", null);
         cSysCard = cSys;
@@ -224,13 +236,15 @@ public class MainActivity extends Activity implements View.OnClickListener,
         } catch (Throwable ignored) {
         }
         // v1.6.63：闸门开时顺手拉起蓝牙闸门服务（开机一路也会拉）
+        // v1.6.64：WiFi 闸门共用同一服务
         try {
-            if (BtGate.isEnabled(this)) {
+            if (BtGate.isEnabled(this) || WifiGate.isEnabled(this)) {
                 startService(new Intent(this, BtGateService.class));
             }
         } catch (Throwable ignored) {
         }
         updateBtGateUi();
+        updateWifiGateUi();
     }
 
     @Override
@@ -239,6 +253,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
         refresh();
         updateMuteUi();
         updateBtGateUi();
+        updateWifiGateUi();
         refreshSystemUi();
     }
 
@@ -250,6 +265,18 @@ public class MainActivity extends Activity implements View.OnClickListener,
                     ? "蓝牙：只在点火亮屏后开（已开，点我关）"
                     : "蓝牙：只在点火亮屏后开（已关，点我开）");
             btGateStatusText.setText(BtGate.statusText(this));
+        } catch (Throwable ignored) {
+        }
+    }
+
+    /** v1.6.64：WiFi 闸门按钮文案 + 状态行刷新 */
+    private void updateWifiGateUi() {
+        try {
+            boolean on = WifiGate.isEnabled(this);
+            wifiGateButton.setText(on
+                    ? "WiFi：息屏关、亮屏开（已开，点我关）"
+                    : "WiFi：息屏关、亮屏开（已关，点我开）");
+            wifiGateStatusText.setText(WifiGate.statusText(this));
         } catch (Throwable ignored) {
         }
     }
@@ -394,6 +421,23 @@ public class MainActivity extends Activity implements View.OnClickListener,
                         Toast.LENGTH_LONG).show();
             }
             updateBtGateUi();
+            return;
+        }
+        if (v == wifiGateButton) {
+            boolean nowOn = !WifiGate.isEnabled(this);
+            WifiGate.setEnabled(this, nowOn);
+            if (nowOn) {
+                try {
+                    startService(new Intent(this, BtGateService.class));
+                } catch (Throwable ignored) {
+                }
+                Toast.makeText(this, "已开启：息屏关 WiFi，亮屏 3s 后才开",
+                        Toast.LENGTH_LONG).show();
+            } else {
+                Toast.makeText(this, "已关闭：WiFi 开关回到系统/手动控制",
+                        Toast.LENGTH_LONG).show();
+            }
+            updateWifiGateUi();
             return;
         }
         if (v == pkgManageButton) {

@@ -5,10 +5,31 @@
 - 包名：`com.boottask`
 - 最低版本：Android 2.2（API 8，实际按 4.4 编写）—— 兼容一切 4.x，**包括 4.4.2 车机**
 - 构建方式：v1.6 起全部 Java/D8 + apktool 合并进单 dex（`build.sh` Linux / `build_win.sh` Windows，v1.6.26 起类清单已改 glob）
-- 成品：`dist/BootTask_v1.6.63.apk`（**纯 v1 签名**，SHA-1 摘要，无 v2/v3 签名块）——**唯一交付包**；
+- 成品：`dist/BootTask_v1.6.64.apk`（**纯 v1 签名**，SHA-1 摘要，无 v2/v3 签名块）——**唯一交付包**；
   历史 `-system.apk` 变体（平台 testkey + `sharedUserId=android.uid.system`）**已废弃**：车机固件平台签名与 AOSP testkey 不同，实测装不上（`INSTALL_FAILED_SHARED_USER_INCOMPATIBLE`），别再折腾；历史版本同目录留档
 - **v1.6.28 起文件功能已整体拆出**：文件管理 / 扫码传 APK / 卸载软件 → 独立 App
   「车机文件管家」（`FileMgr/`，包名 `com.carfiles`），本 App 不再含文件功能
+
+### v1.6.64（WiFi 闸门：息屏关 WiFi，亮屏 3s 后开）
+
+**动机**：用户接着问「监听亮屏事件，亮屏了打开 WiFi，息屏了关闭 WiFi，不用 root 吧？」
+——可以。`CHANGE_WIFI_STATE` 是普通权限，`WifiManager.setWifiEnabled` 在 4.4 上普通 App
+直接可调，不用系统签名。
+
+**实现**（与 v1.6.63 蓝牙闸门同一套路，代码合进一个 `BtGateService`）：
+- 新增 `WifiGate`（开关+动作）；
+- `BOOT_COMPLETED` → 关 WiFi；`SCREEN_OFF` → 立刻关 WiFi；`USER_PRESENT`（解锁）→ 忽略；
+- `SCREEN_ON` → 延迟 3 秒开 WiFi（3 秒内又熄屏则跳过）；
+- 主界面「设备」卡新增第二颗按钮「WiFi：息屏关、亮屏开（已开/已关）」+ 状态行，
+  开关存 `SharedPreferences(wifigate)`，默认开；
+- 诊断快照追加 `【WiFi 闸门】` 行，日志落 `files/log/wifigate.txt`。
+
+**代价（如实说明）**：关 WiFi 会顺带拆掉 P2P 组（`p2p0`）和热点 AP——熄屏/解锁阶段
+本来也用不了直连，亮屏后 WiFi 打开系统会重建组；开热点时 `setWifiEnabled(false)`
+可能被忽略，日志里会如实记「热点开着时可能被忽略」。
+
+**验证**：构建 0 error；dex 含 `WifiGate/WiFi 闸门/息屏关`；versionCode 80。**实机待验**：
+熄屏后 WiFi 应关，亮屏 3s 后应开；下载日志里 `wifigate.txt` 有记录。
 
 ### v1.6.63（蓝牙闸门：解锁/熄屏不打开，点火亮屏 3s 后才开）
 

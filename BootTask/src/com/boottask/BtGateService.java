@@ -10,14 +10,15 @@ import android.util.Log;
 
 /**
  * v1.6.63 蓝牙闸门服务 —— 常驻监听 SCREEN_ON / SCREEN_OFF / USER_PRESENT。
+ * v1.6.64：顺带接 WiFi 闸门（息屏关 WiFi、亮屏 3s 后开 WiFi，共用一个服务）。
  *
  * SCREEN_ON/OFF 在 4.4 上 manifest 注册不稳定，必须动态注册（与 ExecService 的
- * DynReceiver 同套路）。SYSTEM 启停语义：
- *   - SCREEN_OFF：立刻关蓝牙（熄屏/解锁后车不开蓝牙）；
- *   - USER_PRESENT（解锁）：只记日志，不开蓝牙 —— 用户点名要的；
- *   - SCREEN_ON（点火+亮屏）：延迟 3s 后开蓝牙。
+ * DynReceiver 同套路）。启停语义：
+ *   - SCREEN_OFF：立刻关蓝牙 + 关 WiFi；
+ *   - USER_PRESENT（解锁）：只记日志，不开任何闸门 —— 用户点名要的；
+ *   - SCREEN_ON（点火+亮屏）：延迟 3s 后开蓝牙 + 开 WiFi。
  *
- * START_STICKY：被系统杀了自动拉起。BtGate 关闭时本服务自己停掉。
+ * START_STICKY：被系统杀了自动拉起。BtGate 和 WifiGate 都关时本服务自己停掉。
  */
 public class BtGateService extends Service {
 
@@ -31,18 +32,25 @@ public class BtGateService extends Service {
             }
             String a = intent.getAction();
             try {
-                if (!BtGate.isEnabled(context)) {
-                    return;
-                }
                 if (Intent.ACTION_SCREEN_OFF.equals(a)) {
-                    Log.i(TAG, "screen off -> bt off");
-                    BtGate.turnOffNow(context, "熄屏");
+                    Log.i(TAG, "screen off -> bt/wifi off");
+                    if (BtGate.isEnabled(context)) {
+                        BtGate.turnOffNow(context, "熄屏");
+                    }
+                    if (WifiGate.isEnabled(context)) {
+                        WifiGate.turnOffNow(context, "熄屏");
+                    }
                 } else if (Intent.ACTION_SCREEN_ON.equals(a)) {
-                    Log.i(TAG, "screen on -> bt on delayed 3s");
-                    BtGate.turnOnDelayed(context, "亮屏");
+                    Log.i(TAG, "screen on -> bt/wifi on delayed 3s");
+                    if (BtGate.isEnabled(context)) {
+                        BtGate.turnOnDelayed(context, "亮屏");
+                    }
+                    if (WifiGate.isEnabled(context)) {
+                        WifiGate.turnOnDelayed(context, "亮屏");
+                    }
                 } else if (Intent.ACTION_USER_PRESENT.equals(a)) {
-                    // 用户点名：解锁不打开蓝牙
-                    Log.i(TAG, "user present (unlock) -> 忽略，不开蓝牙");
+                    // 用户点名：解锁不打开蓝牙/WiFi
+                    Log.i(TAG, "user present (unlock) -> 忽略，不开蓝牙/WiFi");
                     try {
                         BootDiagnostics.log(context, "BtGate unlock(USER_PRESENT) ignored");
                     } catch (Throwable ignored) {
@@ -71,17 +79,22 @@ public class BtGateService extends Service {
         } catch (Throwable t) {
             Log.w(TAG, "registerReceiver failed: " + t);
         }
-        if (!BtGate.isEnabled(this)) {
+        if (!BtGate.isEnabled(this) && !WifiGate.isEnabled(this)) {
             stopSelf();
             return;
         }
-        // 开机后屏还没亮，蓝牙先关掉（等 SCREEN_ON 再开）
-        BtGate.turnOffNow(this, "开机");
+        // 开机后屏还没亮，蓝牙/WiFi 先关掉（等 SCREEN_ON 再开）
+        if (BtGate.isEnabled(this)) {
+            BtGate.turnOffNow(this, "开机");
+        }
+        if (WifiGate.isEnabled(this)) {
+            WifiGate.turnOffNow(this, "开机");
+        }
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (!BtGate.isEnabled(this)) {
+        if (!BtGate.isEnabled(this) && !WifiGate.isEnabled(this)) {
             stopSelf();
             return START_NOT_STICKY;
         }

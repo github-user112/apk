@@ -631,3 +631,79 @@ lock.d 已自动释放
   否则会被 boot.log 里上一次的 `HOTSPOT UP` 假触发（本次就误触发过一次）。
 - 部署完后车机 USB 再次掉线（Windows PnP 已认不到硬件）。属物理/供电问题，
   与本次改动无关；验证已在掉线前完成。
+
+---
+
+## 16. v1.6.71：把「热点自启」做成 App 里的开关（2026-11-08）
+
+用户要的是「App 里关掉就不自启、打开就自启」，不要接线、不要敲命令。
+
+### 16.1 为什么不新增权限、不写 /data/local
+
+App 没有 `/data/local` 的写权限（那是 shell/root 的地盘），所以没法去动
+`/data/local/hotspot/DISABLED`。但 **rules.xml 是 App 自己的 shared_prefs**，
+改它不需要任何权限 —— 而且规则引擎本来就认 `enabled` 字段：
+
+`smali/com/boottask/ExecService.smali:203`
+
+```
+const-string v5, "enabled"
+const/4 v6, 0x1
+invoke-virtual {v4, v5, v6}, Lorg/json/JSONObject;->optBoolean(String;Z)Z
+if-eqz v5, :cond_3          ← false 直接跳过这条规则
+```
+
+所以「关掉自启」= 把那条规则的 `enabled` 置 false。规则本身留在左列列表里，
+看得见、随时能再开。这与 `inject_rule.sh clear`（清空整个列表、连无关规则一起干掉）
+有本质区别。
+
+### 16.2 新增 HotspotAuto.java
+
+| 方法 | 作用 |
+|---|---|
+| `allIndexes(ctx)` | 找出所有 `action=adbcmd` 且 `arg` 含 `boot_hotspot.sh` 的规则下标 |
+| `isEnabled(ctx)` | 任一条 `enabled=true` 就算「已开」 |
+| `setEnabled(ctx,on)` | 全部置为目标状态；一条都没有且要开 → 新建生产规则 |
+| `buttonText` / `statusText` | 按钮与状态行文案 |
+| `restoreWifiOnAsync(ctx)` | 关闭时把 `global wifi_on` 改回 1 |
+
+两个设计决定：
+
+- **按 `arg` 内容找，不按下标**：`RuleStore.add` 是纯 append 不去重，下标会随用户
+  加/删规则漂移，按下标 toggle 会关错规则。
+- **`setEnabled` 要处理多条**：历史上手动加过重复规则时，只 toggle 第一条会出现
+  「点了关闭但热点仍在跑」的假象。
+
+### 16.3 关闭时必须把 wifi_on 改回 1
+
+`boot_hotspot.sh` 跑过之后会把 `global wifi_on` 写成 0（它自己接管驱动）。
+规则 disabled 之后脚本不再跑，就没人把它改回来了 → 下次开机 Android 不会自己开 WiFi，
+车主得手动点一次。
+
+App 进程执行 `settings put global wifi_on 1` 会被权限挡（settings 用调用者 uid），
+所以走 1.6.70 打通的 `AdbBridge`（adbd 侧 root）。必须异步 —— `AdbBridge` 的连接
+等待最长 150 秒，放主线程直接 ANR。
+
+### 16.4 反射约束（与 EditActivity 同一套写法）
+
+`RuleStore` 是 smali 类、stub `android.jar` 没有 `org.json` —— 两者对 javac 都不可见，
+所以 `RuleStore.list/toggle/add` 和 `JSONObject` 全走反射：
+
+```java
+Object r = Class.forName("com.boottask.RuleStore")
+        .getMethod("toggle", Context.class, int.class)
+        .invoke(null, ctx, Integer.valueOf(i));
+```
+
+### 16.5 与命令行开关的关系
+
+两套开关并存，作用于不同层，任选其一：
+
+| | App 开关（1.6.71+） | `autostart_ctl.sh off` |
+|---|---|---|
+| 作用点 | `rules.xml` 的 `enabled` | `/data/local/hotspot/DISABLED` |
+| 效果 | BootTask 连 `adbcmd` 都不执行 | 规则照跑，`boot_hotspot.sh` 进场即退出 |
+| 痕迹 | 无（规则被静默跳过） | `boot.log` 记一行 `DISABLED flag present, skip` |
+| 恢复 | App 里再点一次 | `rm DISABLED` |
+| 需要接线 | 不需要（车上直接点） | 需要 adb |
+

@@ -61,6 +61,8 @@ public class MainActivity extends Activity implements View.OnClickListener,
     private Button pkgManageButton;
     private Button hotspotTestButton;
     private TextView hotspotStatusText;
+    private Button hotspotAutoButton;        // v1.6.71 热点开机自启总开关
+    private TextView hotspotAutoStatusText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -213,6 +215,16 @@ public class MainActivity extends Activity implements View.OnClickListener,
         pkgManageButton.setText("禁用开机自启软件（勾选禁用/恢复）");
         pkgManageButton.setOnClickListener(this);
         addIn(cSys, pkgManageButton);
+        // v1.6.71：热点开机自启总开关。只改本项目自己的 rules.xml 里的 enabled，
+        // 不碰 APK、不碰 /data/local（App 没那个权限），也不需要 root。
+        hotspotAutoButton = new Button(this);
+        hotspotAutoButton.setOnClickListener(this);
+        addIn(cSys, hotspotAutoButton);
+        hotspotAutoStatusText = new TextView(this);
+        hotspotAutoStatusText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11);
+        hotspotAutoStatusText.setTextColor(Color.rgb(110, 116, 128));
+        hotspotAutoStatusText.setPadding(0, dip(4), 0, dip(2));
+        addIn(cSys, hotspotAutoStatusText);
         // v1.6.52：检测车机能否开热点（会短暂关 WiFi）
         hotspotTestButton = new Button(this);
         hotspotTestButton.setText("检测车机能否开热点（会短暂关 WiFi）");
@@ -245,6 +257,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
         }
         updateBtGateUi();
         updateWifiGateUi();
+        updateHotspotAutoUi();
     }
 
     @Override
@@ -254,6 +267,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
         updateMuteUi();
         updateBtGateUi();
         updateWifiGateUi();
+        updateHotspotAutoUi();
         refreshSystemUi();
     }
 
@@ -277,6 +291,15 @@ public class MainActivity extends Activity implements View.OnClickListener,
                     ? "WiFi：息屏关、亮屏开（已开，点我关）"
                     : "WiFi：息屏关、亮屏开（已关，点我开）");
             wifiGateStatusText.setText(WifiGate.statusText(this));
+        } catch (Throwable ignored) {
+        }
+    }
+
+    /** v1.6.71：热点自启按钮文案 + 状态行刷新 */
+    private void updateHotspotAutoUi() {
+        try {
+            hotspotAutoButton.setText(HotspotAuto.buttonText(this));
+            hotspotAutoStatusText.setText(HotspotAuto.statusText(this));
         } catch (Throwable ignored) {
         }
     }
@@ -320,6 +343,8 @@ public class MainActivity extends Activity implements View.OnClickListener,
         pkgManageButton.setVisibility(canDisable
                 ? android.view.View.VISIBLE : android.view.View.GONE);
         hotspotTestButton.setVisibility(android.view.View.VISIBLE);
+        // v1.6.71：热点自启开关只写本项目自己的 prefs，任何权限下都应可见
+        hotspotAutoButton.setVisibility(android.view.View.VISIBLE);
         cSysCard.setVisibility(android.view.View.VISIBLE);
     }
 
@@ -447,6 +472,25 @@ public class MainActivity extends Activity implements View.OnClickListener,
                 return;
             }
             startActivity(new Intent(this, PackageEnableActivity.class));
+            return;
+        }
+        if (v == hotspotAutoButton) {
+            boolean wasOn = HotspotAuto.isEnabled(this);
+            boolean ok = HotspotAuto.setEnabled(this, !wasOn);
+            if (!ok) {
+                Toast.makeText(this, "操作失败，请查看日志", Toast.LENGTH_SHORT).show();
+            } else if (wasOn) {
+                // 关掉自启后 framework 的 wifi_on 还停在 0（脚本上次写的），
+                // 不改回来的话下次开机 WiFi 是关的，车主得手动点一次。
+                HotspotAuto.restoreWifiOnAsync(this);
+                Toast.makeText(this, "已关闭：下次开机不再自动开热点", Toast.LENGTH_LONG).show();
+            } else {
+                Toast.makeText(this,
+                        "已开启：开机后等 90 秒自动开热点（SSID 9B66BEB4）",
+                        Toast.LENGTH_LONG).show();
+            }
+            updateHotspotAutoUi();
+            refresh();   // 左列规则列表里的「已停用」标签要跟着变
             return;
         }
         if (v == hotspotTestButton) {

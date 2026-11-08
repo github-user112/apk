@@ -14,9 +14,9 @@ export MSYS2_ARG_CONV_EXCL='*'
 
 HERE=$(cd "$(dirname "$0")" && pwd)
 # dist 目录随本脚本所在位置有两种布局，按存在性自动选：
-#   仓库内   apk_src/hotspot/v3  → apk_src/BootTask/dist
-#   原始目录 车机工具/热点自启/v3 → 车机工具/apk_src/BootTask/dist
-DIST="$HERE/../BootTask/dist"
+#   仓库内   apk_src/hotspot/v3   → apk_src/BootTask/dist        （../../BootTask/dist）
+#   原始目录 车机工具/热点自启/v3  → 车机工具/apk_src/BootTask/dist （../../apk_src/BootTask/dist）
+DIST="$HERE/../../BootTask/dist"
 [ -d "$DIST" ] || DIST="$HERE/../../apk_src/BootTask/dist"
 
 pick_apk() {

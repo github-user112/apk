@@ -4,8 +4,14 @@ set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 PROJECT="$ROOT/BootTask"
 LOGXFER="$ROOT/CarLife/02_补丁脚本/logxfer_src"
-ANDROID_JAR="$LOGXFER/tools/android.jar"
-R8_JAR="$LOGXFER/tools/r8.jar"
+# v1.6.69：两个 jar 允许用环境变量覆盖，原因有二（都踩过）：
+#   ① 仓库里的 tools/r8.jar、tools/android-all.jar 是 **Git LFS 指针**（133 字节），
+#      没 git lfs pull 时 java -cp 会报 ClassNotFoundException: com.android.tools.r8.D8；
+#      本机 SDK 的 build-tools/*/lib/d8.jar 含同款 D8 主类，可直接顶替。
+#   ② 这两个路径含中文目录（02_补丁脚本），Windows 版 java.exe 按 ANSI 解命令行，
+#      -cp 中文路径有时读不到。复制到纯 ASCII 目录再指过来最稳。
+ANDROID_JAR="${BT_ANDROID_JAR:-$LOGXFER/tools/android.jar}"
+R8_JAR="${BT_R8_JAR:-$LOGXFER/tools/r8.jar}"
 APKTOOL_JAR="$ROOT/tools/apktool.jar"
 APKSIGNER_JAR="$ROOT/tools/apksigner/apksigner.jar"
 OUT=${1:-}

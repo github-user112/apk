@@ -69,3 +69,6 @@ apktool.yml text eol=lf
 *.arsc     binary
 *.9.png    binary
 *.flat     binary
+
+# 无后缀的可执行脚本：必须保持 LF（CRLF 会让 shebang 失效）
+tools/zipshim/zip text eol=lf

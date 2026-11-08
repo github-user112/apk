@@ -1,0 +1,57 @@
+#!/usr/bin/env python3
+"""最小 zip 兼容层（Git Bash 自带工具链里没有 zip）。
+
+只实现 build.sh 用到的两种用法：
+    zip -q -d <apk> <entry> [entry...]        # 删除条目（python zipfile 无原生删除，重写整包）
+    zip -q -0 <apk> <file> [file...] [ -0 = 不压缩 ]
+其余参数忽略。用法与 Info-ZIP 一致，便于 build.sh 无需改动。
+"""
+import os
+import sys
+import zipfile
+
+argv = sys.argv[1:]
+opts = [a for a in argv if a.startswith("-")]
+rest = [a for a in argv if not a.startswith("-")]
+if not rest:
+    sys.exit("zipshim: 缺少 zip 文件名")
+
+archive = rest[0]
+names = rest[1:]
+delete = "-d" in opts
+store = "-0" in opts
+
+if delete:
+    if not os.path.exists(archive):
+        sys.exit("zipshim: %s 不存在" % archive)
+    tmp = archive + ".rewrite"
+    with zipfile.ZipFile(archive, "r") as zin, zipfile.ZipFile(tmp, "w") as zout:
+        for item in zin.infolist():
+            if item.filename in names:
+                continue
+            info = zipfile.ZipInfo(item.filename, date_time=item.date_time)
+            info.external_attr = item.external_attr
+            info.compress_type = item.compress_type
+            zout.writestr(info, zin.read(item.filename))
+    os.replace(tmp, archive)
+    sys.exit(0)
+
+comp = zipfile.ZIP_STORED if store else zipfile.ZIP_DEFLATED
+# 用追加模式重建：先读入所有旧条目，再覆盖同名条目，保证不产生重名项
+old = []
+if os.path.exists(archive):
+    with zipfile.ZipFile(archive, "r") as zin:
+        old = [(i, zin.read(i.filename)) for i in zin.infolist()]
+with zipfile.ZipFile(archive, "w") as zout:
+    for info, data in old:
+        if info.filename in names:
+            continue
+        ni = zipfile.ZipInfo(info.filename, date_time=info.date_time)
+        ni.external_attr = info.external_attr
+        ni.compress_type = info.compress_type
+        zout.writestr(ni, data)
+    for name in names:
+        if not os.path.exists(name):
+            sys.exit("zipshim: 本地文件不存在 %s" % name)
+        zout.write(name, name.replace(os.sep, "/"), compress_type=comp)
+sys.exit(0)

@@ -38,6 +38,10 @@ public final class AdvActions {
                 doRootCmd(context, arg == null ? "" : arg);
                 return true;
             }
+            if ("adbcmd".equals(action)) {
+                doAdbCmd(context, arg == null ? "" : arg);
+                return true;
+            }
             return false;
         } catch (Throwable t) {
             BootDiagnostics.log(context, "adv action '" + action + "' failed: " + t);
@@ -117,18 +121,103 @@ public final class AdvActions {
 
     // ---------------------------------------------------------------- rootcmd
 
+    /**
+     * su 通道可用性探测结果（null = 还没探测过）。
+     * <p>
+     * v1.6.70：**不能**用"su 进程 exit 0"来判断通道可用。实测（MuMu + mksu 版 su）：
+     * App 带 no_new_privs，su 打印 {@code su: setuid(0) failed (no_new_privs?)} 之后
+     * 并没有退出，而是**继续以 App 身份把命令执行完**并 exit 0。日志长这样：
+     * <pre>
+     * rootcmd[su] ok 104ms: su: setuid(0) failed (no_new_privs?)
+     * uid=10042(u0_a42) gid=10042(...)      &lt;-- 命令确实跑了，但身份不是 root
+     * ROOTCMD_CHAIN_OK (exit=0)
+     * </pre>
+     * 于是 v1.6.69 的 "exit=0 即成功" 判据仍然会把这种伪成功当真，永远降级不到 adbd。
+     * 唯一可靠判据：让 su 跑一次 {@code id}，看输出里有没有 {@code uid=0}。
+     * 探测结果缓存，一次开机最多多花一次 exec（~100ms）。
+     */
+    private static Boolean sSuUsable = null;
+
+    private static boolean suUsable(Context context) {
+        if (sSuUsable != null) {
+            return sSuUsable.booleanValue();
+        }
+        long t0 = System.currentTimeMillis();
+        // 超时给 8s：真 root 管理器（SuperSU 一类）可能弹授权框，给点时间。
+        String probe = run(new String[]{"su", "-c", "id"}, 8000L, 4096);
+        boolean ok = probe != null && probe.indexOf("uid=0") >= 0;
+        sSuUsable = Boolean.valueOf(ok);
+        BootDiagnostics.log(context, "su probe " + (System.currentTimeMillis() - t0) + "ms: "
+                + (ok ? "usable" : "unusable") + " -> " + clip(probe, 200));
+        return ok;
+    }
+
     private static void doRootCmd(Context context, String argIn) {
         String cmd = argIn.trim();
         if (cmd.length() == 0) {
             BootDiagnostics.log(context, "rootcmd skipped: arg empty");
             return;
         }
-        String output = run(new String[]{"su", "-c", cmd}, CMD_TIMEOUT_MS, 8192);
-        if (output == null) {
-            BootDiagnostics.log(context, "su unavailable/empty-fail, fallback plain shell: " + cmd);
-            output = run(new String[]{"sh", "-c", cmd}, CMD_TIMEOUT_MS, 8192);
+
+        // 通道 1: su（本机若无 su，ProcessBuilder 直接抛 IOException -> null）
+        long t0 = System.currentTimeMillis();
+        if (suUsable(context)) {
+            String output = run(new String[]{"su", "-c", cmd}, CMD_TIMEOUT_MS, 8192);
+            if (output != null && output.endsWith("(exit=0)")) {
+                BootDiagnostics.log(context, "rootcmd[su] ok " + (System.currentTimeMillis() - t0)
+                        + "ms: " + clip(output, LOG_OUT_MAX));
+                return;
+            }
+            BootDiagnostics.log(context, "rootcmd[su] failed " + (System.currentTimeMillis() - t0)
+                    + "ms: 探测可用但本次执行失败 -> " + clip(output, LOG_OUT_MAX));
+        } else {
+            // v1.6.66：以前这一级失败是静默的（run() 对"无输出且退出码非 0"返回 null 但不留痕），
+            // 现场只看到 adbd 和 sh 两行，无法判断 su 到底是不存在还是被拒。补上这一行。
+            BootDiagnostics.log(context, "rootcmd[su] skipped " + (System.currentTimeMillis() - t0)
+                    + "ms: su 通道不可用（不存在 / 无 setuid 位 / 被 no_new_privs 忽略）");
         }
-        BootDiagnostics.log(context, "rootcmd done: " + clip(output, LOG_OUT_MAX));
+
+        // 通道 2: 本机 adbd（127.0.0.1:5555）。adbd 本身以 root 运行，
+        // 提权发生在 adbd 而非 App 进程，因此不受 zygote 的 PR_SET_NO_NEW_PRIVS 影响。
+        // 这是本机（无 su）拿到 root 的主通道。
+        t0 = System.currentTimeMillis();
+        String viaAdb = AdbBridge.exec(cmd, CMD_TIMEOUT_MS);
+        if (viaAdb != null) {
+            BootDiagnostics.log(context, "rootcmd[adbd] ok " + (System.currentTimeMillis() - t0)
+                    + "ms: " + clip(viaAdb, LOG_OUT_MAX));
+            return;
+        }
+        BootDiagnostics.log(context, "rootcmd[adbd] failed " + (System.currentTimeMillis() - t0)
+                + "ms: adbd 不可达或未授权（检查 service.adb.tcp.port / adb_keys）");
+
+        // 通道 3: 普通 shell 兜底（无 root，多数命令会失败，但至少留下 exit 码）
+        t0 = System.currentTimeMillis();
+        String shOut = run(new String[]{"sh", "-c", cmd}, CMD_TIMEOUT_MS, 8192);
+        BootDiagnostics.log(context, "rootcmd[sh] done " + (System.currentTimeMillis() - t0)
+                + "ms: " + clip(shOut, LOG_OUT_MAX));
+    }
+
+    /**
+     * 只走 adbd 通道（跳过 su），用于单独验证 127.0.0.1:5555 这条链路。
+     * 生产规则仍用 rootcmd（su 优先、adbd 兜底）；本动作只做诊断：
+     *   {"event":"boot","action":"adbcmd","arg":"id","delay":0}
+     * 走通了日志里是 adbcmd[adbd] ok，走不通是 adbcmd[adbd] FAILED。
+     */
+    private static void doAdbCmd(Context context, String argIn) {
+        String cmd = argIn.trim();
+        if (cmd.length() == 0) {
+            BootDiagnostics.log(context, "adbcmd skipped: arg empty");
+            return;
+        }
+        long t0 = System.currentTimeMillis();
+        String out = AdbBridge.exec(cmd, CMD_TIMEOUT_MS);
+        long dt = System.currentTimeMillis() - t0;
+        if (out == null) {
+            BootDiagnostics.log(context, "adbcmd[adbd] FAILED " + dt
+                    + "ms: 连接/认证/协议任一环节失败（检查 5555 监听、adb_keys、ro.adb.secure）");
+            return;
+        }
+        BootDiagnostics.log(context, "adbcmd[adbd] ok " + dt + "ms: " + clip(out, LOG_OUT_MAX));
     }
 
     /**

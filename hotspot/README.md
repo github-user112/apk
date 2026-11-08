@@ -42,9 +42,10 @@ hotspot/
 ├── 冷启动验证方案.md        早期验证方案存档（含已证否路线）
 └── v3/
     ├── deploy_final.sh    ★ 唯一部署入口
+    ├── autostart_ctl.sh   ★ 关闭 / 恢复开机自启、立即停用热点
     ├── install_apk.sh     装 BootTask APK（覆盖安装，保留 rules.xml）
     ├── inject_rule.sh     安全注入 rules.xml（属主用 dumpsys userId 解析）
-    ├── p9_revert.sh       一键回滚到 STA 模式
+    ├── p9_revert.sh       回滚 /system 侧改动（init 钩子、sh 权限、adb_keys）
     ├── app_route.sh       已停用，仅留档（默认 exit 1，勿用）
     ├── QUICKSTART.md      ★ 上车执行清单
     ├── APP_CHANGE.md      App 侧全部改动与根因（第 10~15 节是热点方案）
@@ -75,6 +76,62 @@ bash deploy_final.sh trigger        # 免重启触发一次（要等 delay+20 �
 （`车机工具/热点自启/v3`），那是当时的工作位置；从仓库检出后请用 `hotspot/v3`。
 脚本内部用的是 `$(dirname "$0")` 相对定位，两种位置都能跑
 （`install_apk.sh` 会自动判断 `BootTask/dist` 在前一级还是两级）。
+
+---
+
+## 不想要开机自动开热点了怎么办
+
+用 `v3/autostart_ctl.sh`。**不碰 APK、不碰 rules.xml**，只操作 `/data/local/hotspot` 下的开关文件：
+
+```bash
+cd hotspot/v3
+bash autostart_ctl.sh status    # 只读：先看现状（开关/mode/热点/wifi_on/规则）
+bash autostart_ctl.sh off       # 下次开机不再开热点（当前热点不受影响，不断网）
+bash autostart_ctl.sh stop      # 立即停热点，WiFi 交回 Android framework
+bash autostart_ctl.sh all-off   # off + stop（彻底不要了，立刻生效）
+bash autostart_ctl.sh on        # 反悔，恢复自启
+```
+
+| 命令 | 生效时机 | 当前热点 | 适用场景 |
+|---|---|---|---|
+| `off` | **下次开机** | 保持运行，不断网 | 车上有人连着，等下次上电自然不再开 |
+| `stop` | 立即（几秒内） | 拆掉 hostapd/dnsmasq，卸载 bcmdhd | 现在就要断 |
+| `all-off` | 立即 + 永久 | 同上 | 彻底停用 |
+| `on` | 下次开机 | 不动 | 恢复 |
+
+`off` 做的事其实就三行：
+
+```sh
+touch /data/local/hotspot/DISABLED   # 脚本进场第一件事就检查它，存在即退出
+echo sta > /data/local/hotspot/mode  # 万一被手动跑一次，走 restore_sta 分支
+settings put global wifi_on 1        # 把 framework 的 WiFi 改回开机自启
+```
+
+`boot_hotspot.sh` 里对应的判断在 `main()` 开头：
+
+```sh
+if [ -f $DISABLE_FLAG ]; then
+  log "DISABLED flag present, skip"
+  return 0
+fi
+```
+
+所以 `off` 之后 BootTask 仍会在开机 90 秒时触发一次，但除了往 `boot.log` 写一行
+`DISABLED flag present, skip` 什么也不做，不会动驱动。
+
+**为什么不用更"彻底"的做法：**
+
+| 做法 | 问题 |
+|---|---|
+| `adb uninstall com.boottask` | 连 App 一起没了，且以后想用要重装 |
+| `inject_rule.sh <serial> clear` | 清空**整个** rules 列表，会把 1.6.64 的息屏关 WiFi 闸门等无关规则一起干掉 |
+| 删 `boot_hotspot.sh` | 下次开机 adbcmd 执行时报 `No such file`，日志一片错误噪音，问题变成"看不见的失败" |
+
+软开关是唯一"关掉之后日志干净、一条命令就能恢复"的做法。
+
+**关掉之后系统 WiFi 是什么状态**：`boot_hotspot.sh` 跑过之后 `global wifi_on` 被写成了 `0`，
+framework 不再接管 WiFi。所以 `off` / `stop` 都会把它改回 `1`，否则开机后 WiFi 是关着的，
+得手动在设置里点一下。`autostart_ctl.sh status` 的第 4 项可以确认这个值。
 
 ---
 

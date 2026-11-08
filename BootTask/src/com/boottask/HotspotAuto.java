@@ -1,6 +1,7 @@
 package com.boottask;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 
 import java.lang.reflect.Method;
 
@@ -30,6 +31,10 @@ public final class HotspotAuto {
     private static final int DELAY = 90;
 
     private static final String MARK = "boot_hotspot.sh";
+
+    /** v1.6.72：记录「默认开」是否已经处理过，避免用户删掉规则后每次打开 App 又被重建 */
+    private static final String PREFS = "hotspot_auto";
+    private static final String K_DEFAULT_DONE = "default_applied";
 
     private HotspotAuto() {
     }
@@ -142,6 +147,102 @@ public final class HotspotAuto {
     }
 
     /**
+     * v1.6.72：热点自启默认「开」。
+     *
+     * 首次打开 App（升级到本版本后第一次）时，如果一条热点规则都没有，就自动建一条
+     * enabled=true 的规则，省掉用户手动点一次。
+     *
+     * 只做一次（prefs 里打标记）：用户明确关掉、甚至把规则删了之后，再打开 App 不会被强行重建，
+     * 否则「关」这个动作就永远不彻底。
+     */
+    public static void ensureDefaultOn(Context ctx) {
+        try {
+            SharedPreferences sp = ctx.getSharedPreferences(PREFS, 0);
+            if (sp.getBoolean(K_DEFAULT_DONE, false)) {
+                return;
+            }
+            if (!exists(ctx)) {
+                boolean ok = create(ctx);
+                BootDiagnostics.log(ctx, "HotspotAuto: default rule created ok=" + ok);
+            }
+            sp.edit().putBoolean(K_DEFAULT_DONE, true).commit();
+        } catch (Throwable t) {
+            BootDiagnostics.log(ctx, "HotspotAuto.ensureDefaultOn failed: " + t);
+        }
+    }
+
+    /**
+     * v1.6.72：点「开」时立刻开一次热点，不等下次上电。
+     *
+     * 设备端脚本一趟做完：清 DISABLED/failcnt（否则脚本自己会 skip）、把 mode 写回 ap
+     * （否则走 restore_sta 分支）、nohup 起主脚本，然后在同一会话里轮询 boot.log 判结果。
+     * 一次连接搞定，避免反复建 adbd 连接（每次异常断开都会在 adbd 侧留 CLOSE_WAIT）。
+     *
+     * 轮询用「本轮新增日志」判断，不会被日志里上一次的 HOTSPOT UP 骗到：
+     * 先记字节数 S，每轮取 tail -c (当前大小 - S)。
+     *
+     * @return 给用户看的一句话（Toast 内容）
+     */
+    public static String startNow(Context ctx) {
+        try {
+            // 连接等待只给 20 秒：手动点的时候机器早起来了，adbd 连不上就是连不上，
+            // 不该让人干等 150 秒（MuMu 实测过 154 秒才回来，像卡死）。
+            String out = AdbBridge.exec(START_NOW_SH, 150000L, 20000L);
+            BootDiagnostics.log(ctx, "HotspotAuto.startNow out=" + out);
+            if (out == null) {
+                return "连不上本机 adbd，这次没开成（开关已记下，下次开机会照常开）";
+            }
+            if (out.indexOf("RESULT=ALREADY_UP") >= 0) {
+                return "热点本来就在跑（192.168.43.1），不用再开";
+            }
+            if (out.indexOf("RESULT=UP") >= 0) {
+                return "已开：热点可用（SSID 9B66BEB4 / 192.168.43.1）";
+            }
+            if (out.indexOf("RESULT=FAIL") >= 0) {
+                return "开热点失败，详见 /data/local/hotspot/boot.log";
+            }
+            return "已发起，但两分钟内没等到热点就绪；稍后再看状态";
+        } catch (Throwable t) {
+            BootDiagnostics.log(ctx, "HotspotAuto.startNow failed: " + t);
+            return "启动失败：" + t;
+        }
+    }
+
+    /**
+     * 设备端一次性脚本。用 $(...) 让车机自己展开（App 侧不做拼接）。
+     *
+     * 判定「开好了没」以 wlan0 上有 192.168.43.1 为准 —— 这是脚本配完 IP 的唯一证据，
+     * 比读日志稳：不依赖字节偏移，也不受日志里上一次成功/失败记录干扰。
+     * 另外顺带看本轮新增日志里有没有 HOTSPOT FAILED，有就提前报失败。
+     *
+     * 注意本机 /system/bin 没有 cut/awk/sed，全走 busybox；
+     * tail 只用 -c N（不用 +N，旧 busybox 语义不一致）。
+     * wc 用「文件参数」形式而不是 < 重定向：日志还不存在时，
+     * `< 重定向失败是 shell 报错，2>/dev/null 吞不掉，会往 stderr 喷一行噪音。
+     */
+    private static final String START_NOW_SH =
+            "H=/data/local/hotspot; L=$H/boot.log; "
+            + "A=$(busybox ifconfig wlan0 2>/dev/null); "
+            + "case \"$A\" in *192.168.43.1*) echo RESULT=ALREADY_UP; exit 0;; esac; "
+            + "set -- $(busybox wc -c $L 2>/dev/null); S=${1:-0}; "
+            + "rm -f $H/DISABLED $H/failcnt; echo ap > $H/mode; "
+            + "busybox nohup sh $H/boot_hotspot.sh >/dev/null 2>&1 & "
+            + "sleep 6; i=0; "
+            + "while [ $i -lt 14 ]; do "
+            + "A=$(busybox ifconfig wlan0 2>/dev/null); "
+            + "case \"$A\" in *192.168.43.1*) echo RESULT=UP; exit 0;; esac; "
+            + "set -- $(busybox wc -c $L 2>/dev/null); N=${1:-0}; "
+            + "[ \"$N\" -le \"$S\" ] 2>/dev/null && N=$S; "
+            + "D=$((N-S)); [ $D -le 0 ] && D=1; "
+            + "T=$(busybox tail -c $D $L 2>/dev/null); "
+            + "case \"$T\" in "
+            + "*\"HOTSPOT FAILED\"*) echo RESULT=FAIL; echo \"$T\"; exit 2;; "
+            + "esac; "
+            + "sleep 8; i=$((i+1)); "
+            + "done; "
+            + "echo RESULT=TIMEOUT; busybox tail -n 10 $L 2>/dev/null; exit 3";
+
+    /**
      * 关掉自启后顺手把 framework 的 wifi_on 改回 1。
      *
      * 必须做：boot_hotspot.sh 跑过之后会把 global wifi_on 写成 0（它自己接管驱动），
@@ -154,8 +255,13 @@ public final class HotspotAuto {
         new Thread(new Runnable() {
             public void run() {
                 try {
-                    String out = AdbBridge.exec("settings put global wifi_on 1", 8000L);
-                    BootDiagnostics.log(ctx, "HotspotAuto: wifi_on -> 1, out=" + out);
+                    // v1.6.72：写完立刻回读。只写不读的话失败与成功都是 null，
+                    // 日志里看到的「-> 1」是假的（MuMu 实测踩过）。
+                    String out = AdbBridge.exec(
+                            "settings put global wifi_on 1; settings get global wifi_on", 12000L);
+                    String v = out == null ? "" : out.trim();
+                    BootDiagnostics.log(ctx, "HotspotAuto: wifi_on -> [" + v + "]"
+                            + ("1".equals(v) ? "" : " (未生效)"));
                 } catch (Throwable t) {
                     BootDiagnostics.log(ctx, "HotspotAuto: wifi_on restore failed: " + t);
                 }
@@ -168,18 +274,18 @@ public final class HotspotAuto {
     public static String buttonText(Context ctx) {
         int i = findIndex(ctx);
         if (i < 0) {
-            return "热点自启：未配置（点我创建并开启）";
+            return "热点自启：未配置（点我开启并立刻开热点）";
         }
         return isEnabled(ctx)
                 ? "热点自启：已开（点我关）"
-                : "热点自启：已关（点我开）";
+                : "热点自启：已关（点我开，并立刻开热点）";
     }
 
     public static String statusText(Context ctx) {
         java.util.List<Integer> idx = allIndexes(ctx);
         if (idx.isEmpty()) {
-            return "还没有这条规则。点上面的按钮会创建：开机后等 90 秒自动开热点"
-                    + "（SSID 9B66BEB4 / 192.168.43.1）";
+            return "还没有这条规则。点上面的按钮会创建并开启："
+                    + "开机后等 90 秒自动开热点（SSID 9B66BEB4 / 192.168.43.1）";
         }
         String more = idx.size() > 1
                 ? "（检测到 " + idx.size() + " 条热点规则，开关会一起生效）"
@@ -187,8 +293,7 @@ public final class HotspotAuto {
         if (isEnabled(ctx)) {
             return "已开：开机后等 90 秒自动开热点（SSID 9B66BEB4 / 密码 12345678）" + more;
         }
-        return "已关：规则还在，只是启动时跳过；WiFi 交回 Android 自己管"
-                + "（开机若 WiFi 是关的，在设置里打开一次即可）" + more;
+        return "已关：下次开机不再自动开热点。点上面的按钮会立刻开一次，并恢复开机自启" + more;
     }
 
     // ------------------------------------------------------------ 反射帮手

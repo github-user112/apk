@@ -27,12 +27,17 @@ import android.widget.Toast;
  *  - 排查页（RTT/扫描/低速修复）删掉；v1.6.44 起 AudioMonitor / MuteGuard /
  *    RateWatcher 三个也全删（用户：车机声音不要动、低速蹲守也不要），
  *    只留 YilianWatcher 常开记录亿连进程出现/消失 + CPU/内存，要发日志用「下载日志」；
- *  - 声音模块只留「开机抢占音源」；
  *  - 更多页 / 工具模块 / Root 工具 / 已排除页 全删；
- *  - 保留：我的规则 + 开机抢占音源 + 重启亿连 + 下载日志 + 按键与弹窗入口。
+ *  - 保留：我的规则 + 重启亿连 + 下载日志 + 按键与弹窗入口。
  *    （重启车机需 root，本车无 su，v1.6.43 起按钮已删）
  *
- * 布局：整页不滚动。左列=规则列表（吃满高度）；右列=声音 / 按键入口 / 设备。
+ * v1.6.72 再砍一刀（用户：这些按钮不要了）：
+ *  - 删「检测车机能否开热点」「WiFi 息屏关」「蓝牙：只在点火」「开机抢占音源」四个按钮；
+ *  - 前三个的行为由一次性迁移关停（见 migrateLegacySwitchesOff），
+ *    否则会出现「界面没开关、开机行为还在」的死角；
+ *  - 「热点自启」默认开；关→点开时立刻调脚本开一次热点，不等下次上电。
+ *
+ * 布局：整页不滚动。左列=规则列表（吃满高度）；右列=按键入口 / 设备 / 系统。
  *
  * 编译期约束（不变）：stub android.jar 无 org.json；smali 类（RuleStore/Util/
  * EditActivity）对 javac 不可见 —— 规则存取走反射，组件拉起用 setClassName 字符串。
@@ -48,21 +53,16 @@ public class MainActivity extends Activity implements View.OnClickListener,
     private ListView lv;
     private TextView countText;
     private Button addRuleButton;
-    private Button claimBootButton;
     private Button keysButton;
     private Button rebootYlButton;
     private Button logButton;
-    private Button btGateButton;      // v1.6.63 蓝牙闸门开关
-    private TextView btGateStatusText;
-    private Button wifiGateButton;    // v1.6.64 WiFi 闸门开关
-    private TextView wifiGateStatusText;
     private TextView adbBanner;
     private LinearLayout cSysCard;   // 系统卡片（没权限时整卡隐藏）
     private Button pkgManageButton;
-    private Button hotspotTestButton;
-    private TextView hotspotStatusText;
     private Button hotspotAutoButton;        // v1.6.71 热点开机自启总开关
     private TextView hotspotAutoStatusText;
+    /** v1.6.72：点「开」后正在跑开机脚本，期间按钮禁用，防止连点起多个实例 */
+    private boolean hotspotStarting;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,7 +86,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
         headRow.addView(title, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         TextView sub = new TextView(this);
-        sub.setText("规则 / 开机抢占 / 按键 / 无线ADB / 禁用自启");
+        sub.setText("规则 / 热点自启 / 按键 / 无线ADB / 禁用自启");
         sub.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
         sub.setTextColor(Color.rgb(120, 120, 120));
         LinearLayout.LayoutParams subLp = new LinearLayout.LayoutParams(
@@ -166,11 +166,6 @@ public class MainActivity extends Activity implements View.OnClickListener,
         rightScroll.addView(right, new android.widget.ScrollView.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
-        LinearLayout cMute = card(right, "声音", null);
-        claimBootButton = new Button(this);
-        claimBootButton.setOnClickListener(this);
-        addIn(cMute, claimBootButton);
-
         LinearLayout cKey = card(right, "按键与弹窗", null);
         keysButton = new Button(this);
         keysButton.setText("按键与弹窗设置");
@@ -187,26 +182,6 @@ public class MainActivity extends Activity implements View.OnClickListener,
         logButton.setText("下载日志（亿连连接与系统运行信息，扫码取走）");
         logButton.setOnClickListener(this);
         addIn(cDev, logButton);
-
-        // v1.6.63：蓝牙闸门 —— 解锁/熄屏不打开，点火亮屏 3s 后打开（普通权限可做）
-        btGateButton = new Button(this);
-        btGateButton.setOnClickListener(this);
-        addIn(cDev, btGateButton);
-        btGateStatusText = new TextView(this);
-        btGateStatusText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11);
-        btGateStatusText.setTextColor(Color.rgb(110, 116, 128));
-        btGateStatusText.setPadding(0, dip(4), 0, dip(2));
-        addIn(cDev, btGateStatusText);
-
-        // v1.6.64：WiFi 闸门 —— 息屏关 WiFi，亮屏 3s 后开 WiFi（普通权限可做）
-        wifiGateButton = new Button(this);
-        wifiGateButton.setOnClickListener(this);
-        addIn(cDev, wifiGateButton);
-        wifiGateStatusText = new TextView(this);
-        wifiGateStatusText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11);
-        wifiGateStatusText.setTextColor(Color.rgb(110, 116, 128));
-        wifiGateStatusText.setPadding(0, dip(4), 0, dip(2));
-        addIn(cDev, wifiGateStatusText);
 
         // v1.6.56 系统分区：无线 ADB 自动开（见顶部状态条），下面是可选动作
         LinearLayout cSys = card(right, "系统", null);
@@ -225,16 +200,6 @@ public class MainActivity extends Activity implements View.OnClickListener,
         hotspotAutoStatusText.setTextColor(Color.rgb(110, 116, 128));
         hotspotAutoStatusText.setPadding(0, dip(4), 0, dip(2));
         addIn(cSys, hotspotAutoStatusText);
-        // v1.6.52：检测车机能否开热点（会短暂关 WiFi）
-        hotspotTestButton = new Button(this);
-        hotspotTestButton.setText("检测车机能否开热点（会短暂关 WiFi）");
-        hotspotTestButton.setOnClickListener(this);
-        addIn(cSys, hotspotTestButton);
-        hotspotStatusText = new TextView(this);
-        hotspotStatusText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11);
-        hotspotStatusText.setTextColor(Color.rgb(110, 116, 128));
-        hotspotStatusText.setPadding(0, dip(4), 0, dip(2));
-        addIn(cSys, hotspotStatusText);
 
         setContentView(root);
 
@@ -247,57 +212,67 @@ public class MainActivity extends Activity implements View.OnClickListener,
             startService(new Intent(this, YilianWatcher.class));
         } catch (Throwable ignored) {
         }
-        // v1.6.63：闸门开时顺手拉起蓝牙闸门服务（开机一路也会拉）
-        // v1.6.64：WiFi 闸门共用同一服务
+        // v1.6.72：蓝牙闸门 / WiFi 息屏关 的入口按钮已删除 → 一次性关停。
+        // 不关的话老机器 prefs 里还是 true，开机照样关 WiFi/蓝牙，App 里又没地方关。
+        migrateLegacySwitchesOff();
+        // v1.6.72：热点自启默认开 —— 首次运行且一条热点规则都没有时自动建一条（enabled=true）
         try {
-            if (BtGate.isEnabled(this) || WifiGate.isEnabled(this)) {
-                startService(new Intent(this, BtGateService.class));
-            }
+            HotspotAuto.ensureDefaultOn(this);
         } catch (Throwable ignored) {
         }
-        updateBtGateUi();
-        updateWifiGateUi();
         updateHotspotAutoUi();
+    }
+
+    /**
+     * v1.6.72：一次性关掉已下线的开关。
+     *
+     * 对应按钮已从界面删除：蓝牙闸门（v1.6.63）、WiFi 息屏关（v1.6.64）、
+     * 开机抢占音源（v1.6.38）。留着 prefs 不动会导致「界面没开关、开机行为还在」，
+     * 用户既看不见也关不掉 —— 所以升级后第一次打开 App 就统一置 false。
+     *
+     * 只跑一次（migrate.v172_trim_off）。之后用户若用 shell 手动改回去，
+     * 本方法不会再覆盖，属于知情操作。
+     */
+    private void migrateLegacySwitchesOff() {
+        try {
+            android.content.SharedPreferences sp = getSharedPreferences("migrate", 0);
+            if (sp.getBoolean("v172_trim_off", false)) {
+                return;
+            }
+            BtGate.setEnabled(this, false);
+            WifiGate.setEnabled(this, false);
+            MediaMute.setBootClaim(this, false, MediaMute.bootClaimSecs(this));
+            try {
+                stopService(new Intent(this, BtGateService.class));
+            } catch (Throwable ignored) {
+            }
+            sp.edit().putBoolean("v172_trim_off", true).commit();
+            BootDiagnostics.log(this,
+                    "v1.6.72: btGate/wifiGate/bootClaim -> off (buttons removed)");
+        } catch (Throwable t) {
+            BootDiagnostics.log(this, "v1.6.72 migrate failed: " + t);
+        }
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         refresh();
-        updateMuteUi();
-        updateBtGateUi();
-        updateWifiGateUi();
         updateHotspotAutoUi();
         refreshSystemUi();
     }
 
-    /** v1.6.63：蓝牙闸门按钮文案 + 状态行刷新 */
-    private void updateBtGateUi() {
-        try {
-            boolean on = BtGate.isEnabled(this);
-            btGateButton.setText(on
-                    ? "蓝牙：只在点火亮屏后开（已开，点我关）"
-                    : "蓝牙：只在点火亮屏后开（已关，点我开）");
-            btGateStatusText.setText(BtGate.statusText(this));
-        } catch (Throwable ignored) {
-        }
-    }
-
-    /** v1.6.64：WiFi 闸门按钮文案 + 状态行刷新 */
-    private void updateWifiGateUi() {
-        try {
-            boolean on = WifiGate.isEnabled(this);
-            wifiGateButton.setText(on
-                    ? "WiFi：息屏关、亮屏开（已开，点我关）"
-                    : "WiFi：息屏关、亮屏开（已关，点我开）");
-            wifiGateStatusText.setText(WifiGate.statusText(this));
-        } catch (Throwable ignored) {
-        }
-    }
-
-    /** v1.6.71：热点自启按钮文案 + 状态行刷新 */
+    /** v1.6.71：热点自启按钮文案 + 状态行刷新（v1.6.72 增加「开启中」态） */
     private void updateHotspotAutoUi() {
         try {
+            if (hotspotStarting) {
+                hotspotAutoButton.setText("热点自启：开启中…（正在跑开机脚本）");
+                hotspotAutoButton.setEnabled(false);
+                hotspotAutoStatusText.setText(
+                        "正在调脚本开热点：约 30~60 秒，期间 WiFi 会短暂断开");
+                return;
+            }
+            hotspotAutoButton.setEnabled(true);
             hotspotAutoButton.setText(HotspotAuto.buttonText(this));
             hotspotAutoStatusText.setText(HotspotAuto.statusText(this));
         } catch (Throwable ignored) {
@@ -337,26 +312,14 @@ public class MainActivity extends Activity implements View.OnClickListener,
     }
 
     /** 普通安装：无 CHANGE_COMPONENT_ENABLED_STATE → 只隐藏「禁用开机自启」按钮；
-     *  「检测车机能否开热点」普通 App 自己就能做，保留；系统卡片跟着按钮留下。 */
+     *  热点自启开关只写本项目自己的 prefs，任何权限下都保留，系统卡片跟着留下。 */
     private void applySystemCardVisibility() {
         boolean canDisable = SystemTools.hasChangeEnabledState(this);
         pkgManageButton.setVisibility(canDisable
                 ? android.view.View.VISIBLE : android.view.View.GONE);
-        hotspotTestButton.setVisibility(android.view.View.VISIBLE);
         // v1.6.71：热点自启开关只写本项目自己的 prefs，任何权限下都应可见
         hotspotAutoButton.setVisibility(android.view.View.VISIBLE);
         cSysCard.setVisibility(android.view.View.VISIBLE);
-    }
-
-    /** v1.6.38：开机抢占音源按钮文案随设置刷新 */
-    private void updateMuteUi() {
-        try {
-            claimBootButton.setText(MediaMute.isBootClaimEnabled(this)
-                    ? "开机抢占音源：已开（播 " + MediaMute.bootClaimSecs(this)
-                      + " 秒静音）——点我改/关"
-                    : "开机抢占音源：开机后播静音抢回声音（默认关，点我开）");
-        } catch (Throwable ignored) {
-        }
     }
 
     private String versionLabel() {
@@ -376,34 +339,6 @@ public class MainActivity extends Activity implements View.OnClickListener,
             // EditActivity 是 smali 类，javac 不可见 → setClassName 字符串形式
             startActivity(new Intent().setClassName(getPackageName(),
                     getPackageName() + ".EditActivity"));
-            return;
-        }
-        if (v == claimBootButton) {
-            final int[] choices = {0, 15, 30, 60, 120, 180};
-            String[] labels = new String[choices.length];
-            labels[0] = "关闭开机抢占";
-            for (int i = 1; i < choices.length; i++) {
-                labels[i] = "开机后播静音 " + choices[i] + " 秒";
-            }
-            new AlertDialog.Builder(this)
-                    .setTitle("开机抢占音源（把开机巨响的收音机/多媒体静音，等亿连接管）")
-                    .setItems(labels, new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface d, int w) {
-                            if (w == 0) {
-                                MediaMute.setBootClaim(MainActivity.this, false,
-                                        MediaMute.bootClaimSecs(MainActivity.this));
-                                Toast.makeText(MainActivity.this, "已关闭开机抢占",
-                                        Toast.LENGTH_SHORT).show();
-                            } else {
-                                MediaMute.setBootClaim(MainActivity.this, true, choices[w]);
-                                Toast.makeText(MainActivity.this,
-                                        "已开启：开机后播 " + choices[w] + " 秒静音抢音源",
-                                        Toast.LENGTH_LONG).show();
-                            }
-                            updateMuteUi();
-                        }
-                    })
-                    .show();
             return;
         }
         if (v == keysButton) {
@@ -431,40 +366,6 @@ public class MainActivity extends Activity implements View.OnClickListener,
             startActivity(new Intent(this, BootDiagnostics.LogActivity.class));
             return;
         }
-        if (v == btGateButton) {
-            boolean nowOn = !BtGate.isEnabled(this);
-            BtGate.setEnabled(this, nowOn);
-            if (nowOn) {
-                try {
-                    startService(new Intent(this, BtGateService.class));
-                } catch (Throwable ignored) {
-                }
-                Toast.makeText(this, "已开启：解锁不打开蓝牙，亮屏 3s 后才开",
-                        Toast.LENGTH_LONG).show();
-            } else {
-                Toast.makeText(this, "已关闭：蓝牙回到系统/手动控制（需自己开）",
-                        Toast.LENGTH_LONG).show();
-            }
-            updateBtGateUi();
-            return;
-        }
-        if (v == wifiGateButton) {
-            boolean nowOn = !WifiGate.isEnabled(this);
-            WifiGate.setEnabled(this, nowOn);
-            if (nowOn) {
-                try {
-                    startService(new Intent(this, BtGateService.class));
-                } catch (Throwable ignored) {
-                }
-                Toast.makeText(this, "已开启：息屏关 WiFi，亮屏 3s 后才开",
-                        Toast.LENGTH_LONG).show();
-            } else {
-                Toast.makeText(this, "已关闭：WiFi 开关回到系统/手动控制",
-                        Toast.LENGTH_LONG).show();
-            }
-            updateWifiGateUi();
-            return;
-        }
         if (v == pkgManageButton) {
             if (!SystemTools.hasChangeEnabledState(this)) {
                 Toast.makeText(this, "需要系统 App 权限（CHANGE_COMPONENT_ENABLED_STATE）",
@@ -475,41 +376,63 @@ public class MainActivity extends Activity implements View.OnClickListener,
             return;
         }
         if (v == hotspotAutoButton) {
-            boolean wasOn = HotspotAuto.isEnabled(this);
-            boolean ok = HotspotAuto.setEnabled(this, !wasOn);
+            if (hotspotStarting) {
+                return;     // 正在开，别让连点起第二个实例
+            }
+            if (HotspotAuto.isEnabled(this)) {
+                // 关：规则置 false（下次开机跳过），当前热点不动；把 wifi_on 改回 1
+                boolean ok = HotspotAuto.setEnabled(this, false);
+                if (!ok) {
+                    Toast.makeText(this, "操作失败，请查看日志", Toast.LENGTH_SHORT).show();
+                } else {
+                    HotspotAuto.restoreWifiOnAsync(this);
+                    Toast.makeText(this,
+                            "已关闭：下次开机不再自动开热点（当前热点不受影响）",
+                            Toast.LENGTH_LONG).show();
+                }
+                updateHotspotAutoUi();
+                refresh();   // 左列规则列表里的「已停用」标签要跟着变
+                return;
+            }
+            // 开：规则置 true，并且**立刻**跑一次脚本（用户点了就想现在有热点）
+            boolean ok = HotspotAuto.setEnabled(this, true);
             if (!ok) {
                 Toast.makeText(this, "操作失败，请查看日志", Toast.LENGTH_SHORT).show();
-            } else if (wasOn) {
-                // 关掉自启后 framework 的 wifi_on 还停在 0（脚本上次写的），
-                // 不改回来的话下次开机 WiFi 是关的，车主得手动点一次。
-                HotspotAuto.restoreWifiOnAsync(this);
-                Toast.makeText(this, "已关闭：下次开机不再自动开热点", Toast.LENGTH_LONG).show();
-            } else {
-                Toast.makeText(this,
-                        "已开启：开机后等 90 秒自动开热点（SSID 9B66BEB4）",
-                        Toast.LENGTH_LONG).show();
+                updateHotspotAutoUi();
+                return;
             }
+            hotspotStarting = true;
             updateHotspotAutoUi();
-            refresh();   // 左列规则列表里的「已停用」标签要跟着变
+            refresh();
+            Toast.makeText(this, "正在开热点…（约 30~60 秒，WiFi 会短暂断开）",
+                    Toast.LENGTH_LONG).show();
+            startHotspotNow();
             return;
         }
-        if (v == hotspotTestButton) {
-            hotspotStatusText.setText("检测中…（WiFi 可能短暂关闭）");
-            new Thread(new Runnable() {
-                public void run() {
-                    final String r = HotspotCheck.probe(MainActivity.this);
-                    runOnUiThread(new Runnable() {
-                        public void run() {
-                            hotspotStatusText.setText(r);
-                            Toast.makeText(MainActivity.this,
-                                    "检测完成（日志存 files/log/hotspot_check.txt，可下载）",
-                                    Toast.LENGTH_LONG).show();
-                        }
-                    });
-                }
-            }, "hotspot-check").start();
-            return;
-        }
+    }
+
+    /**
+     * v1.6.72：点「开」时立刻调脚本开热点。
+     *
+     * 必须后台线程：AdbBridge 的连接等待上限是 150 秒，主线程会 ANR。
+     * 脚本本身还要 30~60 秒（卸 bcmdhd → 载 APSTA 固件 → startap → 配 IP + dnsmasq）。
+     */
+    private void startHotspotNow() {
+        new Thread(new Runnable() {
+            public void run() {
+                final String msg = HotspotAuto.startNow(MainActivity.this);
+                runOnUiThread(new Runnable() {
+                    public void run() {
+                        hotspotStarting = false;
+                        updateHotspotAutoUi();
+                        refresh();
+                        Toast.makeText(MainActivity.this,
+                                msg.length() > 120 ? msg.substring(0, 120) : msg,
+                                Toast.LENGTH_LONG).show();
+                    }
+                });
+            }
+        }, "hotspot-start-now").start();
     }
 
     // ---------------------------------------------------------------- 规则区

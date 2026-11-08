@@ -45,6 +45,9 @@ public final class AdbBridge {
     /** 等 adbd 的 TCP 监听就绪的最长时间（开机阶段它会晚于 BOOT_COMPLETED 起来） */
     private static final long CONNECT_WAIT_MS = 150000L;
 
+    /** 握手（CNXN/AUTH）单独限时：命令可能很长，但「对方不回握手」不该陪跑整个超时 */
+    private static final long HANDSHAKE_MS = 15000L;
+
     private AdbBridge() {
     }
 
@@ -59,11 +62,25 @@ public final class AdbBridge {
      * @param timeoutMs 总超时
      */
     public static String exec(String cmd, long timeoutMs) {
+        return exec(cmd, timeoutMs, CONNECT_WAIT_MS);
+    }
+
+    /**
+     * v1.6.72：可指定「等 adbd 把 5555 听起来」的时长。
+     *
+     * 开机场景必须等满 150 秒（adbd 比 BOOT_COMPLETED 晚起，实测 60~80 秒才监听）；
+     * 但用户手动点「开热点」时机器早就起来了，adbd 若不可用就是真不可用 ——
+     * 还等 150 秒只会让人以为界面卡死（MuMu 实测：点一下 154 秒才回来）。
+     * 那种场景传一个较小的值，失败尽快反馈。
+     *
+     * @param connectWaitMs 等 5555 可连的最长时间
+     */
+    public static String exec(String cmd, long timeoutMs, long connectWaitMs) {
         Socket sock = null;
         try {
             // adbd 的 TCP 5555 监听起来得比 BOOT_COMPLETED 晚（实测本机在开机 60~80 秒之间），
             // 所以在等待窗口内遇到 ECONNREFUSED 不能立刻放弃，否则开机第一次必然失败。
-            long connDeadline = System.currentTimeMillis() + CONNECT_WAIT_MS;
+            long connDeadline = System.currentTimeMillis() + connectWaitMs;
             while (true) {
                 try {
                     sock = new Socket();
@@ -80,7 +97,7 @@ public final class AdbBridge {
                     }
                     if (System.currentTimeMillis() >= connDeadline) {
                         Log.w("BootTask", "adb: connect gave up after "
-                                + CONNECT_WAIT_MS + "ms: " + ce);
+                                + connectWaitMs + "ms: " + ce);
                         return null;
                     }
                     Log.w("BootTask", "adb: 5555 not ready, retry in 8s (" + ce + ")");
@@ -99,9 +116,11 @@ public final class AdbBridge {
             int remoteId = -1;
             boolean authed = false;
             int authTries = 0;
-            long deadline = System.currentTimeMillis() + timeoutMs;
+            // v1.6.72：握手与命令分开计时。以前共用 timeoutMs，
+            // 于是长命令（开热点要等两分钟）连「握手没人应答」也要干等两分钟。
+            long hsDeadline = System.currentTimeMillis() + Math.min(timeoutMs, HANDSHAKE_MS);
 
-            while (System.currentTimeMillis() < deadline) {
+            while (System.currentTimeMillis() < hsDeadline) {
                 Packet p;
                 try {
                     p = read(in);
@@ -140,6 +159,9 @@ public final class AdbBridge {
                 Log.w("BootTask", "adb: handshake timeout");
                 return null;
             }
+
+            // 命令阶段从握手成功起单独计时，两段互不吃掉对方的时间
+            long deadline = System.currentTimeMillis() + timeoutMs;
 
             // ---- 2. 打开 shell 流 ----
             send(out, "OPEN", LOCAL_ID, 0, ("shell:" + cmd + "\u0000").getBytes("UTF-8"));

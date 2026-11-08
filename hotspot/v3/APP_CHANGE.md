@@ -707,3 +707,99 @@ Object r = Class.forName("com.boottask.RuleStore")
 | 恢复 | App 里再点一次 | `rm DISABLED` |
 | 需要接线 | 不需要（车上直接点） | 需要 adb |
 
+
+---
+
+## 17. v1.6.72：再砍四个按钮 + 热点默认开 + 点开立即开（2026-11-08）
+
+### 17.1 删掉的四个入口（用户：这些不要了）
+
+| 按钮 | 原版本 | 现在 |
+|---|---|---|
+| 检测车机能否开热点（会短暂关 WiFi） | v1.6.52 | UI 删除，`HotspotCheck` 类保留但无调用方 |
+| WiFi：息屏关、亮屏开 | v1.6.64 | UI 删除 |
+| 蓝牙：只在点火亮屏后开 | v1.6.63 | UI 删除 |
+| 开机抢占音源：已开/已关 | v1.6.38 | UI 删除，「声音」整张卡片消失 |
+
+**只删按钮不够** —— 前三个开关的状态存在 prefs 里，界面没了但开机行为还在，
+用户既看不见也关不掉。所以加了**一次性迁移** `migrateLegacySwitchesOff()`：
+
+```java
+// MainActivity.onCreate，升级后第一次打开时执行，prefs 里打标记 migrate.v172_trim_off
+BtGate.setEnabled(this, false);
+WifiGate.setEnabled(this, false);
+MediaMute.setBootClaim(this, false, MediaMute.bootClaimSecs(this));
+stopService(new Intent(this, BtGateService.class));
+```
+
+只跑一次：之后用户若手工改回去属于知情操作，迁移不再覆盖。
+
+BtGateService 的 `onStartCommand` 本来就有 `if (!BtGate.isEnabled() && !WifiGate.isEnabled()) stopSelf()`，
+所以置 false 后服务会自己退出，不会残留 SCREEN_ON 监听。
+
+### 17.2 热点自启默认「开」
+
+`HotspotAuto.ensureDefaultOn(ctx)` 在 `onCreate` 里调用：
+首次运行（prefs 无 `hotspot_auto.default_applied`）且一条热点规则都没有 → 直接建一条
+`enabled=true` 的生产规则（`boot` / `adbcmd` / `delay=90` / 与部署脚本逐字相同的 CMD）。
+
+**只做一次**，打完标记就不再重建 —— 否则用户明确关掉、甚至把规则删了之后，
+每次打开 App 又会被强行建回来，「关」这个动作永远不彻底。
+
+### 17.3 关 → 点「开」立刻开热点（不等下次上电）
+
+规则 `enabled` 置 true 之后，同一线程外再起一个后台线程调 `HotspotAuto.startNow()`，
+走 1.6.70 打通的 AdbBridge（adbd 侧 root），设备端脚本一趟做完：
+
+```sh
+H=/data/local/hotspot; L=$H/boot.log
+# 1) 热点已在跑就直接返回（wlan0 上有 192.168.43.1）
+# 2) set -- $(wc -c $L) 记下日志字节数 S
+# 3) rm -f $H/DISABLED $H/failcnt; echo ap > $H/mode
+#    ↑ 不清 DISABLED 脚本自己会 skip；不写 ap 会走 restore_sta 分支
+# 4) busybox nohup sh $H/boot_hotspot.sh &
+# 5) 每 8 秒查一次：wlan0 有 192.168.43.1 → RESULT=UP
+#                    本轮新增日志含 HOTSPOT FAILED → RESULT=FAIL
+#    14 轮（约 118 秒）没结果 → RESULT=TIMEOUT，打印日志尾 10 行
+```
+
+判定「开好了没」以 **wlan0 上出现 192.168.43.1** 为准，不靠日志：
+日志是累积的，上一轮的 `HOTSPOT UP` 会把这一轮骗成成功。
+
+三个期间易踩的坑（都已修）：
+
+1. **`wc -c < $L` 会喷噪音**：日志还不存在时，`<` 重定向失败是 shell 报错，
+   `2>/dev/null` 只作用于命令本身，吞不掉 → 改成文件参数形式 `wc -c $L`，
+   再用 `set -- ...; S=${1:-0}` 取第一列（车机没有 cut/awk）。
+2. **握手会陪跑整个命令超时**：`AdbBridge.exec` 里握手和命令共用 `timeoutMs`，
+   而本命令要等 118 秒 → 对端不回握手时也要干等 118 秒。
+   已把握手单独限时 `HANDSHAKE_MS=15000`，命令阶段从握手成功起另算。
+3. **连接等待 150 秒太久**：`exec(cmd, timeout)` 新增第三个参数 `connectWaitMs`。
+   开机规则仍用 150 秒（adbd 晚起），手动点击只给 20 秒 ——
+   机器早就起来了，连不上就是连不上（MuMu 上实测点一下 154 秒才回来，像卡死）。
+
+### 17.4 MuMu 实测（Android 4.4.4 / API19 / 127.0.0.1:7555）
+
+| 项 | 结果 |
+|---|---|
+| 覆盖安装 1.6.72 | vc88，`rules.xml` 保留，启动无崩溃 |
+| 界面 | 「声音」卡片整块消失；「设备」只剩重启亿连/下载日志；「系统」只剩热点自启 |
+| 迁移 | 日志 `BtGate 已关闭闸门` / `WifiGate 已关闭闸门` / `bootClaim -> off` / `v1.6.72: ... -> off` |
+| 默认开 | `HotspotAuto: default rule created ok=true`，规则 `enabled=true` delay=90 |
+| 点关 | `enabled:false`，规则保留，按钮「已关（点我开，并立刻开热点）」 |
+| 点开 | 2 秒内变「开启中…（正在跑开机脚本）」且按钮 disabled，规则立即 true |
+| 点开的结果 | MuMu 上 AdbBridge 必然失败（PC 的 adb server 占着 5555），15 秒返回 `out=null` → 按钮恢复「已开」 |
+| 设备端命令 | 用还原出的 769 字节原命令在 MuMu 真实执行：`RESULT=FAIL`（没有 bcmdhd.ko），脚本被正确拉起、`mode=ap` 生效、无 stderr 噪音 |
+| 命令耗时 | MuMu 上 3 轮重试共 87 秒后 `HOTSPOT FAILED`，落在 118 秒窗口内 → 判失败准确 |
+
+> MuMu 只能验证到「命令下发 + 脚本执行 + 结果判定」，AdbBridge 这一跳在模拟器上
+> 因 PC 侧占用 5555 必然握手超时，真机 1.6.70 已跑通。
+
+### 17.5 关掉自启后的 WiFi 行为（未变）
+
+`boot_hotspot.sh` 跑过会把 `global wifi_on` 写成 0。关自启时 `restoreWifiOnAsync`
+会改回 1，并**回读**确认（1.6.71 起日志写 `wifi_on -> [1]`，之前只写不读，
+失败与成功都打成 `-> 1`，属误导）。
+
+注意 WifiGate 已下线，所以不再有「息屏关 WiFi」去覆盖这个值 ——
+现在 `wifi_on=1` 就是最终状态。

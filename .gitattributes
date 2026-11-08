@@ -72,3 +72,8 @@ apktool.yml text eol=lf
 
 # 无后缀的可执行脚本：必须保持 LF（CRLF 会让 shebang 失效）
 tools/zipshim/zip text eol=lf
+
+# 车机热点脚本目录：整个目录里所有文件都直接跑在 Android mksh / busybox 上，
+# 任何一个文件被转成 CRLF 都会在设备端报 syntax error 且 PC 侧看不出来。
+# 本机 core.autocrlf=true，没有这条规则时 dnsmasq.conf（无后缀）检出会变 CRLF。
+hotspot/** text eol=lf

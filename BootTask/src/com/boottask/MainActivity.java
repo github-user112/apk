@@ -29,13 +29,18 @@ import android.widget.Toast;
  *    只留 YilianWatcher 常开记录亿连进程出现/消失 + CPU/内存，要发日志用「下载日志」；
  *  - 更多页 / 工具模块 / Root 工具 / 已排除页 全删；
  *  - 保留：我的规则 + 重启亿连 + 下载日志 + 按键与弹窗入口。
- *    （重启车机需 root，本车无 su，v1.6.43 起按钮已删）
+ *    （重启车机需 root，本车无 su → v1.6.43 删过；v1.6.73 改走 adbd 通道又加回来了）
  *
  * v1.6.72 再砍一刀（用户：这些按钮不要了）：
  *  - 删「检测车机能否开热点」「WiFi 息屏关」「蓝牙：只在点火」「开机抢占音源」四个按钮；
  *  - 前三个的行为由一次性迁移关停（见 migrateLegacySwitchesOff），
  *    否则会出现「界面没开关、开机行为还在」的死角；
  *  - 「热点自启」默认开；关→点开时立刻调脚本开一次热点，不等下次上电。
+ *
+ * v1.6.73：
+ *  - 「设备」卡片里「重启亿连」缩到 2/3 宽，右侧 1/3 新增「重启车机」（用户要求）；
+ *  - 重启车机不再是 v1.6.43 那种「无 root 就没戏」的死按钮 —— 走 adbd 这条
+ *    已验收的提权通道（见 DevicePower），点一下真能重启。
  *
  * 布局：整页不滚动。左列=规则列表（吃满高度）；右列=按键入口 / 设备 / 系统。
  *
@@ -55,6 +60,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
     private Button addRuleButton;
     private Button keysButton;
     private Button rebootYlButton;
+    private Button rebootDevButton;      // v1.6.73 重启车机（走 adbd，见 DevicePower）
     private Button logButton;
     private TextView adbBanner;
     private LinearLayout cSysCard;   // 系统卡片（没权限时整卡隐藏）
@@ -173,10 +179,24 @@ public class MainActivity extends Activity implements View.OnClickListener,
         addIn(cKey, keysButton);
 
         LinearLayout cDev = card(right, "设备", null);
+        // v1.6.73：一行两颗 —— 重启亿连占 2/3，重启车机占 1/3（用户要求）
+        LinearLayout devRow = new LinearLayout(this);
+        devRow.setOrientation(LinearLayout.HORIZONTAL);
         rebootYlButton = new Button(this);
         rebootYlButton.setText("重启亿连");
         rebootYlButton.setOnClickListener(this);
-        addIn(cDev, rebootYlButton);
+        LinearLayout.LayoutParams ylLp = new LinearLayout.LayoutParams(
+                0, ViewGroup.LayoutParams.WRAP_CONTENT, 2f);
+        devRow.addView(rebootYlButton, ylLp);
+
+        rebootDevButton = new Button(this);
+        rebootDevButton.setText("重启车机");
+        rebootDevButton.setOnClickListener(this);
+        LinearLayout.LayoutParams dvLp = new LinearLayout.LayoutParams(
+                0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+        dvLp.leftMargin = dip(8);
+        devRow.addView(rebootDevButton, dvLp);
+        addIn(cDev, devRow);
 
         logButton = new Button(this);
         logButton.setText("下载日志（亿连连接与系统运行信息，扫码取走）");
@@ -361,6 +381,10 @@ public class MainActivity extends Activity implements View.OnClickListener,
             }).start();
             return;
         }
+        if (v == rebootDevButton) {
+            confirmRebootDevice();
+            return;
+        }
         if (v == logButton) {
             // 快照抓取（su 探测 + logcat 可达 30s）由 LogActivity.onCreate 的后台线程执行
             startActivity(new Intent(this, BootDiagnostics.LogActivity.class));
@@ -409,6 +433,50 @@ public class MainActivity extends Activity implements View.OnClickListener,
             startHotspotNow();
             return;
         }
+    }
+
+    /**
+     * v1.6.73：重启车机 —— 先确认再动手。
+     *
+     * 一颗「点一下就整车断电重启」的按钮不设二次确认太危险（车主可能只想点重启亿连，
+     * 手一滑整台车机黑 1~2 分钟）。确认框里把代价写清楚：热点会断、恢复要多久。
+     */
+    private void confirmRebootDevice() {
+        new AlertDialog.Builder(this)
+                .setTitle("重启车机？")
+                .setMessage("车机会立即重启，约 1~2 分钟恢复。\n"
+                        + "重启期间热点断开；若『热点自启』是开的，开机后会自动重开。")
+                .setPositiveButton("确定重启", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface d, int which) {
+                        doRebootDevice();
+                    }
+                })
+                .setNegativeButton("取消", null)
+                .show();
+    }
+
+    /**
+     * 真重启。AdbBridge 最长要等 12 秒 + 命令回执，主线程会 ANR → 必须后台线程。
+     * 期间按钮禁用，避免连点发多条 reboot。
+     */
+    private void doRebootDevice() {
+        rebootDevButton.setEnabled(false);
+        rebootDevButton.setText("重启中…");
+        new Thread(new Runnable() {
+            public void run() {
+                final String msg = DevicePower.rebootNow(MainActivity.this);
+                runOnUiThread(new Runnable() {
+                    public void run() {
+                        // 成功的话界面马上就没了，这里恢复状态只是为了「失败还能再点一次」
+                        rebootDevButton.setEnabled(true);
+                        rebootDevButton.setText("重启车机");
+                        Toast.makeText(MainActivity.this,
+                                msg.length() > 160 ? msg.substring(0, 160) : msg,
+                                Toast.LENGTH_LONG).show();
+                    }
+                });
+            }
+        }, "device-reboot").start();
     }
 
     /**

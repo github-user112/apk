@@ -803,3 +803,58 @@ H=/data/local/hotspot; L=$H/boot.log
 
 注意 WifiGate 已下线，所以不再有「息屏关 WiFi」去覆盖这个值 ——
 现在 `wifi_on=1` 就是最终状态。
+
+---
+
+## 18. v1.6.73（versionCode 89）：重启亿连缩到 2/3，右侧 1/3 新增「重启车机」
+
+用户需求原文：「重启亿联这个按钮缩小到2/3，右侧1/3增1个按钮，重启车机；点击重启一下车机」。
+
+### 18.1 界面
+
+「设备」卡片里「重启亿连」和「重启车机」放同一行：weight 2 : 1（即 2/3 与 1/3），
+中间 8dp 间距。MuMu（1440x810）截图确认两个按钮文字都完整不截断。
+
+### 18.2 重启车机的实现（DevicePower.java）
+
+v1.6.43 删过这个按钮，理由是「无 root 没戏」；现在不一样了 —— 1.6.70 打通了
+**借本机 adbd 提权**这条路，reboot 就能以 root 落地。
+
+- 不用 `PowerManager.reboot()`：要 `android.permission.REBOOT`（signature 级）；
+- 不用 `su`：车机没有 su（mksu 伪成功，见 13.x）；
+- 走 `AdbBridge.exec()`（与热点自启同一通道，真车已验收）。
+
+**命令（v2，前台式）**：
+
+```sh
+echo REBOOT_SCHEDULED; sleep 1; reboot || busybox reboot || setprop sys.powerctl reboot || echo REBOOT_FAILED
+```
+
+### 18.3 关键教训：后台延迟重启在会话关闭时会被杀（MuMu 实测）
+
+第一版用的是热点脚本同款写法 `busybox nohup sh -c "sleep 2; reboot" & echo ...`，
+意图是让 adb 会话先干净收尾（OKAY/CLSE）再重启。MuMu 实测：**回执收到了，
+车机纹丝不动** —— nohup 都保不住，adbd 会话关闭时后台进程直接被杀，
+2 秒延迟还没走到 reboot 就没了。
+
+热点脚本能活是因为它 `nohup` 之后**会话还开着**（sleep 6 + 轮询 118 秒），
+进程在会话存续期间早就把自己稳住了；而「发完命令立刻断开」的场景没有这层保护。
+
+改为**前台式**：先 echo 回执（App 端读到 `REBOOT_SCHEDULED` 就算成功），
+sleep 1 给回执留送达时间，然后 reboot 生效 —— adbd 被重启带走、连接断开。
+AdbBridge 对「连接没干净 CLSE 结束」本来就兼容（读到什么返回什么），
+所以 App 判成功不受影响。三级兜底 + `REBOOT_FAILED` 标记区分真失败。
+
+### 18.4 验证情况
+
+| 项 | 结果 |
+|---|---|
+| 布局 | MuMu 1440x810 截图：2/3 + 1/3 同行，文字完整 |
+| 确认框 | 「重启车机？」+ 代价说明 + 取消/确定重启，正常弹出 |
+| 防连点 | 确认后按钮变「重启中…」并 disabled，结束（含失败）恢复 |
+| 命令本身 | MuMu root shell：前台式 1 秒后真重启（uptime 归零）；第一版后台式实测**不重启**（教训见 18.3） |
+| App→adbd 一跳 | MuMu 上必然握手超时（PC adb 占 5555，与热点自启同款限制），失败分支 `out=null` 文案正确 |
+| 真车 | **待装车验证**：车机 `reboot` 二进制存在性、App 内点击真重启、重启后热点自启自动恢复 |
+
+> 装车验收点：装 1.6.73 → 点「重启车机」→ 确认 → 车机应在约 1 秒后重启，
+> 1~2 分钟回来后热点自启照常工作（若开关是开的）。

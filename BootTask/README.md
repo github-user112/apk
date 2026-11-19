@@ -10,6 +10,30 @@
 - **v1.6.28 起文件功能已整体拆出**：文件管理 / 扫码传 APK / 卸载软件 → 独立 App
   「车机文件管家」（`FileMgr/`，包名 `com.carfiles`），本 App 不再含文件功能
 
+### v1.6.75（热点就绪门 + 轮询日志随日志下载带回）
+
+- **`boot_hotspot.sh` 的 `settle()` 改为就绪门 gate**：不再死等到 `up>=90`，改为每 2 秒
+  采样 `wifi_on` / `wlan.driver.status` / supplicant，连续 2 次就绪立即开工
+  （快路径：wifi 关且无 supplicant；正常：drv=ok 且 supplicant 在；降级：ROM 无 drv
+  属性但 supplicant 在）。90 秒只剩硬顶语义，180 秒绝对超时保留——监控永不判死热点。
+- **gate 轮询样本落 `/data/local/hotspot/gate.log`**（一行一采样：up/wifi_on/drv/supp/ready），
+  `LogHttpServer.refreshFiles` 新增枚举 `/data/local/hotspot`（仅 `com.boottask` 包生效，
+  CarLife 侧不变），`boot.log`+`gate.log` 随「下载日志」和 `/all.zip` 一键带回。
+  脚本侧 `umask 022` + `chmod 644`，保证 App 非 root 可读。
+- 六场景干跑通过：fast / init-done / supp-only / hard-cap / abs-timeout / 抖动重置。
+
+### v1.6.74（开机热点提速 + 覆盖安装保留全部规则设置）
+
+- **去掉双重固定等待**：热点规则 `delay 90→0`，BOOT_COMPLETED 后立即连接本机 adbd；
+  未监听时每 2 秒重试（原 8 秒），150 秒总兜底不变；`boot_hotspot.sh` 的
+  `SETTLE_UP 150→90`。旧实测链路中固定等待约 106 秒，真正开 AP 约 24 秒，
+  本版目标为 BOOT_COMPLETED 后约 40~70 秒可用，需车机冷启动复测确认。
+- **旧规则原地迁移**：`BootReceiver` 启动规则引擎前调用 `HotspotAuto.prepareAtBoot`，
+  只把热点规则的 `delay` 改为 0；`enabled`、命令、其他规则及其他 prefs 均不改。
+- **部署不再清空规则**：`inject_rule.sh` 先读取旧 JSON 列表，只更新匹配的热点项，
+  不再整份覆盖成单条规则；`install_apk.sh` 在安装前快照全部 `shared_prefs`，
+  安装后逐文件 MD5 校验，异常时自动恢复并回读确认。正常同签名 `install -r` 本身即保留数据。
+
 ### v1.6.64（WiFi 闸门：息屏关 WiFi，亮屏 3s 后开）
 
 **动机**：用户接着问「监听亮屏事件，亮屏了打开 WiFi，息屏了关闭 WiFi，不用 root 吧？」

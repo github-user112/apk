@@ -42,6 +42,8 @@ import android.widget.Toast;
  *  - 重启车机不再是 v1.6.43 那种「无 root 就没戏」的死按钮 —— 走 adbd 这条
  *    已验收的提权通道（见 DevicePower），点一下真能重启。
  *
+ * v1.6.74：热点规则 delay=0，旧规则只迁移 delay 字段；覆盖安装保留全部规则与设置。
+ *
  * 布局：整页不滚动。左列=规则列表（吃满高度）；右列=按键入口 / 设备 / 系统。
  *
  * 编译期约束（不变）：stub android.jar 无 org.json；smali 类（RuleStore/Util/
@@ -486,21 +488,12 @@ public class MainActivity extends Activity implements View.OnClickListener,
      * 脚本本身还要 30~60 秒（卸 bcmdhd → 载 APSTA 固件 → startap → 配 IP + dnsmasq）。
      */
     private void startHotspotNow() {
-        new Thread(new Runnable() {
-            public void run() {
-                final String msg = HotspotAuto.startNow(MainActivity.this);
-                runOnUiThread(new Runnable() {
-                    public void run() {
-                        hotspotStarting = false;
-                        updateHotspotAutoUi();
-                        refresh();
-                        Toast.makeText(MainActivity.this,
-                                msg.length() > 120 ? msg.substring(0, 120) : msg,
-                                Toast.LENGTH_LONG).show();
-                    }
-                });
-            }
-        }, "hotspot-start-now").start();
+        // v1.6.76：手动开热点也走进度弹窗（阶段/秒数/脚本日志实时可见），
+        // 不再用后台线程+Toast 盲等。连接等待仍只给 20 秒（机器早起来了，连不上就是连不上）。
+        HotspotRun.start(this, HotspotAuto.START_NOW_SH, 150000L, 20000L, true);
+        hotspotStarting = false;
+        updateHotspotAutoUi();
+        refresh();
     }
 
     // ---------------------------------------------------------------- 规则区

@@ -43,7 +43,7 @@ public final class AdbBridge {
     private static final int LOCAL_ID = 1;
 
     /** 等 adbd 的 TCP 监听就绪的最长时间（开机阶段它会晚于 BOOT_COMPLETED 起来） */
-    private static final long CONNECT_WAIT_MS = 150000L;
+    private static final long CONNECT_WAIT_MS = 100000L;   // v1.6.76：150s→100s（第一步最长 100 秒）
 
     /** 握手（CNXN/AUTH）单独限时：命令可能很长，但「对方不回握手」不该陪跑整个超时 */
     private static final long HANDSHAKE_MS = 15000L;
@@ -56,36 +56,53 @@ public final class AdbBridge {
     }
 
     /**
+     * v1.6.76：进度回调（热点进度弹窗用）。在连接重试 / 握手关键点触发。
+     * 注意：回调跑在 exec 的后台线程里，更新 UI 要自己切主线程。
+     */
+    public interface Progress {
+        void onLog(String line);
+    }
+
+    /**
      * 执行命令，返回合并输出；失败返回 null（调用方据此回退到别的通道）。
      *
      * @param cmd       要执行的 shell 命令
      * @param timeoutMs 总超时
      */
     public static String exec(String cmd, long timeoutMs) {
-        return exec(cmd, timeoutMs, CONNECT_WAIT_MS);
+        return exec(cmd, timeoutMs, CONNECT_WAIT_MS, null);
     }
 
     /**
      * v1.6.72：可指定「等 adbd 把 5555 听起来」的时长。
      *
-     * 开机场景必须等满 150 秒（adbd 比 BOOT_COMPLETED 晚起，实测 60~80 秒才监听）；
+     * 开机场景必须等满 100 秒（adbd 比 BOOT_COMPLETED 晚起，实测 60~80 秒才监听）；
      * 但用户手动点「开热点」时机器早就起来了，adbd 若不可用就是真不可用 ——
-     * 还等 150 秒只会让人以为界面卡死（MuMu 实测：点一下 154 秒才回来）。
+     * 还等 100 秒只会让人以为界面卡死（MuMu 实测：点一下 154 秒才回来）。
      * 那种场景传一个较小的值，失败尽快反馈。
      *
      * @param connectWaitMs 等 5555 可连的最长时间
      */
     public static String exec(String cmd, long timeoutMs, long connectWaitMs) {
+        return exec(cmd, timeoutMs, connectWaitMs, null);
+    }
+
+    public static String exec(String cmd, long timeoutMs, long connectWaitMs, Progress cb) {
         Socket sock = null;
         try {
             // adbd 的 TCP 5555 监听起来得比 BOOT_COMPLETED 晚（实测本机在开机 60~80 秒之间），
             // 所以在等待窗口内遇到 ECONNREFUSED 不能立刻放弃，否则开机第一次必然失败。
-            long connDeadline = System.currentTimeMillis() + connectWaitMs;
+            long t0 = System.currentTimeMillis();
+            long connDeadline = t0 + connectWaitMs;
             while (true) {
                 try {
                     sock = new Socket();
                     sock.connect(new InetSocketAddress(HOST, PORT), 3000);
                     sock.setSoTimeout(3000);
+                    if (cb != null) {
+                        cb.onLog("adbd 已就绪，TCP 连接成功（第 "
+                                + (System.currentTimeMillis() - t0) / 1000 + " 秒）");
+                    }
                     break;
                 } catch (IOException ce) {
                     if (sock != null) {
@@ -98,11 +115,20 @@ public final class AdbBridge {
                     if (System.currentTimeMillis() >= connDeadline) {
                         Log.w("BootTask", "adb: connect gave up after "
                                 + connectWaitMs + "ms: " + ce);
+                        if (cb != null) {
+                            cb.onLog("等待 adbd 超过 " + connectWaitMs / 1000 + " 秒，放弃");
+                        }
                         return null;
                     }
-                    Log.w("BootTask", "adb: 5555 not ready, retry in 8s (" + ce + ")");
+                    // v1.6.74：本机拒绝连接几乎零成本，2 秒轮询可把 adbd 就绪后的
+                    // 额外等待从平均 4 秒降到平均 1 秒；100 秒总兜底窗口不变。
+                    Log.w("BootTask", "adb: 5555 not ready, retry in 2s (" + ce + ")");
+                    if (cb != null) {
+                        cb.onLog("adbd 尚未监听（已等 "
+                                + (System.currentTimeMillis() - t0) / 1000 + " 秒），2 秒后重试");
+                    }
                     try {
-                        Thread.sleep(8000);
+                        Thread.sleep(2000);
                     } catch (InterruptedException ie) {
                         return null;
                     }
@@ -134,6 +160,9 @@ public final class AdbBridge {
                 }
                 if ("CNXN".equals(p.cmd)) {
                     authed = true;
+                    if (cb != null) {
+                        cb.onLog("ADB 握手成功，开始下发命令");
+                    }
                     break;
                 }
                 if ("AUTH".equals(p.cmd)) {

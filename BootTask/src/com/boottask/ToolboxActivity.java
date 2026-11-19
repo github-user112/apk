@@ -170,6 +170,9 @@ public class ToolboxActivity extends Activity implements View.OnClickListener {
     protected void onResume() {
         super.onResume();
         updateAaUi();
+        // v1.6.78：升级安装会被系统摘掉无障碍服务（用户开关没变），
+        // 打开本页时自动补回（异步幂等；adbd 不可用就放弃，不影响其他功能）
+        P2pAutoAccept.ensureServiceOn(this);
     }
 
     // ---------------------------------------------------------------- 点击事件

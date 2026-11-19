@@ -230,6 +230,74 @@ public final class P2pAutoAccept {
         return new Intent("android.settings.ACCESSIBILITY_SETTINGS");
     }
 
+    // ------------------------------------------------------------------ 升级自愈（v1.6.78）
+
+    /** heal 线程互斥：MainActivity / Toolbox / 开机广播可能同时触发 */
+    private static boolean sHealing;
+
+    /**
+     * v1.6.78：无障碍服务升级自愈。
+     *
+     * 实测（MuMu 4.4.4，v1.6.61→1.6.77 覆盖安装）：pm install -r 之后系统会把
+     * 被替换包的无障碍服务从 Settings.Secure 的启用列表里摘掉、
+     * accessibility_enabled 归 0 —— 用户开关还开着，服务却没了，
+     * 表现就是「升级后直连免打扰悄悄失效」，没有任何提示。
+     *
+     * 第三方 App 写不了 secure 设置，但 BootTask 有 adbd 通道（开热点用的同一条）：
+     * 用户开关开着、系统里却没本服务时，把服务名补回启用列表（保留其他已启用
+     * 服务），再把 accessibility_enabled 拉回 1。全程幂等、异步；
+     * adbd 没起来（开机后 60~80 秒内）就在连接窗口里重试，跟热点链路一致。
+     */
+    public static void ensureServiceOn(final Context c) {
+        if (!isEnabled(c)) {
+            return;                                   // 用户开关没开，不越权代开
+        }
+        if (isAccessibilityServiceEnabled(c)) {
+            return;                                   // 系统里还启用着，无事可做
+        }
+        synchronized (P2pAutoAccept.class) {
+            if (sHealing) {
+                return;                               // 已有线程在治，别叠
+            }
+            sHealing = true;
+        }
+        new Thread(new Runnable() {
+            public void run() {
+                try {
+                    healLocked(c);
+                } finally {
+                    sHealing = false;
+                }
+            }
+        }, "p2p-aa-heal").start();
+    }
+
+    private static void healLocked(Context c) {
+        try {
+            String cur = AdbBridge.exec(
+                    "settings get secure enabled_accessibility_services", 20000L);
+            if (cur == null) {
+                BootDiagnostics.log(c, "P2pAutoAccept: heal abort - adb channel unavailable");
+                return;
+            }
+            String mine = c.getPackageName() + "/" + P2pDialogClicker.class.getName();
+            cur = cur.trim();
+            String val = mine;
+            // 系统里可能还开着别的服务（系统预置等）：保留原值只追加本服务，别把别人的关了
+            if (cur.length() > 0 && !"null".equals(cur) && cur.indexOf(mine) < 0) {
+                val = cur + ":" + mine;
+            }
+            // 值里只有包名/类名/冒号斜杠，无空格无引号，单引号包裹即可
+            String r1 = AdbBridge.exec("settings put secure enabled_accessibility_services '"
+                    + val + "'", 15000L);
+            String r2 = AdbBridge.exec("settings put secure accessibility_enabled 1", 15000L);
+            BootDiagnostics.log(c, "P2pAutoAccept: heal (after install) put='"
+                    + val + "' r=[" + r1 + "][" + r2 + "]");
+        } catch (Throwable t) {
+            BootDiagnostics.log(c, "P2pAutoAccept: heal failed " + t);
+        }
+    }
+
     // ------------------------------------------------------------------ 状态行
 
     public static String statusText(Context c) {

@@ -207,6 +207,13 @@ public class AppPickActivity extends Activity {
         if ("multi".equals(mMode)) {
             return mChecked.isEmpty() ? "确定（未选）" : ("确定（已选 " + mChecked.size() + "）");
         }
+        // v1.6.77：单选模式按钮直接回显所选应用名
+        if (mChecked.isEmpty()) {
+            return "确定（未选）";
+        }
+        for (Integer idx : mChecked) {
+            return "确定（已选：" + mItems.get(idx).label + "）";
+        }
         return "确定";
     }
 
@@ -259,6 +266,9 @@ public class AppPickActivity extends Activity {
                         mAdapter = new AppAdapter();
                         grid.setAdapter(mAdapter);
                         updateCount();
+                        if (mDoneButton != null) {
+                            mDoneButton.setText(doneText());   // v1.6.77：回显预选时按钮文案同步
+                        }
                         Toast.makeText(AppPickActivity.this,
                                 "共 " + items.size() + " 个应用", Toast.LENGTH_SHORT).show();
                     }
@@ -355,15 +365,11 @@ public class AppPickActivity extends Activity {
             CheckBox cb = (CheckBox) row.getChildAt(2);
             label.setText(e.label);
             pkg.setText(e.pkg);
+            // v1.6.77：单选也显示选中状态（高亮+勾选框），点选后用户能看到选了哪个
             boolean checked = mChecked.contains(Integer.valueOf(position));
-            if ("multi".equals(mMode)) {
-                cb.setVisibility(View.VISIBLE);
-                cb.setChecked(checked);
-                row.setBackgroundColor(checked ? 0xFFE8EEFF : Color.WHITE);
-            } else {
-                cb.setVisibility(View.GONE);
-                row.setBackgroundColor(Color.WHITE);
-            }
+            cb.setVisibility(View.VISIBLE);
+            cb.setChecked(checked);
+            row.setBackgroundColor(checked ? 0xFFE8EEFF : Color.WHITE);
             return row;
         }
 

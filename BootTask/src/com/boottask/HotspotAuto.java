@@ -27,8 +27,11 @@ public final class HotspotAuto {
             "busybox nohup sh /data/local/hotspot/boot_hotspot.sh >/dev/null 2>&1 "
                     + "& sleep 6; echo LAUNCHED_after=$(busybox wc -c < /data/local/hotspot/boot.log)";
 
-    /** 与生产规则一致：BOOT_COMPLETED 后等 90 秒（adbd 的 5555 此时才起来） */
-    private static final int DELAY = 90;
+    /**
+     * v1.6.74：BOOT_COMPLETED 后立即尝试；adbd 尚未监听时由 AdbBridge 每 2 秒重试。
+     * 不再先固定睡 90 秒，避免与脚本的启动门槛形成双重等待。
+     */
+    private static final int DELAY = 0;
 
     private static final String MARK = "boot_hotspot.sh";
 
@@ -147,6 +150,57 @@ public final class HotspotAuto {
     }
 
     /**
+     * v1.6.74：BootReceiver 在规则引擎启动前调用。
+     * 老版本覆盖升级后，即使不打开主界面，旧热点规则的 delay=90 也会在下一次开机前迁成 0。
+     */
+    public static void prepareAtBoot(Context ctx) {
+        try {
+            migrateLegacyDelays(ctx);
+        } catch (Throwable t) {
+            // 广播接收路径绝不能因迁移失败而阻断其他开机规则。
+            BootDiagnostics.log(ctx, "HotspotAuto.prepareAtBoot failed: " + t);
+        }
+    }
+
+    /**
+     * 只修改热点规则的 delay 字段；enabled、arg、其他规则以及其他 SharedPreferences 全部原样保留。
+     * 直接写同一个 rules prefs，避免为了迁移一个小字段而清空或重建整份应用数据。
+     */
+    private static synchronized boolean migrateLegacyDelays(Context ctx) throws Exception {
+        Object arr = store("list", new Class[]{Context.class}, new Object[]{ctx});
+        if (arr == null) {
+            return false;
+        }
+        int changed = 0;
+        int n = intCall(arr, "length");
+        for (int i = 0; i < n; i++) {
+            Object r = ruleAt(arr, i);
+            if (r == null) {
+                continue;
+            }
+            String action = strCall(r, "optString", "action", "");
+            String arg = strCall(r, "optString", "arg", "");
+            if (!"adbcmd".equals(action) || arg == null || arg.indexOf(MARK) < 0) {
+                continue;
+            }
+            if (intCall(r, "optInt", "delay", 0) == DELAY) {
+                continue;
+            }
+            r.getClass().getMethod("put", String.class, Object.class)
+                    .invoke(r, "delay", Integer.valueOf(DELAY));
+            changed++;
+        }
+        if (changed == 0) {
+            return true;
+        }
+        boolean ok = ctx.getSharedPreferences("rules", 0).edit()
+                .putString("list", arr.toString()).commit();
+        BootDiagnostics.log(ctx, "HotspotAuto: delay migration changed=" + changed
+                + " saved=" + ok + " (other rules/settings preserved)");
+        return ok;
+    }
+
+    /**
      * v1.6.72：热点自启默认「开」。
      *
      * 首次打开 App（升级到本版本后第一次）时，如果一条热点规则都没有，就自动建一条
@@ -157,6 +211,8 @@ public final class HotspotAuto {
      */
     public static void ensureDefaultOn(Context ctx) {
         try {
+            // 老用户升级也在这里迁移，不能只处理首次创建规则的人。
+            migrateLegacyDelays(ctx);
             SharedPreferences sp = ctx.getSharedPreferences(PREFS, 0);
             if (sp.getBoolean(K_DEFAULT_DONE, false)) {
                 return;
@@ -173,6 +229,8 @@ public final class HotspotAuto {
 
     /**
      * v1.6.72：点「开」时立刻开一次热点，不等下次上电。
+     *
+     * v1.6.76 起 UI 入口已改走 HotspotRun（进度弹窗），本方法保留为无 UI 备用路径。
      *
      * 设备端脚本一趟做完：清 DISABLED/failcnt（否则脚本自己会 skip）、把 mode 写回 ap
      * （否则走 restore_sta 分支）、nohup 起主脚本，然后在同一会话里轮询 boot.log 判结果。
@@ -220,7 +278,7 @@ public final class HotspotAuto {
      * wc 用「文件参数」形式而不是 < 重定向：日志还不存在时，
      * `< 重定向失败是 shell 报错，2>/dev/null 吞不掉，会往 stderr 喷一行噪音。
      */
-    private static final String START_NOW_SH =
+    public static final String START_NOW_SH =
             "H=/data/local/hotspot; L=$H/boot.log; "
             + "A=$(busybox ifconfig wlan0 2>/dev/null); "
             + "case \"$A\" in *192.168.43.1*) echo RESULT=ALREADY_UP; exit 0;; esac; "
@@ -249,7 +307,7 @@ public final class HotspotAuto {
      * 所以只是关掉自启的话，下次开机 Android 不会自己开 WiFi，车主得手动点。
      *
      * 走 AdbBridge（adbd 侧 root），因为 App 进程执行 settings put 会被权限挡；
-     * 必须异步，AdbBridge 的连接等待最长 150 秒，放主线程会 ANR。
+     * 必须异步，AdbBridge 的连接等待最长 100 秒，放主线程会 ANR。
      */
     public static void restoreWifiOnAsync(final Context ctx) {
         new Thread(new Runnable() {
@@ -285,13 +343,14 @@ public final class HotspotAuto {
         java.util.List<Integer> idx = allIndexes(ctx);
         if (idx.isEmpty()) {
             return "还没有这条规则。点上面的按钮会创建并开启："
-                    + "开机后等 90 秒自动开热点（SSID 9B66BEB4 / 192.168.43.1）";
+                    + "开机即启动，ADB 未就绪会自动重试（SSID 9B66BEB4 / 192.168.43.1）";
         }
         String more = idx.size() > 1
                 ? "（检测到 " + idx.size() + " 条热点规则，开关会一起生效）"
                 : "";
         if (isEnabled(ctx)) {
-            return "已开：开机后等 90 秒自动开热点（SSID 9B66BEB4 / 密码 12345678）" + more;
+            return "已开：开机自动开热点，大弹窗实时显示进度"
+                    + "（等ADB≤100秒 → 等WiFi≤80秒 → 开热点；SSID 9B66BEB4 / 密码 12345678）" + more;
         }
         return "已关：下次开机不再自动开热点。点上面的按钮会立刻开一次，并恢复开机自启" + more;
     }
@@ -324,6 +383,16 @@ public final class HotspotAuto {
             return ((Integer) obj.getClass().getMethod(method).invoke(obj)).intValue();
         } catch (Throwable t) {
             return 0;
+        }
+    }
+
+    private static int intCall(Object obj, String method, String key, int dflt) {
+        try {
+            Object r = obj.getClass().getMethod(method, String.class, int.class)
+                    .invoke(obj, key, Integer.valueOf(dflt));
+            return r instanceof Integer ? ((Integer) r).intValue() : dflt;
+        } catch (Throwable t) {
+            return dflt;
         }
     }
 

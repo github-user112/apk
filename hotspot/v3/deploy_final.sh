@@ -2,7 +2,7 @@
 # =============================================================================
 # deploy_final.sh —— 车机热点自启的**唯一**部署入口（2026-11-08 最终方案）
 #
-#   路径 A：BootTask 1.6.70 (BOOT_COMPLETED, delay=90)
+#   路径 A：BootTask 1.6.75+ (BOOT_COMPLETED, delay=0，AdbBridge 按需重试)
 #           → adbcmd → 本机 adbd 127.0.0.1:5555 (root)
 #           → busybox nohup boot_hotspot.sh
 #
@@ -11,9 +11,9 @@
 #     check     只读体检（不改动任何东西）
 #     install   覆盖安装 dist 里版本号最高的 APK
 #     assets    推 boot_hotspot.sh + dnsmasq.conf 到 /data/local/hotspot
-#     rule      注入生产规则（delay=90 的 adbcmd）
+#     rule      合并生产规则（delay=0；只更新热点项，保留其他规则与 enabled 状态）
 #     verify    查热点状态 + boot.log + App 日志
-#     trigger   手动触发一次 boot 事件（免重启验证，需等 delay+20 秒）
+#     trigger   手动触发一次 boot 事件（免重启验证，等 20 秒）
 #     all       check → install → assets → rule → verify
 #
 #   serial 不传则用环境变量 SERIAL（默认 USB 序列号）；无线接入时传 <ip>:5555。
@@ -37,7 +37,7 @@ SERIAL="${2:-${SERIAL:-000018030809054701DC}}"
 # 传参时只用双引号引用变量（bash 不会对变量内容做二次命令替换）。
 # 如果手敲 inject_rule.sh 时误用双引号，$(...) 会在 PC 上展开成空，自检失效。
 ACTION=adbcmd
-DELAY=90
+DELAY=0
 CMD='busybox nohup sh /data/local/hotspot/boot_hotspot.sh >/dev/null 2>&1 & sleep 6; echo LAUNCHED_after=$(busybox wc -c < /data/local/hotspot/boot.log)'
 
 say()  { printf '%s\n' "$*"; }
@@ -72,7 +72,7 @@ cmd_check() {
     info "service.adb.tcp.port=[$(sh_ 'getprop service.adb.tcp.port')]  ro.adb.secure=[$(sh_ 'getprop ro.adb.secure')]"
     info "（本机 adbd 默认即监听 0.0.0.0:5555，不需要开 TCP、不需要 adb_keys）"
 
-    step "3. App 版本（应为 1.6.70 / versionCode 86）"
+    step "3. App 版本（应为 1.6.75 / versionCode 91 或更新）"
     sh_ "dumpsys package $PKG | busybox grep -E 'versionCode|versionName' | busybox head -2"
 
     step "4. /data/local/hotspot 资产"
@@ -143,12 +143,12 @@ PY
 # ------------------------------------------------------------------ rule
 cmd_rule() {
     need || return 1
-    step "注入生产规则（event=boot / action=$ACTION / delay=$DELAY）"
+    step "合并生产规则（event=boot / action=$ACTION / delay=$DELAY，保留其他规则）"
     info "$CMD"
     # inject_rule.sh 已修好属主解析（dumpsys userId），不要自己拼 rules.xml
     ADB=adb bash "$HERE/inject_rule.sh" "$SERIAL" "$ACTION" "$DELAY" "$CMD" || return 1
-    info "注意：脚本末尾会自动触发一次 boot 事件做解析校验；本规则 delay=90，"
-    info "      所以那次校验只会看到 rules=1，真正执行在 90 秒后，是正常现象。"
+    info "注意：脚本末尾会自动触发一次 boot 事件做解析校验；本规则 delay=0，"
+    info "      adbd 未就绪时 App 每 2 秒重试，最长等 150 秒。"
 }
 
 # ------------------------------------------------------------------ verify
@@ -162,6 +162,9 @@ cmd_verify() {
     step "boot.log 末尾"
     sh_ "busybox tail -12 /data/local/hotspot/boot.log 2>&1" | while read -r l; do info "$l"; done
 
+    step "gate.log 末尾（就绪门采样，也会随日志下载带回）"
+    sh_ "busybox tail -12 /data/local/hotspot/gate.log 2>&1" | while read -r l; do info "$l"; done
+
     step "App 通道日志（boottask.log，含多行输出）"
     sh_ "busybox tail -12 /data/data/$PKG/files/log/boottask.log 2>&1" | while read -r l; do info "$l"; done
 
@@ -173,7 +176,8 @@ cmd_verify() {
 # ------------------------------------------------------------------ trigger
 cmd_trigger() {
     need || return 1
-    local wait=$((DELAY + 20))
+    # delay=0 后只需给脚本一小段执行时间；adbd 未就绪时由 App 自行续等。
+    local wait=20
     step "手动触发 boot 事件（规则 delay=$DELAY，需等 ${wait}s）"
     sh_ "am force-stop $PKG; logcat -c" >/dev/null
     sh_ "am startservice -n $PKG/.ExecService --es event boot" | while read -r l; do info "$l"; done

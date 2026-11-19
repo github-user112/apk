@@ -209,6 +209,14 @@ public final class AdvActions {
             BootDiagnostics.log(context, "adbcmd skipped: arg empty");
             return;
         }
+        // v1.6.76：热点开机命令转入 HotspotRun——大弹窗实时显示
+        // 「①等ADB(≤100s) → ②等WiFi(≤80s) → ③开热点」全过程，日志落 hotspot_progress.log。
+        // 异步执行、立即返回：开机流程最长约 6 分钟，不能堵住 ExecService 后面的规则。
+        if (cmd.indexOf("boot_hotspot.sh") >= 0) {
+            BootDiagnostics.log(context, "adbcmd[adbd] 热点命令转入 HotspotRun（进度弹窗跟踪）");
+            HotspotRun.start(context, cmd, CMD_TIMEOUT_MS, 100000L, false);
+            return;
+        }
         long t0 = System.currentTimeMillis();
         String out = AdbBridge.exec(cmd, CMD_TIMEOUT_MS);
         long dt = System.currentTimeMillis() - t0;

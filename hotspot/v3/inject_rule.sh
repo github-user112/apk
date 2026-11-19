@@ -54,16 +54,50 @@ if [ "$ACTION" = "clear" ]; then
     SRC="$TMP/rules.empty.xml"
 else
     SRC="$TMP/rules.new.xml"
-    python - "$ACTION" "$DELAY" "$CMD" "$(cygpath -w "$SRC")" <<'PY' || exit 1
-import json, sys, xml.sax.saxutils as su
+    CUR="$TMP/rules.current.xml"
+    # v1.6.74：先读旧列表再合并。旧版这里直接写单元素数组，deploy all 每跑一次
+    # 就把用户其他规则全冲掉；现在只更新匹配的热点项，其余 JSON 对象原样保留。
+    sh_ "if [ -f /data/data/$PKG/shared_prefs/rules.xml ]; then busybox cat /data/data/$PKG/shared_prefs/rules.xml; fi" > "$CUR"
+    python - "$ACTION" "$DELAY" "$CMD" "$(cygpath -w "$SRC")" "$(cygpath -w "$CUR")" <<'PY' || exit 1
+import json, pathlib, sys, xml.etree.ElementTree as ET, xml.sax.saxutils as su
 
-action, delay, cmd, outpath = sys.argv[1], int(sys.argv[2]), sys.argv[3], sys.argv[4]
-rule = [{"event": "boot", "action": action, "delay": delay,
-         "enabled": True, "arg": cmd}]
-js = json.dumps(rule, ensure_ascii=False, separators=(",", ":"))
+action, delay, cmd, outpath, curpath = sys.argv[1], int(sys.argv[2]), sys.argv[3], sys.argv[4], sys.argv[5]
+raw = pathlib.Path(curpath).read_bytes() if pathlib.Path(curpath).exists() else b""
+if raw.strip():
+    try:
+        root = ET.fromstring(raw)
+        node = root.find("string[@name='list']")
+        rules = json.loads(node.text if node is not None and node.text else "[]")
+        if not isinstance(rules, list):
+            raise ValueError("rules.list is not an array")
+    except Exception as exc:
+        raise SystemExit("现有 rules.xml 解析失败，已停止且未覆盖：%s" % exc)
+else:
+    rules = []
+
+hotspot = "boot_hotspot.sh" in cmd
+matched = 0
+for rule in rules:
+    if not isinstance(rule, dict) or rule.get("action") != action:
+        continue
+    old_arg = str(rule.get("arg", ""))
+    same = (hotspot and "boot_hotspot.sh" in old_arg) or (not hotspot and old_arg == cmd)
+    if not same:
+        continue
+    rule["delay"] = delay
+    rule.setdefault("enabled", True)  # 用户已停用的热点规则仍保持停用
+    if hotspot:
+        rule["arg"] = cmd
+    matched += 1
+if matched == 0:
+    rules.append({"event": "boot", "action": action, "delay": delay,
+                  "enabled": True, "arg": cmd})
+
+js = json.dumps(rules, ensure_ascii=False, separators=(",", ":"))
 xml = ("<?xml version='1.0' encoding='utf-8' standalone='yes' ?>\n<map>\n"
        "    <string name=\"list\">" + su.escape(js) + "</string>\n</map>\n")
 open(outpath, "w", encoding="utf-8").write(xml)
+print("合并完成：总规则=%d，更新热点规则=%d，其他规则原样保留" % (len(rules), matched))
 print("rule json: " + js)
 PY
 fi

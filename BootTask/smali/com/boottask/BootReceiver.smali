@@ -56,6 +56,10 @@
 
     invoke-static {p1, v1}, Lcom/boottask/BootDiagnostics;->log(Landroid/content/Context;Ljava/lang/String;)V
 
+    # v1.6.74：先把旧热点规则的 delay=90 原地迁移为 0，再启动规则引擎。
+    # 方法内部已捕获全部 Throwable；只改热点规则的 delay，其余规则/设置原样保留。
+    invoke-static {p1}, Lcom/boottask/HotspotAuto;->prepareAtBoot(Landroid/content/Context;)V
+
     new-instance v0, Landroid/content/Intent;
 
     const-class v1, Lcom/boottask/ExecService;

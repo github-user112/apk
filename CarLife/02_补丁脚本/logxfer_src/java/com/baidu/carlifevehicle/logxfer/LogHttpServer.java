@@ -545,6 +545,13 @@ public final class LogHttpServer {
         dirs.add(new File("/sdcard/Android/data/com.baidu.carlifevehicle/files/log"));
         dirs.add(new File("/storage/sdcard0/BaiduCarlife"));
 
+        // BootTask 1.6.75：热点开机脚本的 boot.log / gate.log（就绪门轮询样本）也带回，
+        // 现场“下载日志”一键拿全，供分析 gate 何时放行、framework 何时就绪。
+        // 按包名限定，CarLife 侧枚举行为不变；目录不存在只是记一行 "dir missing"。
+        if (sCtx != null && "com.boottask".equals(sCtx.getPackageName())) {
+            dirs.add(new File("/data/local/hotspot"));
+        }
+
         for (int i = 0; i < dirs.size(); i++) {
             File d = (File) dirs.get(i);
             File[] fs = null;

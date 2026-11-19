@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.boottask" android:versionCode="89" android:versionName="1.6.73">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.boottask" android:versionCode="95" android:versionName="1.6.79">
     <uses-sdk android:minSdkVersion="8" android:targetSdkVersion="19"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <!-- v1.6.46 USB 连接手机事件：部分车机 ROM 要求持本权限才投递 USB 广播 -->
@@ -30,6 +30,12 @@
         <activity android:name=".ToolboxActivity" android:label="按键与弹窗"/>
         <activity android:name=".PackageEnableActivity" android:label="禁用开机自启" android:exported="false"/>
         <activity android:name=".BootDiagnostics$LogActivity" android:label="日志下载" android:exported="false" android:theme="@android:style/Theme.Black.NoTitleBar"/>
+        <!-- v1.6.76 热点自启大弹窗：等ADB(≤100s)→等WiFi(≤80s)→开热点，实时日志新行在顶部。
+             开机由 HotspotRun 从后台拉起（4.4 无后台启动限制）；锁屏下也可见。 -->
+        <activity android:name=".HotspotProgressActivity" android:label="热点自启进度"
+            android:exported="false" android:excludeFromRecents="true"
+            android:theme="@android:style/Theme.Holo.Light.Dialog"
+            android:showWhenLocked="true"/>
         <!-- v1.6.30 直连免打扰：无障碍服务自动点掉 P2P 配对弹窗。
              v1.6.29 那个 WIFI_P2P_CONNECTION_REQUESTED 接收器已删（4.4 framework 里
              没有这个 action，接收器永不触发，见 P2pAutoAccept 类注释）。 -->

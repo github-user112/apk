@@ -8,20 +8,23 @@ TCC893X / BCM4339 / Android 4.4.2 车机，上电冷启动后自动开热点：
 | 密码 | `12345678` |
 | 网关 IP | `192.168.43.1` |
 | 信道 | 6 / WPA2-PSK |
-| 实测耗时 | BOOT_COMPLETED → 热点可用 **2 分 10 秒** |
+| 原实测耗时（v1.6.70） | BOOT_COMPLETED → 热点可用 **2 分 10 秒** |
+| v1.6.74 优化 | 去掉固定 delay=90，脚本门槛 150s→90s；约 1 分 50 秒，待冷启动复测 |
+| v1.6.75 优化 | settle 改就绪门（WiFi 就绪 x2 即开工，硬顶 90s）；预计 **约 40~70 秒**，待冷启动复测 |
 
 ---
 
 ## 生效链路（唯一路径）
 
 ```
-BootTask 1.6.70 收到 BOOT_COMPLETED
-  → 读 rules.xml 命中 rule: action=adbcmd, delay=90
-  → 等 90s（adbd 的 5555 此时才起来）
-  → 连 127.0.0.1:5555 走 ADB 线协议执行：
-       busybox nohup sh /data/local/hotspot/boot_hotspot.sh
+BootTask 1.6.75 收到 BOOT_COMPLETED
+  → 先把旧热点规则 delay=90 原地迁成 0（其他规则/设置不动）
+  → 读 rules.xml 命中 rule: action=adbcmd, delay=0，立即尝试连接
+  → adbd 尚未监听时每 2s 重试（最长 150s），就绪后连 127.0.0.1:5555 执行：
+      busybox nohup sh /data/local/hotspot/boot_hotspot.sh
   → 提权发生在 adbd 进程，绕过 zygote 的 PR_SET_NO_NEW_PRIVS
-  → 脚本 settle 到 up>=150 → 卸 bcmdhd → 载入 APSTA 固件 op_mode=2
+  → 脚本就绪门 gate：每 2s 采样 wifi_on/wlan.driver.status/supplicant，
+    就绪 x2 即动手（硬顶 up>=90，样本落 gate.log 随日志下载带回）→ 卸 bcmdhd → 载入 APSTA 固件 op_mode=2
   → ndc softap startap + ifconfig 192.168.43.1 + dnsmasq
   → 守夜 5 分钟，被 framework 抢回会自动重建
 ```
@@ -62,7 +65,7 @@ cd hotspot/v3
 
 bash deploy_final.sh check          # 只读体检，不改任何东西
 bash deploy_final.sh all            # check → install → assets → rule → verify
-bash deploy_final.sh trigger        # 免重启触发一次（要等 delay+20 秒）
+bash deploy_final.sh trigger        # 免重启触发一次（等 20 秒后查看状态）
 ```
 
 `all` 会做 4 道自检，任一步失败立即停：
@@ -136,7 +139,7 @@ if [ -f $DISABLE_FLAG ]; then
 fi
 ```
 
-所以 `off` 之后 BootTask 仍会在开机 90 秒时触发一次，但除了往 `boot.log` 写一行
+所以 `off` 之后 BootTask 仍会在开机时尝试触发一次，但除了往 `boot.log` 写一行
 `DISABLED flag present, skip` 什么也不做，不会动驱动。
 
 **为什么不用更"彻底"的做法：**

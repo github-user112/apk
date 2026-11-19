@@ -8,7 +8,7 @@
 #
 # 覆盖安装（-r）不会清数据，/data/data/com.boottask/shared_prefs/rules.xml 里的
 # 生产规则会原样保留，装完不需要重新注入。
-set -u
+set -uo pipefail
 export MSYS_NO_PATHCONV=1
 export MSYS2_ARG_CONV_EXCL='*'
 
@@ -65,8 +65,69 @@ echo "设备: $SERIAL  model=$MODEL  android=$REL"
 echo "当前: ${OLD:-未安装}"
 echo "目标: $(basename "$APK")"
 
-echo "--- 安装 ---"
-adb -s "$SERIAL" install -r "$APK" 2>&1 | tr -d '\r' | tail -2
+# Android 同包名、同签名 install -r 本来就会保留 /data/data；这里再做一层可验证保险：
+# 安装前快照全部 SharedPreferences（rules、hotspot_auto、migrate、btgate 等都在其中），
+# 安装后逐文件 MD5 对比。若 ROM/安装器异常清数据，自动把快照恢复并回读确认。
+PREFS=/data/data/com.boottask/shared_prefs
+BACKUP=/data/local/tmp/boottask-shared_prefs-before-install
+HAD_PREFS=0
+BEFORE=""
+
+sh_() { adb -s "$SERIAL" shell "$1" 2>/dev/null | tr -d '\r'; }
+prefs_hash() {
+    sh_ "if [ -d $PREFS ]; then cd $PREFS && busybox md5sum *.xml 2>/dev/null; fi"
+}
+
+if [ -n "$(sh_ "[ -d $PREFS ] && echo yes")" ]; then
+    HAD_PREFS=1
+    BEFORE=$(prefs_hash)
+    echo "--- 安装前备份全部规则与设置 ---"
+    # 车机 busybox 是 1.8.1（2007 年），cp -a（归档模式）不一定支持；
+    # 先用 cp -a，MD5 校验不过就降级 cp -r 重拷（xml 内容逐字节一致即可，
+    # 属主/权限由恢复阶段的 chown/chmod 兜底），两条路都校验失败才中止。
+    sh_ "rm -rf $BACKUP; mkdir -p $BACKUP; busybox cp -a $PREFS/. $BACKUP/; am force-stop com.boottask"
+    BACKED=$(sh_ "if [ -d $BACKUP ]; then cd $BACKUP && busybox md5sum *.xml 2>/dev/null; fi")
+    if [ "$BACKED" != "$BEFORE" ]; then
+        echo "cp -a 校验未过（老 busybox 可能不支持），降级 cp -r 重拷"
+        sh_ "rm -rf $BACKUP; mkdir -p $BACKUP; busybox cp -r $PREFS/. $BACKUP/"
+        BACKED=$(sh_ "if [ -d $BACKUP ]; then cd $BACKUP && busybox md5sum *.xml 2>/dev/null; fi")
+    fi
+    [ "$BACKED" = "$BEFORE" ] || {
+        echo "安装前备份校验失败，已停止安装；原应用与设置未改动" >&2
+        exit 1
+    }
+    echo "$BEFORE"
+fi
+
+echo "--- 覆盖安装（install -r，不清数据） ---"
+INSTALL_OUT=$(adb -s "$SERIAL" install -r "$APK" 2>&1 | tr -d '\r')
+echo "$INSTALL_OUT" | tail -2
+echo "$INSTALL_OUT" | grep -q 'Success' || { echo "安装失败，未继续部署" >&2; exit 1; }
+
+if [ "$HAD_PREFS" -eq 1 ]; then
+    AFTER=$(prefs_hash)
+    if [ "$AFTER" = "$BEFORE" ]; then
+        echo "校验通过：旧规则与全部设置逐项一致，无需恢复"
+        sh_ "rm -rf $BACKUP"   # 校验通过后清理临时备份，不在 /data/local/tmp 里攒快照
+    else
+        echo "检测到安装前后设置不一致，正在从 $BACKUP 恢复旧数据"
+        sh_ "am force-stop com.boottask; mkdir -p $PREFS; busybox cp -a $BACKUP/. $PREFS/
+             OWN=\$(dumpsys package com.boottask | busybox grep -o 'userId=[0-9]*' | busybox head -1 | busybox cut -d= -f2)
+             [ -n \"\$OWN\" ] && chown \$OWN:\$OWN $PREFS $PREFS/*.xml 2>/dev/null
+             chmod 771 $PREFS; chmod 660 $PREFS/*.xml 2>/dev/null"
+        RESTORED=$(prefs_hash)
+        if [ "$RESTORED" != "$BEFORE" ]; then
+            echo "cp -a 恢复未过校验（老 busybox 可能不支持），降级 cp -r 重恢复"
+            sh_ "am force-stop com.boottask; busybox cp -r $BACKUP/. $PREFS/
+                 OWN=\$(dumpsys package com.boottask | busybox grep -o 'userId=[0-9]*' | busybox head -1 | busybox cut -d= -f2)
+                 [ -n \"\$OWN\" ] && chown \$OWN:\$OWN $PREFS $PREFS/*.xml 2>/dev/null
+                 chmod 771 $PREFS; chmod 660 $PREFS/*.xml 2>/dev/null"
+            RESTORED=$(prefs_hash)
+        fi
+        [ "$RESTORED" = "$BEFORE" ] || { echo "设置恢复校验失败，备份仍在 $BACKUP" >&2; exit 1; }
+        echo "恢复完成：旧规则与全部设置已回读确认"
+    fi
+fi
 
 NEW=$(adb -s "$SERIAL" shell "dumpsys package com.boottask | busybox grep -E 'versionName|versionCode'" 2>/dev/null | tr -d '\r')
 echo "--- 结果 ---"

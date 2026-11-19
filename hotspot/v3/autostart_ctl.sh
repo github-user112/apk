@@ -105,7 +105,7 @@ cmd_off() {
 
     # 回读校验：touch 没写进去（/data 满、属主异常）时必须报出来
     [ -n "$(sh_ "ls $H/DISABLED 2>/dev/null")" ] || { bad "$H/DISABLED 没建成功"; return 1; }
-    ok "下次开机会在 delay=90s 时跑脚本，但脚本进场即退出（boot.log 记一行 skip）"
+    ok "下次开机会立即尝试跑脚本，但脚本进场即退出（boot.log 记一行 skip）"
     info "当前热点如果正在跑，不受影响；想立刻停用请再执行: bash $0 stop"
 }
 
@@ -120,7 +120,7 @@ cmd_on() {
 
     [ -z "$(sh_ "ls $H/DISABLED 2>/dev/null")" ] || { bad "DISABLED 删不掉"; return 1; }
     ok "下次开机会正常自动开热点"
-    info "想不重启就验证: bash ../deploy_final.sh trigger （要等 delay+20 秒）"
+    info "想不重启就验证: bash ../deploy_final.sh trigger （等 20 秒后查看状态）"
 }
 
 # ------------------------------------------------------------------ stop

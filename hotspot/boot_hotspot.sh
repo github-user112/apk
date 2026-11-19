@@ -7,7 +7,7 @@
 # v2 相比 v1 的改动（全部在 /data 里，不碰 /system）:
 #   1. mkdir 原子锁 + 僵尸锁清理，两个钩子并发只跑一个
 #   2. 入场先探测"热点已在跑"，直接退出（第二次触发零副作用）
-#   3. 等 uptime >= SETTLE_UP 再动手，避开 framework 的 WiFi 初始化窗口
+#   3. 就绪门 gate：每 2s 采样 framework WiFi 状态，就绪 x2 即动手（硬顶 up>=SETTLE_UP）
 #   4. step1 硬超时：settings put 不生效也强行继续，不再死等
 #   5. rmmod 带重试循环（每轮都补杀 supplicant）
 #   6. startap / hostapd 改为轮询等待，不用固定 sleep
@@ -24,6 +24,7 @@
 
 H=/data/local/hotspot
 LOG=$H/boot.log
+GATELOG=$H/gate.log
 LOCKD=$H/lock.d
 DISABLE_FLAG=$H/DISABLED
 MODE_FILE=$H/mode
@@ -41,7 +42,11 @@ FW_AP=/system/wifi/fw_bcmdhd_apsta.bin
 FW_STA=/system/wifi/fw_bcmdhd.bin
 NVRAM=/system/wifi/bcmdhd.cal
 
-SETTLE_UP=150        # 开机多少秒后才动手
+# v1.6.76：硬顶改看 gate 自己的等待秒数（原来用绝对 uptime）——delay=0 后脚本进场
+# 时刻取决于 adbd 何时监听（实测开机 60~80s），绝对硬顶会把就绪窗压缩到 10~30s 甚至
+# 进场即放行。相对硬顶保证无论多晚进场都有完整的 80s 观察窗。
+# v1.6.75：settle() 改为就绪门（2 次就绪即开工）；SETTLE_UP 只剩硬顶语义。
+SETTLE_UP=80         # 硬顶：gate 最多等 80 个采样秒，信号不就绪也开工（守夜 300s 兜底）
 WAIT_BOOT_MAX=300    # 等 boot_completed 的上限
 MAXTRY=3             # start_ap 整体重试轮数
 GUARD_SECS=300       # 守夜时长
@@ -52,6 +57,8 @@ PASSONCE=0
 [ "$1" = "once" ] && PASSONCE=1
 
 mkdir -p $H 2>/dev/null
+umask 022   # 日志要给 BootTask App（非 root）读取做下载分析，文件 644 / 目录 755
+chmod 755 $H 2>/dev/null
 rm -f $H/running.lock 2>/dev/null   # 清掉 v1 遗留的单文件锁，避免误判
 
 # 注意：本机 /system/bin 里没有 cut/tr/awk/sed/wc/head/tail/sort（只有 busybox 1.8.1），
@@ -66,13 +73,23 @@ log() {
   echo "[`date +%m-%dT%H:%M:%S`] up=`proc_uptime` $*" >> $LOG
 }
 
-trim_log() {
-  [ -f $LOG ] || return 0
-  SZ=`busybox wc -c < $LOG 2>/dev/null`
+# gate 轮询样本：独立 gate.log，一行一采样，供 BootTask 日志下载带回分析
+glog() {
+  echo "[`date +%m-%dT%H:%M:%S`] $*" >> $GATELOG
+}
+
+trim_one() {
+  [ -f "$1" ] || return 0
+  SZ=`busybox wc -c < "$1" 2>/dev/null`
   [ -z "$SZ" ] && return 0
   if [ "$SZ" -gt 262144 ]; then
-    busybox tail -n 600 $LOG > $LOG.tmp 2>/dev/null && mv -f $LOG.tmp $LOG
+    busybox tail -n 600 "$1" > "$1.tmp" 2>/dev/null && mv -f "$1.tmp" "$1"
   fi
+}
+
+trim_log() {
+  trim_one $LOG
+  trim_one $GATELOG
 }
 
 has_mod() {
@@ -138,20 +155,60 @@ wait_boot() {
   return 1
 }
 
+# ---------------- 就绪门（v2.2 gate） ----------------
+# 每 2s 采样 framework WiFi 状态，连续 2 次就绪立即开工。
+# 就绪 = ①wifi_on=0 且 supplicant 不在且 bcmdhd 未加载（framework 完全没碰 WiFi；
+#         只认显式 "0"，"null"=key 未写入不算；!has_mod 挡住「驱动已 insmod 但
+#         supplicant 还没 fork」的加载中间态，否则放行后 rmmod 会撞上 framework）
+#       ②wifi_on=1 且 drv=ok 且 supplicant 在（framework 初始化完成）
+#       ③wifi_on=1 且 drv 属性不存在但 supplicant 在（ROM 无此属性的降级判定）
+# 每个样本落 gate.log（随 BootTask 日志下载带回，供事后分析；进度弹窗也读它）。
+# 三层兜底：2 次就绪 -> 立即开工；gate 等待>=SETTLE_UP(80s) 硬顶 -> 强行开工；
+#           180s 绝对超时 -> 强行开工（保险，正常 80s 硬顶先触发）。监控永不判死热点。
+fw_sample() {
+  W=`settings get global wifi_on 2>/dev/null | busybox tr -d '\r'`
+  D=`getprop wlan.driver.status 2>/dev/null | busybox tr -d '\r'`
+  if ps | grep -q '[w]pa_supplicant'; then S=1; else S=0; fi
+  GS_W="$W"; GS_D="$D"; GS_S="$S"; GS_R=wait
+  if [ "$W" = "0" ] && [ "$S" = "0" ] && ! has_mod; then
+    GS_R=fast; return 0
+  fi
+  if [ "$W" = "1" ] && [ "$S" = "1" ]; then
+    if [ "$D" = "ok" ]; then GS_R=init-done; return 0; fi
+    if [ -z "$D" ]; then GS_R=supp-only; return 0; fi
+  fi
+  return 1
+}
+
 settle() {
+  READY=0
   i=0
+  log "gate: start sample=2s ready-x2 hard-cap=waited>=${SETTLE_UP}s abs-timeout=180s"
+  glog "=== gate start pid=$$ up=`uptime_s` ==="
   while [ $i -lt 180 ]; do
     U=`uptime_s`
-    # 取值失败必须当 0 处理：空串会让 [ "" -ge 150 ] 恒假 → 白等满 180 秒
     case "$U" in ''|*[!0-9]*) U=0 ;; esac
-    if [ "$U" -ge $SETTLE_UP ]; then
-      log "settle: up=$U >= $SETTLE_UP"
+    if fw_sample; then
+      READY=$((READY+1))
+    else
+      READY=0
+    fi
+    if [ "$READY" -ge 2 ]; then
+      glog "up=$U waited=${i}s wifi_on=${GS_W:-?} drv=${GS_D:-?} supp=$GS_S ready=$READY/2 OPEN reason=$GS_R"
+      log "gate: OPEN up=$U waited=${i}s reason=$GS_R (ready x2)"
       return 0
     fi
-    sleep 3
-    i=$((i+3))
+    if [ "$i" -ge "$SETTLE_UP" ]; then
+      glog "up=$U waited=${i}s wifi_on=${GS_W:-?} drv=${GS_D:-?} supp=$GS_S ready=$READY/2 OPEN reason=hard-cap"
+      log "gate: OPEN up=$U reason=hard-cap (gate 已等 ${i}s>=$SETTLE_UP, 信号未就绪也开工)"
+      return 0
+    fi
+    glog "up=$U waited=${i}s wifi_on=${GS_W:-?} drv=${GS_D:-?} supp=$GS_S ready=$READY/2 wait"
+    sleep 2
+    i=$((i+2))
   done
-  log "settle: timeout, up=`uptime_s`"
+  glog "up=`uptime_s` OPEN reason=abs-timeout-180s"
+  log "gate: OPEN reason=abs-timeout (180s)"
   return 0
 }
 
@@ -330,6 +387,7 @@ guard() {
 # ---------------- main ----------------
 main() {
   trim_log
+  chmod 644 $LOG $GATELOG 2>/dev/null   # 历史文件若是旧 umask 建的，也确保 App 可读
   if ! acquire_lock; then
     log "another instance is running, exit"
     return 0
